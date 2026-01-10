@@ -236,6 +236,9 @@ function generateCalendar(year) {
     const orderedDayNames = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
     const orderedDayIndices = [1, 2, 3, 4, 5, 6, 0];
 
+    // Heutiges Datum für die Markierung einmalig abrufen (Performance-Optimierung)
+    const todayDate = new Date();
+
     const CELL_WIDTH = 42;
     const CELL_HEIGHT = 42;
     const CELL_GAP = 4;
@@ -282,6 +285,11 @@ function generateCalendar(year) {
 
             let classes = [];
             let holidayNames = {};
+
+            // Überprüfen, ob es der heutige Tag ist
+            if (year === todayDate.getFullYear() && month === todayDate.getMonth() && day === todayDate.getDate()) {
+                classes.push('heute');
+            }
 
             if (holiday) {
                 classes.push('feiertag');
@@ -408,7 +416,7 @@ function generateCalendar(year) {
                 const cellData = week.find(data => data.originalDayOfWeek === dayIndex);
                 const dateCell = document.createElement('div');
                 if (cellData && cellData.fullDate) {
-                    dateCell.classList.add('date-cell', cellData.classes);
+                    dateCell.className = `date-cell ${cellData.classes}`;
                     dateCell.dataset.fullDate = cellData.fullDate;
                     dateCell.innerHTML = `<div class="day-number">${cellData.day}</div><div class="note-indicator"></div>`;
 
