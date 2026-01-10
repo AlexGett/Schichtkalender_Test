@@ -171,7 +171,7 @@ let customShiftSystem = JSON.parse(localStorage.getItem('customShiftSystem')) ||
 const defaultShiftSystem = {
     sequence: ['fruehschicht', 'fruehschicht', 'fruehschicht', 'fruehschicht', 'fruehschicht', 'freischicht', 'freischicht', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'freischicht', 'freischicht', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'freischicht', 'freischicht'],
     // WICHTIG: Passe dieses Datum an einen bekannten Startpunkt an, z.B. einen Montag, an dem die erste Schicht des Zyklus war
-    referenceStartDate: '2025-01-06', // Beispiel: Ein Montag
+    referenceStartDate: '2030-01-07', // Beispiel: Ein Montag
     referenceShiftType: 'nachtschicht' // Beispiel: Die Schicht, die am 2025-01-06 beginnt
 };
 
@@ -491,10 +491,20 @@ document.addEventListener('DOMContentLoaded', () => {
         saveButton.addEventListener('click', saveCustomShiftSystem);
     }
     
-    // Geänderter Event Listener für das "Einstellen" des Standard-Schichtsystems
-    const setStandardButton = document.getElementById('resetCustomShiftSystem'); // Die ID des Buttons bleibt gleich
-    if (setStandardButton) {
-        setStandardButton.addEventListener('click', resetCustomShiftSystem); // Die Funktion heißt weiterhin so
+    // Event Listener für die Preset-Buttons (Standard, Gruppe A, Gruppe B)
+    const btnStandard = document.getElementById('setStandardShiftSystem');
+    if (btnStandard) {
+        btnStandard.addEventListener('click', () => setShiftGroup('Standard'));
+    }
+
+    const btnGroupA = document.getElementById('setGroupAShiftSystem');
+    if (btnGroupA) {
+        btnGroupA.addEventListener('click', () => setShiftGroup('A'));
+    }
+
+    const btnGroupB = document.getElementById('setGroupBShiftSystem');
+    if (btnGroupB) {
+        btnGroupB.addEventListener('click', () => setShiftGroup('B'));
     }
 
     // NEUE FUNKTIONALITÄT FÜR DAS ÖFFNEN/SCHLIESSEN DES SCHICHTSYSTEM-BEREICHS MIT PASSWORT
@@ -588,38 +598,63 @@ function saveCustomShiftSystem() {
     document.getElementById('settingsDialogOverlay').classList.remove('active'); // Dialog schließen
 }
 
-// Angepasste Funktion zum Einstellen des vordefinierten Standard-Schichtsystems
-function resetCustomShiftSystem() { // Name der Funktion bleibt gleich, aber die Funktionalität ändert sich
-    // Definiere den gewünschten Standardrhythmus
-    const predefinedStandardSequence = ['fruehschicht', 'fruehschicht', 'fruehschicht', 'fruehschicht', 'fruehschicht', 'freischicht', 'freischicht', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'freischicht', 'freischicht', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'freischicht', 'freischicht'];
-    const predefinedStartDate = '2030-01-07'; // Ein Montag, passend für den Start der Nachtschicht
-    const predefinedStartType = 'nachtschicht'; // Die Schicht, die am predefinedStartDate beginnt
+// Funktion zum Einstellen der Gruppen A und B
+function setShiftGroup(group) {
+    let sequenceInput = "";
+    let startDate = "";
+    let startType = "";
+    let startTypeInput = "";
+    
+    if (group === 'A') {
+        sequenceInput = "N,N,N,N,N,Frei,Frei,S,S,S,S,S,S,Frei,F,F,F,F,F,Frei,Frei,N,N,N,N,N,Frei,Frei,S,S,S,S,S,Frei,Frei,F,F,F,F,F,F,N";
+        startDate = "2030-01-07";
+        startType = "nachtschicht";
+        startTypeInput = "Nacht";
+    } else if (group === 'B') {
+        sequenceInput = "N,N,N,N,N,Frei,Frei,S,S,S,S,S,S,Frei,F,F,F,F,F,Frei,Frei,N,N,N,N,N,Frei,Frei,S,S,S,S,S,Frei,Frei,F,F,F,F,F,F,N";
+        startDate = "2030-01-28";
+        startType = "nachtschicht";
+        startTypeInput = "Nacht";
+    } else if (group === 'Standard') {
+        sequenceInput = "N,N,N,N,N,Frei,Frei,S,S,S,S,S,Frei,Frei,F,F,F,F,F,Frei,Frei";
+        startDate = "2030-01-07";
+        startType = "nachtschicht";
+        startTypeInput = "Nacht";
+    } else {
+        return;
+    }
 
-    // Erstelle das neue 'customShiftSystem' Objekt mit den vordefinierten Werten
+    // Sequenz parsen
+    const sequenceArrayRaw = sequenceInput.split(',').map(s => s.trim());
+    const sequenceArray = sequenceArrayRaw.map(s => {
+        const lower = s.toLowerCase();
+        if (lower === 'f' || lower === 'früh') return 'fruehschicht';
+        if (lower === 'n' || lower === 'nacht') return 'nachtschicht';
+        if (lower === 's' || lower === 'spät') return 'spaetschicht';
+        if (lower === 'frei') return 'freischicht';
+        return 'freischicht'; // Fallback
+    });
+
     const newCustomShiftSystem = {
-        sequence: predefinedStandardSequence,
-        referenceStartDate: predefinedStartDate,
-        referenceShiftType: predefinedStartType,
-        // Speichere auch die "Input"-Versionen für die Anzeige im Dialog
-        sequence_input: 'F,F,F,F,F,Frei,Frei,N,N,N,N,N,Frei,Frei,S,S,S,S,S,Frei,Frei',
-        referenceStartDate_input: predefinedStartDate,
-        referenceShiftType_input: 'Nacht' // Die Anzeige-Version des Starttyps
+        sequence: sequenceArray,
+        referenceStartDate: startDate,
+        referenceShiftType: startType,
+        sequence_input: sequenceInput,
+        referenceStartDate_input: startDate,
+        referenceShiftType_input: startTypeInput
     };
 
-    // Speichere das vordefinierte System im localStorage
     localStorage.setItem('customShiftSystem', JSON.stringify(newCustomShiftSystem));
-    
-    // Aktualisiere die In-Memory-Variable 'customShiftSystem'
-    customShiftSystem = newCustomShiftSystem; // Wichtig, damit generateCalendar die neue Einstellung verwendet
+    customShiftSystem = newCustomShiftSystem;
 
-    // Setze die Eingabefelder im Dialog zurück, um die neuen Werte anzuzeigen
-    document.getElementById('customShiftSequence').value = newCustomShiftSystem.sequence_input;
-    document.getElementById('customShiftStartDate').value = newCustomShiftSystem.referenceStartDate_input;
-    document.getElementById('customShiftStartType').value = newCustomShiftSystem.referenceShiftType_input;
+    // Update UI inputs
+    document.getElementById('customShiftSequence').value = sequenceInput;
+    document.getElementById('customShiftStartDate').value = startDate;
+    document.getElementById('customShiftStartType').value = startTypeInput;
 
-    alert('Der vordefinierte Standard-Schichtrhythmus wurde eingestellt. Der Kalender wird aktualisiert.');
-    generateCalendar(currentCalendarYear); // Kalender mit dem neuen System neu generieren
-    document.getElementById('settingsDialogOverlay').classList.remove('active'); // Dialog schließen
+    alert(`Schichtsystem für Gruppe ${group} wurde eingestellt.`);
+    generateCalendar(currentCalendarYear);
+    document.getElementById('settingsDialogOverlay').classList.remove('active');
 }
 // --- ENDE FUNKTIONEN FÜR BENUTZERDEFINIERTES SCHICHTSYSTEM ---
 
