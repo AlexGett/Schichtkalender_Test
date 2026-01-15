@@ -112,7 +112,7 @@ function ensureBussUndBettagNote(year) {
 
 // NEUE KONSTANTEN FÜR GITHUB-DATEN
 const GITHUB_USERNAME = 'alexgett'; // Passe dies an deinen GitHub-Benutzernamen an
-const GITHUB_REPO_NAME = 'Schichtkalender-pwa'; // Passe dies an den Namen deines GitHub-Repositorys an
+const GITHUB_REPO_NAME = 'Schichtkalender_Test'; // Passe dies an den Namen deines GitHub-Repositorys an
 const INFO_FOLDER_PATH = 'info_data'; // Der neue Ordner für deine PDFs und Bilder
 
 // Symbolisches Passwort für das Schichtsystem
