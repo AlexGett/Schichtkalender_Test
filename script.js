@@ -112,7 +112,7 @@ function ensureBussUndBettagNote(year) {
 
 // NEUE KONSTANTEN FÜR GITHUB-DATEN
 const GITHUB_USERNAME = 'alexgett'; // Passe dies an deinen GitHub-Benutzernamen an
-const GITHUB_REPO_NAME = 'Schichtkalender_Test'; // Passe dies an den Namen deines GitHub-Repositorys an
+const GITHUB_REPO_NAME = 'Schichtkalender-pwa'; // Passe dies an den Namen deines GitHub-Repositorys an
 const INFO_FOLDER_PATH = 'info_data'; // Der neue Ordner für deine PDFs und Bilder
 
 // Symbolisches Passwort für das Schichtsystem
@@ -1096,30 +1096,27 @@ function registerServiceWorker() {
                 .then(registration => {
                     console.log('Service Worker registriert mit Scope:', registration.scope);
 
-                    // Diese Logik prüft auf neue Service Worker Versionen
-                    let newWorker;
                     registration.addEventListener('updatefound', () => {
                         // Eine neue Version des Service Workers wurde gefunden und wird installiert.
-                        newWorker = registration.installing;
+                        const newWorker = registration.installing;
                         newWorker.addEventListener('statechange', () => {
                             // Der Status des neuen Workers hat sich geändert.
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                                 // Der neue Worker ist installiert und wartet darauf, die Kontrolle zu übernehmen.
                                 // Wir zeigen dem Benutzer jetzt die Benachrichtigung an.
                                 const updateBanner = document.getElementById('update-banner');
-                                if (updateBanner) {
-                                    updateBanner.style.display = 'flex';
-                                }
+                                if (updateBanner) updateBanner.style.display = 'flex';
                             }
                         });
                     });
 
-                    const reloadButton = document.getElementById('reload-button');
+                    const reloadButton = document.querySelector("#reload-button");
                     if (reloadButton) {
                         reloadButton.addEventListener('click', () => {
                             // Sende eine Nachricht an den wartenden Service Worker, damit er die Kontrolle übernimmt.
-                            if (newWorker) {
-                                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                            // Wir greifen direkt auf den 'waiting' worker der Registrierung zu.
+                            if (registration.waiting) {
+                                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
                             }
                         });
                     }
@@ -1130,7 +1127,7 @@ function registerServiceWorker() {
                     });
                 })
                 .catch(error => {
-                    console.log('Service Worker Registrierung fehlgeschlagen:', error);
+                    console.error('Service Worker Registrierung fehlgeschlagen:', error);
                 });
         });
     }

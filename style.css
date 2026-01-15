@@ -398,6 +398,7 @@ h2 {
     font-weight: bold;
     cursor: pointer;
 }
+
 .urlaub {
     background-color: #D1C4E9; /* Lila */
     color: #333;
@@ -815,6 +816,7 @@ hr {
     border-radius: 5px;
     font-size: 1.1em;
     text-align: center;
+    appearance: textfield;
     -moz-appearance: textfield;
 }
 
@@ -976,6 +978,7 @@ body.dark-mode .sonntag {
 body.dark-mode .feiertag {
     background-color: #7a3d3d;
 }
+
 body.dark-mode .urlaub {
     background-color: #4527a0;
 }
