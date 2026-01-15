@@ -511,6 +511,36 @@ document.addEventListener('DOMContentLoaded', () => {
         restoreButton.addEventListener('click', restoreSettings);
     }
 
+    // Urlaubsverwaltungs-Event-Listener
+    const submitVacationButton = document.getElementById('submitVacationButton');
+    const tabNewVacation = document.getElementById('tabNewVacation');
+    const tabMyVacations = document.getElementById('tabMyVacations');
+    const exportVacationsButton = document.getElementById('exportVacationsButton');
+
+    if (submitVacationButton) {
+        submitVacationButton.addEventListener('click', saveVacationRequest);
+    }
+
+    if (tabNewVacation && tabMyVacations) {
+        tabNewVacation.addEventListener('click', () => {
+            document.getElementById('newVacationTab').style.display = 'block';
+            document.getElementById('myVacationsTab').style.display = 'none';
+            tabNewVacation.classList.add('active');
+            tabMyVacations.classList.remove('active');
+        });
+
+        tabMyVacations.addEventListener('click', () => {
+            document.getElementById('newVacationTab').style.display = 'none';
+            document.getElementById('myVacationsTab').style.display = 'block';
+            tabMyVacations.classList.add('active');
+            tabNewVacation.classList.remove('active');
+            loadVacationList();
+        });
+    }
+
+    if (exportVacationsButton) {
+        exportVacationsButton.addEventListener('click', exportVacationsAsText);
+    }
 
     generateCalendar(currentCalendarYear); // Initialer Kalenderaufbau
 
@@ -689,6 +719,7 @@ setupDialog('openPhoneDialog', 'phoneDialogOverlay', 'closePhoneDialog');
 setupDialog(null, 'holidayDialogOverlay', 'closeHolidayDialog');
 setupDialog('openShiftInfoDialog', 'shiftInfoDialogOverlay', 'closeShiftInfoDialog');
 setupDialog('openSettingsDialog', 'settingsDialogOverlay', 'closeSettingsDialog');
+setupDialog('openVacationDialog', 'vacationDialogOverlay', 'closeVacationDialog');
 
 
 const settingsDialogOverlay = document.getElementById('settingsDialogOverlay');
@@ -1131,4 +1162,150 @@ function registerServiceWorker() {
                 });
         });
     }
+}
+
+// --- URLAUBSVERWALTUNG ---
+let vacationRequests = JSON.parse(localStorage.getItem('vacationRequests')) || [];
+
+const vacationTypeNames = {
+    urlaub: 'Urlaub',
+    krankheit: 'Krankheit',
+    sonderurlaub: 'Sonderurlaub',
+    unbezahlt: 'Unbezahlter Urlaub'
+};
+
+function saveVacationRequest() {
+    const startDate = document.getElementById('vacationStartDate').value;
+    const endDate = document.getElementById('vacationEndDate').value;
+    const type = document.getElementById('vacationType').value;
+    const reason = document.getElementById('vacationReason').value;
+
+    if (!startDate || !endDate) {
+        alert('Bitte Start- und Enddatum eingeben!');
+        return;
+    }
+
+    if (new Date(startDate) > new Date(endDate)) {
+        alert('Enddatum muss nach Startdatum liegen!');
+        return;
+    }
+
+    const vacation = {
+        id: Date.now(),
+        startDate: startDate,
+        endDate: endDate,
+        type: type,
+        reason: reason,
+        status: 'pending', // pending, approved, rejected
+        submittedDate: new Date().toISOString().slice(0, 10),
+        submittedTime: new Date().toISOString().slice(11, 19)
+    };
+
+    vacationRequests.push(vacation);
+    localStorage.setItem('vacationRequests', JSON.stringify(vacationRequests));
+
+    // Markiere Tage im Kalender als Urlaub
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = formatDate(d);
+        const notes = JSON.parse(localStorage.getItem('calendarNotes')) || {};
+        if (!notes[dateStr]) {
+            notes[dateStr] = '';
+        }
+        localStorage.setItem('calendarNotes', JSON.stringify(notes));
+    }
+
+    // Reset Formular
+    document.getElementById('vacationStartDate').value = '';
+    document.getElementById('vacationEndDate').value = '';
+    document.getElementById('vacationType').value = 'urlaub';
+    document.getElementById('vacationReason').value = '';
+
+    alert('Urlaubsantrag erfolgreich eingereicht!');
+    loadVacationList();
+    generateCalendar(currentCalendarYear);
+}
+
+function loadVacationList() {
+    const list = document.getElementById('vacationList');
+    vacationRequests = JSON.parse(localStorage.getItem('vacationRequests')) || [];
+
+    if (vacationRequests.length === 0) {
+        list.innerHTML = '<p class="empty-message">Keine Anträge vorhanden</p>';
+        return;
+    }
+
+    list.innerHTML = vacationRequests.map(req => {
+        const startDate = new Date(req.startDate).toLocaleDateString('de-DE');
+        const endDate = new Date(req.endDate).toLocaleDateString('de-DE');
+        const statusClass = req.status === 'pending' ? 'status-pending' : 
+                          req.status === 'approved' ? 'status-approved' : 'status-rejected';
+        const statusText = req.status === 'pending' ? 'Ausstehend' : 
+                         req.status === 'approved' ? 'Genehmigt' : 'Abgelehnt';
+
+        return `
+            <div class="vacation-item ${statusClass}">
+                <div class="vacation-header">
+                    <span class="vacation-type">${vacationTypeNames[req.type]}</span>
+                    <span class="vacation-status">${statusText}</span>
+                </div>
+                <div class="vacation-dates">
+                    <strong>${startDate}</strong> bis <strong>${endDate}</strong>
+                </div>
+                ${req.reason ? `<div class="vacation-reason">Grund: ${req.reason}</div>` : ''}
+                <div class="vacation-meta">Eingereicht: ${new Date(req.submittedDate).toLocaleDateString('de-DE')} ${req.submittedTime}</div>
+                <button class="delete-button" onclick="deleteVacationRequest(${req.id})">🗑️ Löschen</button>
+            </div>
+        `;
+    }).join('');
+}
+
+function deleteVacationRequest(id) {
+    if (confirm('Urlaubsantrag wirklich löschen?')) {
+        vacationRequests = vacationRequests.filter(req => req.id !== id);
+        localStorage.setItem('vacationRequests', JSON.stringify(vacationRequests));
+        loadVacationList();
+    }
+}
+
+function exportVacationsAsText() {
+    vacationRequests = JSON.parse(localStorage.getItem('vacationRequests')) || [];
+    
+    if (vacationRequests.length === 0) {
+        alert('Keine Urlaubsanträge zum Exportieren vorhanden!');
+        return;
+    }
+
+    let text = `URLAUBSANTRÄGE - SCHICHTKALENDER\n`;
+    text += `=================================\n`;
+    text += `Exportdatum: ${new Date().toLocaleDateString('de-DE')}\n\n`;
+
+    vacationRequests.forEach((req, index) => {
+        const startDate = new Date(req.startDate).toLocaleDateString('de-DE');
+        const endDate = new Date(req.endDate).toLocaleDateString('de-DE');
+        const statusText = req.status === 'pending' ? 'Ausstehend' : 
+                         req.status === 'approved' ? 'Genehmigt' : 'Abgelehnt';
+        
+        text += `${index + 1}. ${vacationTypeNames[req.type]}\n`;
+        text += `   Zeitraum: ${startDate} bis ${endDate}\n`;
+        text += `   Status: ${statusText}\n`;
+        if (req.reason) {
+            text += `   Grund: ${req.reason}\n`;
+        }
+        text += `   Eingereicht: ${req.submittedDate} ${req.submittedTime}\n\n`;
+    });
+
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Urlaubsantraege_${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    alert('Urlaubsanträge erfolgreich exportiert!');
 }

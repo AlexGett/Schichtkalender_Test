@@ -112,6 +112,11 @@ h2 {
     left: 10px;
 }
 
+.vacation-icon-position {
+    top: 140px;
+    left: 10px;
+}
+
 /* NEUE CSS-Regeln für die Beat-Animation des Emojis */
 .beat-animation {
     display: inline-block; /* Wichtig, damit transform funktioniert */
@@ -447,6 +452,10 @@ h2 {
     .info-icon-position {
         left: 12px;
 	    top: 130px;
+    }
+    .vacation-icon-position {
+        left: 12px;
+        top: 95px;
     }
 }
 
@@ -1183,7 +1192,160 @@ body.dark-mode .loading-message {
     background-color: #f0f0f0;
 }
 
+#update-banner button:hover {
+    background-color: #f0f0f0;
+}
+
 /* Dark-Mode-Stile für die Benachrichtigung */
+
+/* --- URLAUBSVERWALTUNG STYLES --- */
+.vacation-dialog {
+    max-width: 600px;
+}
+
+.vacation-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-button {
+    padding: 12px 20px;
+    border: none;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    border-radius: 5px 5px 0 0;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.tab-button.active {
+    background-color: #007bff;
+    color: white;
+    border-bottom: 3px solid #007bff;
+}
+
+.tab-content {
+    padding: 15px 0;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.vacation-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.vacation-item {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+}
+
+.vacation-item.status-pending {
+    border-left: 4px solid #ff9800;
+    background-color: #fff8f5;
+}
+
+.vacation-item.status-approved {
+    border-left: 4px solid #4caf50;
+    background-color: #f1f8f4;
+}
+
+.vacation-item.status-rejected {
+    border-left: 4px solid #f44336;
+    background-color: #fdf5f5;
+}
+
+.vacation-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.vacation-type {
+    color: #0161fd;
+}
+
+.vacation-status {
+    font-size: 0.9em;
+    padding: 4px 8px;
+    border-radius: 3px;
+    background-color: rgba(0,0,0,0.1);
+}
+
+.vacation-dates {
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+
+.vacation-reason {
+    font-style: italic;
+    color: #666;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.vacation-meta {
+    font-size: 0.85em;
+    color: #999;
+    margin-bottom: 10px;
+}
+
+.delete-button {
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.delete-button:hover {
+    background-color: #ff5252;
+}
+
+.empty-message {
+    color: #999;
+    text-align: center;
+    padding: 20px;
+}
+
+.small-text {
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 10px;
+}
 body.dark-mode #update-banner {
     background-color: #007bff;
     color: white;

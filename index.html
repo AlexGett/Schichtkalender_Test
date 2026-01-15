@@ -21,6 +21,7 @@
             style="--fa-animation-delay: 0.20s;">📞</span>
         <span class="header-icon info-icon-position beat-animation" id="openShiftInfoDialog" style="--fa-animation-delay: 0.60s;">ℹ️</span>
         <span id="todayButton" class="header-icon today-icon-position beat-animation" style="--fa-animation-delay: 0.40s;">🗓️</span>
+        <span class="header-icon vacation-icon-position beat-animation" id="openVacationDialog" style="--fa-animation-delay: 0.50s;">🏖️</span>
         <img src="motherson-logo.PNG" alt="Motherson Logo" class="logo" id="openSettingsDialog">
 
         <div class="header-section">
@@ -213,6 +214,52 @@
     <div id="update-banner" style="display: none;">
         <span>Eine neue Version ist verfügbar!</span>
         <button id="reload-button">Aktualisieren</button>
+    </div>
+
+    <div class="dialog-overlay" id="vacationDialogOverlay">
+        <div class="dialog vacation-dialog">
+            <button class="close-button" id="closeVacationDialog">&times;</button>
+            <h3>Urlaubsverwaltung</h3>
+            
+            <div class="vacation-tabs">
+                <button class="tab-button active" id="tabNewVacation">Neuer Antrag</button>
+                <button class="tab-button" id="tabMyVacations">Meine Anträge</button>
+            </div>
+            
+            <div class="tab-content" id="newVacationTab">
+                <h4>Neuer Urlaubsantrag</h4>
+                <div class="form-group">
+                    <label for="vacationStartDate">Startdatum:</label>
+                    <input type="date" id="vacationStartDate">
+                </div>
+                <div class="form-group">
+                    <label for="vacationEndDate">Enddatum:</label>
+                    <input type="date" id="vacationEndDate">
+                </div>
+                <div class="form-group">
+                    <label for="vacationType">Urlaubstyp:</label>
+                    <select id="vacationType">
+                        <option value="urlaub">Urlaub</option>
+                        <option value="krankheit">Krankheit</option>
+                        <option value="sonderurlaub">Sonderurlaub</option>
+                        <option value="unbezahlt">Unbezahlter Urlaub</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="vacationReason">Grund (optional):</label>
+                    <textarea id="vacationReason" placeholder="z.B. Familienangelegenheit, Zahnbehandlung..."></textarea>
+                </div>
+                <button id="submitVacationButton" class="confirm-button">Antrag einreichen</button>
+            </div>
+            
+            <div class="tab-content" id="myVacationsTab" style="display: none;">
+                <h4>Eingereichte Anträge</h4>
+                <div id="vacationList" class="vacation-list">
+                    <p class="empty-message">Keine Anträge vorhanden</p>
+                </div>
+                <button id="exportVacationsButton" class="action-button" style="margin-top: 15px;">📄 Anträge exportieren</button>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
