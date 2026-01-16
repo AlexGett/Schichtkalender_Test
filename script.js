@@ -1002,7 +1002,8 @@ function backupSettings() {
             key.startsWith('calendarBorderColor') ||
             key.startsWith('darkModeEnabled') ||
             key.startsWith('autoDarkModeEnabled') ||
-            key.startsWith('calendarVacations')) {
+            key.startsWith('calendarVacations') ||
+            key.startsWith('userProfile')) {
             settingsToBackup[key] = localStorage.getItem(key);
         }
     }
@@ -1046,7 +1047,7 @@ function restoreSettings() {
 
                 // Lösche nur die relevanten alten Daten, nicht das gesamte localStorage
                 ['currentCalendarYear', 'calendarNotes', 'customShiftSystem', 
-                 'animationsDisabled', 'calendarBorderColor', 'darkModeEnabled', 'autoDarkModeEnabled', 'calendarVacations']
+                 'animationsDisabled', 'calendarBorderColor', 'darkModeEnabled', 'autoDarkModeEnabled', 'calendarVacations', 'userProfile']
                  .forEach(key => localStorage.removeItem(key));
 
                 // Lade die neuen Daten
@@ -1061,6 +1062,8 @@ function restoreSettings() {
                 notesData = JSON.parse(localStorage.getItem('calendarNotes')) || {};
                 vacationData = JSON.parse(localStorage.getItem('calendarVacations')) || {};
                 customShiftSystem = JSON.parse(localStorage.getItem('customShiftSystem')) || { sequence: [], referenceStartDate: null, referenceShiftType: null };
+                userProfile = JSON.parse(localStorage.getItem('userProfile')) || { name: '', personalNummer: '', abteilung: '', signature: null };
+                loadProfile(); // Profil-UI aktualisieren
                 
                 // Aktualisiere die UI-Elemente im Settings-Dialog sofort
                 document.getElementById('toggleAnimations').checked = (localStorage.getItem('animationsDisabled') === 'true');
@@ -1137,6 +1140,7 @@ function registerServiceWorker() {
 let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
     name: '',
     personalNummer: '',
+    abteilung: '',
     signature: null
 };
 
@@ -1231,9 +1235,58 @@ if (resetSignatureButton) {
 
 // Laden des gespeicherten Profils
 function loadProfile() {
+    // Inject Abteilung input if missing (da HTML nicht direkt bearbeitet werden kann)
+    if (profilePersonalNrInput && !document.getElementById('profileAbteilung')) {
+         const container = document.createElement('div');
+         container.className = 'settings-option';
+         container.innerHTML = '<label for="profileAbteilung">Abteilung:</label><input type="text" id="profileAbteilung" placeholder="Deine Abteilung">';
+         const parent = profilePersonalNrInput.closest('.settings-option');
+         if (parent && parent.parentNode) {
+             parent.parentNode.insertBefore(container, parent.nextSibling);
+         }
+    }
+
+    // Collapsible logic for Profile Section
+    if (profileNameInput) {
+        const section = profileNameInput.closest('.settings-section');
+        if (section && !section.classList.contains('collapsible-init')) {
+            section.classList.add('collapsible-init');
+            const header = section.querySelector('h4');
+            if (header) {
+                header.style.cursor = 'pointer';
+                header.style.display = 'flex';
+                header.style.justifyContent = 'space-between';
+                header.style.alignItems = 'center';
+                header.innerHTML = '<span>' + header.textContent + '</span><i class="fas fa-chevron-down"></i>';
+                
+                const contentWrapper = document.createElement('div');
+                contentWrapper.style.display = 'none'; // Initially collapsed
+                
+                // Move all siblings of header into contentWrapper
+                while (header.nextSibling) {
+                    contentWrapper.appendChild(header.nextSibling);
+                }
+                section.appendChild(contentWrapper);
+                
+                header.addEventListener('click', () => {
+                    const isVisible = contentWrapper.style.display === 'block';
+                    contentWrapper.style.display = isVisible ? 'none' : 'block';
+                    const icon = header.querySelector('i');
+                    if (icon) {
+                        icon.className = isVisible ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+                    }
+                });
+            }
+        }
+    }
+
     if (profileNameInput) {
         profileNameInput.value = userProfile.name || '';
         profilePersonalNrInput.value = userProfile.personalNummer || '';
+        const profileAbteilungInput = document.getElementById('profileAbteilung');
+        if (profileAbteilungInput) {
+            profileAbteilungInput.value = userProfile.abteilung || '';
+        }
         if (userProfile.signature && signatureCtx) {
             const img = new Image();
             img.onload = () => {
@@ -1249,6 +1302,11 @@ if (saveProfileButton) {
     saveProfileButton.addEventListener('click', () => {
         userProfile.name = profileNameInput.value.trim();
         userProfile.personalNummer = profilePersonalNrInput.value.trim();
+        
+        const profileAbteilungInput = document.getElementById('profileAbteilung');
+        if (profileAbteilungInput) {
+            userProfile.abteilung = profileAbteilungInput.value.trim();
+        }
         
         // Speichere die Unterschrift vom Canvas
         if (signatureCanvas) {
@@ -1410,7 +1468,7 @@ function generateUrlaubsantragPDF() {
                     </div>
                     <div style="flex: 1;">
                         <span style="font-weight: bold;">Kst./Abtlg:</span>
-                        <div style="border-bottom: 1px solid #000; height: 20px; padding-top: 2px;"></div>
+                        <div style="border-bottom: 1px solid #000; height: 20px; padding-top: 2px;">${userProfile.abteilung || ''}</div>
                     </div>
                 </div>
                 
