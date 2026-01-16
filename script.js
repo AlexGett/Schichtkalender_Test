@@ -1648,9 +1648,33 @@ ${grund}
             throw new Error('html2pdf ist nicht geladen. Bitte überprüfen Sie die Bibliothek.');
         }
         
-        html2pdf().set(opt).from(element).save().then(() => {
-            console.log('PDF erfolgreich generiert');
-            alert('PDF wurde generiert und gespeichert!');
+        // PDF als Blob generieren, um es teilen zu können
+        html2pdf().set(opt).from(element).output('blob').then((blob) => {
+            const file = new File([blob], opt.filename, { type: 'application/pdf' });
+            
+            // Prüfen, ob das Teilen von Dateien unterstützt wird (z.B. auf Mobilgeräten)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                    files: [file],
+                    title: 'Urlaubsantrag',
+                    text: `Hier ist mein Urlaubsantrag: ${opt.filename}`
+                }).then(() => {
+                    console.log('PDF erfolgreich geteilt');
+                }).catch((error) => {
+                    console.log('Teilen abgebrochen oder fehlgeschlagen', error);
+                });
+            } else {
+                // Fallback: Download für Desktop oder nicht unterstützte Browser
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = opt.filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert('PDF wurde generiert und gespeichert!');
+            }
         }).catch((error) => {
             console.error('PDF-Generierungsfehler:', error);
             alert('Fehler beim PDF-Generieren: ' + error.message);
