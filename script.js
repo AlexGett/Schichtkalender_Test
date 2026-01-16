@@ -112,7 +112,7 @@ function ensureBussUndBettagNote(year) {
 
 // NEUE KONSTANTEN FÜR GITHUB-DATEN
 const GITHUB_USERNAME = 'alexgett'; // Passe dies an deinen GitHub-Benutzernamen an
-const GITHUB_REPO_NAME = 'Schichtkalender_Test'; // Passe dies an den Namen deines GitHub-Repositorys an
+const GITHUB_REPO_NAME = 'Schichtkalender-pwa'; // Passe dies an den Namen deines GitHub-Repositorys an
 const INFO_FOLDER_PATH = 'info_data'; // Der neue Ordner für deine PDFs und Bilder
 
 // Symbolisches Passwort für das Schichtsystem
@@ -511,36 +511,6 @@ document.addEventListener('DOMContentLoaded', () => {
         restoreButton.addEventListener('click', restoreSettings);
     }
 
-    // Urlaubsverwaltungs-Event-Listener
-    const submitVacationButton = document.getElementById('submitVacationButton');
-    const tabNewVacation = document.getElementById('tabNewVacation');
-    const tabMyVacations = document.getElementById('tabMyVacations');
-    const exportVacationsButton = document.getElementById('exportVacationsButton');
-
-    if (submitVacationButton) {
-        submitVacationButton.addEventListener('click', saveVacationRequest);
-    }
-
-    if (tabNewVacation && tabMyVacations) {
-        tabNewVacation.addEventListener('click', () => {
-            document.getElementById('newVacationTab').style.display = 'block';
-            document.getElementById('myVacationsTab').style.display = 'none';
-            tabNewVacation.classList.add('active');
-            tabMyVacations.classList.remove('active');
-        });
-
-        tabMyVacations.addEventListener('click', () => {
-            document.getElementById('newVacationTab').style.display = 'none';
-            document.getElementById('myVacationsTab').style.display = 'block';
-            tabMyVacations.classList.add('active');
-            tabNewVacation.classList.remove('active');
-            loadVacationList();
-        });
-    }
-
-    if (exportVacationsButton) {
-        exportVacationsButton.addEventListener('click', exportVacationsAsText);
-    }
 
     generateCalendar(currentCalendarYear); // Initialer Kalenderaufbau
 
@@ -719,7 +689,6 @@ setupDialog('openPhoneDialog', 'phoneDialogOverlay', 'closePhoneDialog');
 setupDialog(null, 'holidayDialogOverlay', 'closeHolidayDialog');
 setupDialog('openShiftInfoDialog', 'shiftInfoDialogOverlay', 'closeShiftInfoDialog');
 setupDialog('openSettingsDialog', 'settingsDialogOverlay', 'closeSettingsDialog');
-setupDialog('openVacationDialog', 'vacationDialogOverlay', 'closeVacationDialog');
 
 
 const settingsDialogOverlay = document.getElementById('settingsDialogOverlay');
@@ -1164,148 +1133,541 @@ function registerServiceWorker() {
     }
 }
 
-// --- URLAUBSVERWALTUNG ---
-let vacationRequests = JSON.parse(localStorage.getItem('vacationRequests')) || [];
-
-const vacationTypeNames = {
-    urlaub: 'Urlaub',
-    krankheit: 'Krankheit',
-    sonderurlaub: 'Sonderurlaub',
-    unbezahlt: 'Unbezahlter Urlaub'
+// ===== PROFILVERWALTUNG =====
+let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
+    name: '',
+    personalNummer: '',
+    signature: null
 };
 
-function saveVacationRequest() {
-    const startDate = document.getElementById('vacationStartDate').value;
-    const endDate = document.getElementById('vacationEndDate').value;
-    const type = document.getElementById('vacationType').value;
-    const reason = document.getElementById('vacationReason').value;
+const profileNameInput = document.getElementById('profileName');
+const profilePersonalNrInput = document.getElementById('profilePersonalNummer');
+const signatureCanvas = document.getElementById('signatureCanvas');
+const clearSignatureButton = document.getElementById('clearSignatureButton');
+const resetSignatureButton = document.getElementById('resetSignatureButton');
+const saveProfileButton = document.getElementById('saveProfileButton');
 
-    if (!startDate || !endDate) {
-        alert('Bitte Start- und Enddatum eingeben!');
-        return;
-    }
+let signatureCtx = null;
+let isDrawing = false;
 
-    if (new Date(startDate) > new Date(endDate)) {
-        alert('Enddatum muss nach Startdatum liegen!');
-        return;
-    }
-
-    const vacation = {
-        id: Date.now(),
-        startDate: startDate,
-        endDate: endDate,
-        type: type,
-        reason: reason,
-        status: 'pending', // pending, approved, rejected
-        submittedDate: new Date().toISOString().slice(0, 10),
-        submittedTime: new Date().toISOString().slice(11, 19)
-    };
-
-    vacationRequests.push(vacation);
-    localStorage.setItem('vacationRequests', JSON.stringify(vacationRequests));
-
-    // Markiere Tage im Kalender als Urlaub
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+// Canvas für Unterschrift initialisieren
+if (signatureCanvas) {
+    signatureCtx = signatureCanvas.getContext('2d');
+    signatureCtx.lineCap = 'round';
+    signatureCtx.lineJoin = 'round';
+    signatureCtx.lineWidth = 2;
+    signatureCtx.strokeStyle = '#000';
     
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const dateStr = formatDate(d);
-        const notes = JSON.parse(localStorage.getItem('calendarNotes')) || {};
-        if (!notes[dateStr]) {
-            notes[dateStr] = '';
-        }
-        localStorage.setItem('calendarNotes', JSON.stringify(notes));
-    }
-
-    // Reset Formular
-    document.getElementById('vacationStartDate').value = '';
-    document.getElementById('vacationEndDate').value = '';
-    document.getElementById('vacationType').value = 'urlaub';
-    document.getElementById('vacationReason').value = '';
-
-    alert('Urlaubsantrag erfolgreich eingereicht!');
-    loadVacationList();
-    generateCalendar(currentCalendarYear);
+    // Hintergrund weiß
+    signatureCtx.fillStyle = '#fff';
+    signatureCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    
+    // Touch und Maus Events
+    signatureCanvas.addEventListener('mousedown', startDrawing);
+    signatureCanvas.addEventListener('mousemove', draw);
+    signatureCanvas.addEventListener('mouseup', stopDrawing);
+    signatureCanvas.addEventListener('mouseout', stopDrawing);
+    
+    // Touch Events
+    signatureCanvas.addEventListener('touchstart', handleTouch);
+    signatureCanvas.addEventListener('touchmove', handleTouch);
+    signatureCanvas.addEventListener('touchend', stopDrawing);
 }
 
-function loadVacationList() {
-    const list = document.getElementById('vacationList');
-    vacationRequests = JSON.parse(localStorage.getItem('vacationRequests')) || [];
+function startDrawing(e) {
+    isDrawing = true;
+    const rect = signatureCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    signatureCtx.beginPath();
+    signatureCtx.moveTo(x, y);
+}
 
-    if (vacationRequests.length === 0) {
-        list.innerHTML = '<p class="empty-message">Keine Anträge vorhanden</p>';
-        return;
+function draw(e) {
+    if (!isDrawing) return;
+    const rect = signatureCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    signatureCtx.lineTo(x, y);
+    signatureCtx.stroke();
+}
+
+function handleTouch(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent(
+        e.type === 'touchstart' ? 'mousedown' : 'mousemove',
+        {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        }
+    );
+    signatureCanvas.dispatchEvent(mouseEvent);
+}
+
+function stopDrawing() {
+    isDrawing = false;
+    signatureCtx.closePath();
+}
+
+if (clearSignatureButton) {
+    clearSignatureButton.addEventListener('click', () => {
+        signatureCtx.fillStyle = '#fff';
+        signatureCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    });
+}
+
+if (resetSignatureButton) {
+    resetSignatureButton.addEventListener('click', () => {
+        if (userProfile.signature) {
+            signatureCtx.fillStyle = '#fff';
+            signatureCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+            userProfile.signature = null;
+            localStorage.setItem('userProfile', JSON.stringify(userProfile));
+            alert('Unterschrift wurde zurückgesetzt!');
+        }
+    });
+}
+
+// Laden des gespeicherten Profils
+function loadProfile() {
+    if (profileNameInput) {
+        profileNameInput.value = userProfile.name || '';
+        profilePersonalNrInput.value = userProfile.personalNummer || '';
+        if (userProfile.signature && signatureCtx) {
+            const img = new Image();
+            img.onload = () => {
+                signatureCtx.drawImage(img, 0, 0);
+            };
+            img.src = userProfile.signature;
+        }
     }
+}
 
-    list.innerHTML = vacationRequests.map(req => {
-        const startDate = new Date(req.startDate).toLocaleDateString('de-DE');
-        const endDate = new Date(req.endDate).toLocaleDateString('de-DE');
-        const statusClass = req.status === 'pending' ? 'status-pending' : 
-                          req.status === 'approved' ? 'status-approved' : 'status-rejected';
-        const statusText = req.status === 'pending' ? 'Ausstehend' : 
-                         req.status === 'approved' ? 'Genehmigt' : 'Abgelehnt';
+// Profil speichern
+if (saveProfileButton) {
+    saveProfileButton.addEventListener('click', () => {
+        userProfile.name = profileNameInput.value.trim();
+        userProfile.personalNummer = profilePersonalNrInput.value.trim();
+        
+        // Speichere die Unterschrift vom Canvas
+        if (signatureCanvas) {
+            userProfile.signature = signatureCanvas.toDataURL('image/png');
+        }
+        
+        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+        alert('Profil erfolgreich gespeichert!');
+    });
+}
 
-        return `
-            <div class="vacation-item ${statusClass}">
-                <div class="vacation-header">
-                    <span class="vacation-type">${vacationTypeNames[req.type]}</span>
-                    <span class="vacation-status">${statusText}</span>
+// ===== URLAUBSANTRAG-FUNKTIONALITÄT =====
+const urlaubsantragButton = document.getElementById('urlaubsantragButton');
+const urlaubsantragDialogOverlay = document.getElementById('urlaubsantragDialogOverlay');
+const closeUrlaubsantragDialog = document.getElementById('closeUrlaubsantragDialog');
+const generatePdfButton = document.getElementById('generatePdfButton');
+const sendUrlaubsantragButton = document.getElementById('sendUrlaubsantragButton');
+
+let urlaubsantragStartDate = null;
+
+if (urlaubsantragButton) {
+    urlaubsantragButton.addEventListener('click', () => {
+        if (!currentDayCell) return;
+        
+        urlaubsantragStartDate = currentDayCell.dataset.fullDate;
+        const dateInput = document.getElementById('urlaubsantrag_date_from');
+        const nameInput = document.getElementById('urlaubsantrag_name');
+        const personalnrInput = document.getElementById('urlaubsantrag_personalnummer');
+        const signaturePreviewDiv = document.getElementById('urlaubsantrag_signature_preview');
+        
+        // Profildaten eintragen
+        nameInput.value = userProfile.name || '';
+        personalnrInput.value = userProfile.personalNummer || '';
+        dateInput.value = urlaubsantragStartDate;
+        document.getElementById('urlaubsantrag_date_to').value = '';
+        document.getElementById('urlaubsantrag_grund').value = '';
+        
+        // Unterschrift anzeigen
+        signaturePreviewDiv.innerHTML = '';
+        if (userProfile.signature) {
+            signaturePreviewDiv.innerHTML = `<img src="${userProfile.signature}" style="max-width: 250px; max-height: 100px; border: 2px solid #ddd; border-radius: 4px; padding: 5px; display: block;">`;
+        } else {
+            signaturePreviewDiv.innerHTML = '<p style="color: #999; text-align: center;">Keine Unterschrift vorhanden. Bitte in den Einstellungen zeichnen.</p>';
+        }
+        
+        urlaubsantragDialogOverlay.classList.add('active');
+        noteDialogOverlay.classList.remove('active');
+    });
+}
+
+if (closeUrlaubsantragDialog) {
+    closeUrlaubsantragDialog.addEventListener('click', () => {
+        urlaubsantragDialogOverlay.classList.remove('active');
+    });
+    
+    urlaubsantragDialogOverlay.addEventListener('click', (event) => {
+        if (event.target === urlaubsantragDialogOverlay) {
+            urlaubsantragDialogOverlay.classList.remove('active');
+        }
+    });
+}
+
+// PDF generieren
+if (generatePdfButton) {
+    generatePdfButton.addEventListener('click', () => {
+        console.log('PDF-Button geklickt');
+        try {
+            generateUrlaubsantragPDF();
+        } catch (error) {
+            console.error('Fehler beim PDF-Generieren:', error);
+            alert('Fehler beim Generieren der PDF: ' + error.message);
+        }
+    });
+}
+
+function generateUrlaubsantragPDF() {
+    try {
+        console.log('Starte PDF-Generierung...');
+        
+        const name = document.getElementById('urlaubsantrag_name').value;
+        const personalnr = document.getElementById('urlaubsantrag_personalnummer').value;
+        const dateFrom = document.getElementById('urlaubsantrag_date_from').value;
+        const dateTo = document.getElementById('urlaubsantrag_date_to').value;
+        const grund = document.getElementById('urlaubsantrag_grund').value;
+        
+        console.log('Name:', name, 'Von:', dateFrom, 'Bis:', dateTo);
+        
+        if (!dateTo) {
+            alert('Bitte geben Sie ein Enddatum ein!');
+            return;
+        }
+        
+        // Hole alle Feiertage für das Jahr
+        const fromDate = new Date(dateFrom);
+        const toDate = new Date(dateTo);
+        const year = fromDate.getFullYear();
+        const yearHolidays = getHolidaysForYear(year);
+        
+        // Konvertiere Feiertage in ein Set für schnelle Suche
+        const holidayDates = new Set(yearHolidays.map(h => h.date));
+        
+        // Berechne nur die Arbeitstage (nicht die Freischichten laut Schichtmodell und keine Feiertage)
+        let workingDays = 0;
+        
+        console.log('Berechne Arbeitstage von', fromDate, 'bis', toDate);
+        
+        for (let d = new Date(fromDate); d <= toDate; d.setDate(d.getDate() + 1)) {
+            const dateStr = formatDate(d);
+            const shiftClass = getShiftForDate(dateStr);
+            const isHoliday = holidayDates.has(dateStr);
+            
+            console.log(dateStr, '- Schicht:', shiftClass, ', Feiertag:', isHoliday);
+            
+            // Zähle nur Arbeitstage (nicht freischicht und keine Feiertage)
+            if (shiftClass !== 'freischicht' && !isHoliday) {
+                workingDays++;
+            }
+        }
+        
+        console.log('Gesamt Arbeitstage:', workingDays);
+        
+        // Logo als Data-URL
+        const logoImg = document.querySelector('.logo');
+        let logoDataUrl = '';
+        if (logoImg && logoImg.src) {
+            // Versuche das Logo zu laden und zu konvertieren
+            const canvas = document.createElement('canvas');
+            canvas.width = logoImg.naturalWidth || 150;
+            canvas.height = logoImg.naturalHeight || 100;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(logoImg, 0, 0);
+            logoDataUrl = canvas.toDataURL('image/png');
+            console.log('Logo geladen');
+        } else {
+            console.log('Logo nicht gefunden');
+        }
+        
+        const htmlContent = `
+            <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 950px; margin: 0 auto; background-color: white; color: #000; position: relative;">
+                
+                <!-- Logo oben rechts -->
+                ${logoDataUrl ? `<div style="position: absolute; top: 20px; right: 20px;">
+                    <img src="${logoDataUrl}" style="max-width: 100px; max-height: 60px; object-fit: contain;">
+                </div>` : ''}
+                
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: bold;">Urlaubsantrag / Abwesenheitsmeldung</h2>
                 </div>
-                <div class="vacation-dates">
-                    <strong>${startDate}</strong> bis <strong>${endDate}</strong>
+                
+                <!-- Header-Zeile mit Name, Pers-Nr, Abteilung -->
+                <div style="display: flex; gap: 30px; margin-bottom: 15px; font-size: 12px;">
+                    <div style="flex: 1;">
+                        <span style="font-weight: bold;">Name:</span>
+                        <div style="border-bottom: 1px solid #000; height: 20px; padding-top: 2px;">${name}</div>
+                    </div>
+                    <div style="flex: 0.8;">
+                        <span style="font-weight: bold;">Pers-Nr:</span>
+                        <div style="border-bottom: 1px solid #000; height: 20px; padding-top: 2px;">${personalnr}</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <span style="font-weight: bold;">Kst./Abtlg:</span>
+                        <div style="border-bottom: 1px solid #000; height: 20px; padding-top: 2px;"></div>
+                    </div>
                 </div>
-                ${req.reason ? `<div class="vacation-reason">Grund: ${req.reason}</div>` : ''}
-                <div class="vacation-meta">Eingereicht: ${new Date(req.submittedDate).toLocaleDateString('de-DE')} ${req.submittedTime}</div>
-                <button class="delete-button" onclick="deleteVacationRequest(${req.id})">🗑️ Löschen</button>
+                
+                <!-- Urlaubszeile 1 -->
+                <div style="border: 1px solid #000; margin-bottom: 3px; padding: 5px; font-size: 11px;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label style="font-weight: bold; min-width: 80px;">Urlaub 1:</label>
+                        <div style="display: flex; gap: 15px; flex: 1;">
+                            <div style="flex: 0.6;">
+                                <span>vom</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;">${formatGermanDate(dateFrom)}</div>
+                            </div>
+                            <div style="flex: 0.6;">
+                                <span>bis</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;">${formatGermanDate(dateTo)}</div>
+                            </div>
+                            <div style="flex: 0.4;">
+                                <span>Tage</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px; text-align: center;">${workingDays}</div>
+                            </div>
+                            <div style="flex: 0.8;">
+                                <span>von bis Uhr</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                            <div style="flex: 0.5;">
+                                <span>Rest:</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Urlaubszeilen 2 & 3 (leer für weitere Urlaubsblöcke) -->
+                <div style="border: 1px solid #000; margin-bottom: 3px; padding: 5px; font-size: 11px; min-height: 50px;">
+                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                        <label style="font-weight: bold; min-width: 80px;">Urlaub 2:</label>
+                        <div style="display: flex; gap: 15px; flex: 1;">
+                            <div style="flex: 0.6;">
+                                <span>vom</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                            <div style="flex: 0.6;">
+                                <span>bis</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                            <div style="flex: 0.4;">
+                                <span>Tage</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                            <div style="flex: 0.8;">
+                                <span>von bis Uhr</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                            <div style="flex: 0.5;">
+                                <span>Rest:</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="border: 1px solid #000; margin-bottom: 10px; padding: 5px; font-size: 11px; min-height: 50px;">
+                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                        <label style="font-weight: bold; min-width: 80px;">Urlaub 3:</label>
+                        <div style="display: flex; gap: 15px; flex: 1;">
+                            <div style="flex: 0.6;">
+                                <span>vom</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                            <div style="flex: 0.6;">
+                                <span>bis</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                            <div style="flex: 0.4;">
+                                <span>Tage</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                            <div style="flex: 0.8;">
+                                <span>von bis Uhr</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                            <div style="flex: 0.5;">
+                                <span>Rest:</span>
+                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Krankheit-Zeile -->
+                <div style="border: 1px solid #000; margin-bottom: 10px; padding: 5px; font-size: 11px;">
+                    <div style="margin-bottom: 8px;">
+                        <span style="font-weight: bold;">7. Krank (41)</span>
+                        <span style="margin-left: 30px; font-weight: bold;">Datum:</span>
+                        <span style="border-bottom: 1px solid #000; display: inline-block; width: 150px; text-align: center;"></span>
+                        <span style="margin-left: 20px;">abgemeldet um</span>
+                        <span style="border-bottom: 1px solid #000; display: inline-block; width: 80px; text-align: center;"></span>
+                        <span>Uhr. Schicht:</span>
+                    </div>
+                    <div>
+                        <span style="font-weight: bold;">voraussichtliche Dauer:</span>
+                        <span style="border-bottom: 1px solid #000; display: inline-block; width: 300px;"></span>
+                    </div>
+                </div>
+                
+                <!-- Grund/Bemerkung -->
+                <div style="border: 1px solid #000; margin-bottom: 15px; padding: 8px; font-size: 11px; min-height: 70px;">
+                    <div style="font-weight: bold; margin-bottom: 5px;">Grund / Bemerkung zu 5., 6.:</div>
+                    <div style="margin-bottom: 5px; padding: 3px; border-bottom: 1px solid #000; min-height: 60px; word-wrap: break-word; white-space: pre-wrap;">
+${grund}
+                    </div>
+                    <div style="font-size: 10px; color: #666; margin-top: 5px;">(bei Umzug bitte Adresse, Tel. angeben)</div>
+                    <div style="margin-top: 8px;">
+                        <span style="font-weight: bold;">Arztbesuch am:</span>
+                        <span>von</span>
+                        <span style="border-bottom: 1px solid #000; display: inline-block; width: 60px; text-align: center;"></span>
+                        <span>bis</span>
+                        <span style="border-bottom: 1px solid #000; display: inline-block; width: 60px; text-align: center;"></span>
+                        <span>Uhr</span>
+                    </div>
+                    <div style="margin-top: 15px; text-align: center; min-height: 40px; border-bottom: 1px solid #000;">
+                        <span style="font-weight: bold; font-size: 10px;">Unterschrift / Stempel Arzt</span>
+                    </div>
+                </div>
+                
+                <!-- Unterschriften-Zeile -->
+                <div style="margin-top: 20px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="border: none;">
+                            <td style="width: 50%; padding: 10px; text-align: center; border: none;">
+                                <div style="min-height: 60px; border-bottom: 2px solid #000; margin-bottom: 5px; display: flex; align-items: flex-end; justify-content: center;">
+                                    ${userProfile.signature ? `<img src="${userProfile.signature}" style="max-width: 100%; max-height: 50px; object-fit: contain;">` : ''}
+                                </div>
+                                <div style="font-weight: bold; font-size: 11px;">Antragsteller/in: Unterschrift</div>
+                            </td>
+                            <td style="width: 50%; padding: 10px; text-align: center; border: none;">
+                                <div style="min-height: 60px; border-bottom: 2px solid #000; margin-bottom: 5px;"></div>
+                                <div style="font-weight: bold; font-size: 11px;">Vorgesetzter/in: Unterschrift</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px; text-align: center; border: none; font-size: 10px;">
+                                <span style="font-weight: bold;">Datum:</span>
+                                <span>${new Date().toLocaleDateString('de-DE')}</span>
+                            </td>
+                            <td style="padding: 5px; text-align: center; border: none; font-size: 10px;">
+                                <span style="font-weight: bold;">Datum:</span>
+                                <span style="border-bottom: 1px solid #000; display: inline-block; width: 120px;"></span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <!-- Footer -->
+                <div style="margin-top: 15px; font-size: 9px; text-align: center; color: #666;">
+                    <p style="margin: 5px 0;">Generiert: ${new Date().toLocaleDateString('de-DE')} ${new Date().toLocaleTimeString('de-DE')}</p>
+                </div>
             </div>
         `;
-    }).join('');
-}
-
-function deleteVacationRequest(id) {
-    if (confirm('Urlaubsantrag wirklich löschen?')) {
-        vacationRequests = vacationRequests.filter(req => req.id !== id);
-        localStorage.setItem('vacationRequests', JSON.stringify(vacationRequests));
-        loadVacationList();
-    }
-}
-
-function exportVacationsAsText() {
-    vacationRequests = JSON.parse(localStorage.getItem('vacationRequests')) || [];
-    
-    if (vacationRequests.length === 0) {
-        alert('Keine Urlaubsanträge zum Exportieren vorhanden!');
-        return;
-    }
-
-    let text = `URLAUBSANTRÄGE - SCHICHTKALENDER\n`;
-    text += `=================================\n`;
-    text += `Exportdatum: ${new Date().toLocaleDateString('de-DE')}\n\n`;
-
-    vacationRequests.forEach((req, index) => {
-        const startDate = new Date(req.startDate).toLocaleDateString('de-DE');
-        const endDate = new Date(req.endDate).toLocaleDateString('de-DE');
-        const statusText = req.status === 'pending' ? 'Ausstehend' : 
-                         req.status === 'approved' ? 'Genehmigt' : 'Abgelehnt';
         
-        text += `${index + 1}. ${vacationTypeNames[req.type]}\n`;
-        text += `   Zeitraum: ${startDate} bis ${endDate}\n`;
-        text += `   Status: ${statusText}\n`;
-        if (req.reason) {
-            text += `   Grund: ${req.reason}\n`;
+        console.log('HTML Content erstellt');
+        
+        const element = document.createElement('div');
+        element.innerHTML = htmlContent;
+        
+        const opt = {
+            margin: [8, 8, 8, 8],
+            filename: `Urlaubsantrag_${name}_${formatGermanDate(dateFrom)}-${formatGermanDate(dateTo)}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, logging: false },
+            jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+        };
+        
+        console.log('Starte html2pdf...');
+        
+        if (typeof html2pdf === 'undefined') {
+            throw new Error('html2pdf ist nicht geladen. Bitte überprüfen Sie die Bibliothek.');
         }
-        text += `   Eingereicht: ${req.submittedDate} ${req.submittedTime}\n\n`;
-    });
-
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Urlaubsantraege_${new Date().toISOString().slice(0, 10)}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    alert('Urlaubsanträge erfolgreich exportiert!');
+        
+        html2pdf().set(opt).from(element).save().then(() => {
+            console.log('PDF erfolgreich generiert');
+            alert('PDF wurde generiert und gespeichert!');
+        }).catch((error) => {
+            console.error('PDF-Generierungsfehler:', error);
+            alert('Fehler beim PDF-Generieren: ' + error.message);
+        });
+        
+    } catch (error) {
+        console.error('Fehler in generateUrlaubsantragPDF:', error);
+        alert('Fehler beim Generieren der PDF: ' + error.message);
+    }
 }
+
+// Hilfsfunktion: Abrufen der Schicht für ein bestimmtes Datum
+function getShiftForDate(dateStr) {
+    try {
+        const activeShiftSystem = getActiveShiftSystem();
+        const shiftSequence = activeShiftSystem.sequence;
+        const referenceStartDate = activeShiftSystem.referenceStartDate;
+        const referenceShiftType = activeShiftSystem.referenceShiftType;
+        
+        // Finde den Start-Index basierend auf dem Referenz-Shift-Type
+        const referenceShiftIndex = shiftSequence.indexOf(referenceShiftType);
+        if (referenceShiftIndex === -1) {
+            console.error('Referenz-Schifttyp nicht in Sequenz gefunden:', referenceShiftType);
+            return 'fruehschicht'; // Fallback
+        }
+        
+        const targetDate = new Date(dateStr + 'T12:00:00Z');
+        const oneDay = 1000 * 60 * 60 * 24;
+        const diffDays = Math.round((targetDate.getTime() - referenceStartDate.getTime()) / oneDay);
+        
+        let shiftIndex = (referenceShiftIndex + diffDays) % shiftSequence.length;
+        if (shiftIndex < 0) {
+            shiftIndex += shiftSequence.length;
+        }
+        
+        return shiftSequence[shiftIndex];
+    } catch (error) {
+        console.error('Fehler in getShiftForDate:', error);
+        return 'fruehschicht'; // Fallback bei Fehler
+    }
+}
+
+function formatGermanDate(dateString) {
+    const date = new Date(dateString + 'T00:00:00');
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
+}
+
+// PDF versenden (E-Mail-Link)
+if (sendUrlaubsantragButton) {
+    sendUrlaubsantragButton.addEventListener('click', () => {
+        const name = document.getElementById('urlaubsantrag_name').value;
+        const personalnr = document.getElementById('urlaubsantrag_personalnummer').value;
+        const dateFrom = document.getElementById('urlaubsantrag_date_from').value;
+        const dateTo = document.getElementById('urlaubsantrag_date_to').value;
+        const grund = document.getElementById('urlaubsantrag_grund').value;
+        
+        if (!dateTo) {
+            alert('Bitte geben Sie ein Enddatum ein!');
+            return;
+        }
+        
+        const subject = encodeURIComponent(`Urlaubsantrag - ${name}`);
+        const body = encodeURIComponent(
+            `Urlaubsantrag\n\nName: ${name}\nPersonalnummer: ${personalnr}\n\nUrlaubszeitraum:\nVon: ${formatGermanDate(dateFrom)}\nBis: ${formatGermanDate(dateTo)}\n\nGrund: ${grund}\n\nBitte beachten Sie das angehängte PDF mit der Unterschrift.`
+        );
+        
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        
+        alert('E-Mail-Programm wird geöffnet. Bitte fügen Sie die PDF-Datei manuell an.');
+    });
+}
+
+// Profil beim Laden der Seite laden
+console.log('Profil-Verwaltung und Urlaubsantrag initialisiert');
+loadProfile();

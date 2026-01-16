@@ -112,11 +112,6 @@ h2 {
     left: 10px;
 }
 
-.vacation-icon-position {
-    top: 140px;
-    left: 10px;
-}
-
 /* NEUE CSS-Regeln für die Beat-Animation des Emojis */
 .beat-animation {
     display: inline-block; /* Wichtig, damit transform funktioniert */
@@ -452,10 +447,6 @@ h2 {
     .info-icon-position {
         left: 12px;
 	    top: 130px;
-    }
-    .vacation-icon-position {
-        left: 12px;
-        top: 95px;
     }
 }
 
@@ -1192,161 +1183,226 @@ body.dark-mode .loading-message {
     background-color: #f0f0f0;
 }
 
-#update-banner button:hover {
-    background-color: #f0f0f0;
-}
-
 /* Dark-Mode-Stile für die Benachrichtigung */
-
-/* --- URLAUBSVERWALTUNG STYLES --- */
-.vacation-dialog {
-    max-width: 600px;
-}
-
-.vacation-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #e0e0e0;
-}
-
-.tab-button {
-    padding: 12px 20px;
-    border: none;
-    background-color: #f0f0f0;
-    cursor: pointer;
-    border-radius: 5px 5px 0 0;
-    font-weight: 500;
-    transition: all 0.3s;
-}
-
-.tab-button.active {
+body.dark-mode #update-banner {
     background-color: #007bff;
     color: white;
-    border-bottom: 3px solid #007bff;
+}
+/* ===== PROFIL-EINSTELLUNGEN STYLES ===== */
+.settings-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
 }
 
-.tab-content {
-    padding: 15px 0;
-}
-
-.form-group {
+.settings-section h4 {
+    margin-top: 0;
     margin-bottom: 15px;
-    display: flex;
-    flex-direction: column;
+    color: #333;
 }
 
-.form-group label {
+body.dark-mode .settings-section {
+    background-color: #2a2a2a;
+}
+
+body.dark-mode .settings-section h4 {
+    color: #f0f0f0;
+}
+
+.settings-option {
+    margin-bottom: 15px;
+}
+
+.settings-option label {
+    display: block;
     margin-bottom: 5px;
-    font-weight: 500;
+    font-weight: bold;
+    color: #333;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+body.dark-mode .settings-option label {
+    color: #f0f0f0;
+}
+
+.settings-option input[type="text"],
+.settings-option input[type="date"],
+.settings-option input[type="file"],
+.settings-option textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
     font-family: inherit;
-    font-size: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
 }
 
-.form-group textarea {
+body.dark-mode .settings-option input[type="text"],
+body.dark-mode .settings-option input[type="date"],
+body.dark-mode .settings-option input[type="file"],
+body.dark-mode .settings-option textarea {
+    background-color: #3a3a3a;
+    color: #f0f0f0;
+    border-color: #555;
+}
+
+/* ===== SIGNATURE CANVAS STYLES ===== */
+#signatureCanvas {
+    background-color: white;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    display: block;
+    margin: 10px 0;
+    cursor: crosshair;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+}
+
+body.dark-mode #signatureCanvas {
+    background-color: #f0f0f0;
+    border-color: #555;
+}
+
+#clearSignatureButton,
+#resetSignatureButton {
+    padding: 8px 12px;
+    font-size: 13px;
+    width: calc(50% - 5px);
+}
+
+/* ===== URLAUBSANTRAG-DIALOG STYLES ===== */
+.urlaubsantrag-content {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.urlaubsantrag-field {
+    margin-bottom: 15px;
+}
+
+.urlaubsantrag-field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+body.dark-mode .urlaubsantrag-field label {
+    color: #f0f0f0;
+}
+
+.urlaubsantrag-field input[type="text"],
+.urlaubsantrag-field input[type="date"],
+.urlaubsantrag-field textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+body.dark-mode .urlaubsantrag-field input[type="text"],
+body.dark-mode .urlaubsantrag-field input[type="date"],
+body.dark-mode .urlaubsantrag-field textarea {
+    background-color: #3a3a3a;
+    color: #f0f0f0;
+    border-color: #555;
+}
+
+.urlaubsantrag-field textarea {
     resize: vertical;
     min-height: 80px;
 }
 
-.vacation-list {
-    max-height: 400px;
-    overflow-y: auto;
+/* ===== BUTTONS STYLES ===== */
+.confirm-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
 }
 
-.vacation-item {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 15px;
+.confirm-button:hover {
+    background-color: #0056b3;
+}
+
+.action-button {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    width: 100%;
     margin-bottom: 10px;
+}
+
+.action-button:hover {
+    background-color: #138496;
+}
+
+body.dark-mode .confirm-button {
+    background-color: #0d6efd;
+}
+
+body.dark-mode .confirm-button:hover {
+    background-color: #0a58ca;
+}
+
+body.dark-mode .action-button {
+    background-color: #0d6efd;
+}
+
+body.dark-mode .action-button:hover {
+    background-color: #0a58ca;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.button-group button {
+    flex: 1;
+    min-width: 150px;
+}
+
+/* Signatur-Vorschau */
+#signaturePreview,
+#urlaubsantrag_signature_preview {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background-color: #f9f9f9;
 }
 
-.vacation-item.status-pending {
-    border-left: 4px solid #ff9800;
-    background-color: #fff8f5;
+body.dark-mode #signaturePreview,
+body.dark-mode #urlaubsantrag_signature_preview {
+    background-color: #2a2a2a;
+    border-color: #555;
 }
 
-.vacation-item.status-approved {
-    border-left: 4px solid #4caf50;
-    background-color: #f1f8f4;
-}
-
-.vacation-item.status-rejected {
-    border-left: 4px solid #f44336;
-    background-color: #fdf5f5;
-}
-
-.vacation-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    font-weight: 600;
-}
-
-.vacation-type {
-    color: #0161fd;
-}
-
-.vacation-status {
-    font-size: 0.9em;
-    padding: 4px 8px;
-    border-radius: 3px;
-    background-color: rgba(0,0,0,0.1);
-}
-
-.vacation-dates {
-    margin-bottom: 8px;
-    font-size: 0.95em;
-}
-
-.vacation-reason {
-    font-style: italic;
-    color: #666;
-    margin-bottom: 8px;
-    font-size: 0.9em;
-}
-
-.vacation-meta {
-    font-size: 0.85em;
-    color: #999;
-    margin-bottom: 10px;
-}
-
-.delete-button {
-    background-color: #ff6b6b;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: background-color 0.2s;
-}
-
-.delete-button:hover {
-    background-color: #ff5252;
-}
-
-.empty-message {
-    color: #999;
-    text-align: center;
-    padding: 20px;
-}
-
-.small-text {
-    font-size: 0.85em;
-    color: #666;
-    margin-top: 10px;
-}
-body.dark-mode #update-banner {
-    background-color: #007bff;
-    color: white;
+#signaturePreview img,
+#urlaubsantrag_signature_preview img {
+    max-width: 100%;
+    max-height: 100px;
+    object-fit: contain;
 }

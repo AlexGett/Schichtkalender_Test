@@ -14,6 +14,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="ios/180.png">
     <link rel="apple-touch-icon" sizes="152x152" href="ios/152.png">
     <link rel="apple-touch-icon" sizes="167x167" href="ios/167.png">
+    
+    <!-- jsPDF für PDF-Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <div class="calendar-container" id="calendarContainer">
@@ -21,7 +24,6 @@
             style="--fa-animation-delay: 0.20s;">📞</span>
         <span class="header-icon info-icon-position beat-animation" id="openShiftInfoDialog" style="--fa-animation-delay: 0.60s;">ℹ️</span>
         <span id="todayButton" class="header-icon today-icon-position beat-animation" style="--fa-animation-delay: 0.40s;">🗓️</span>
-        <span class="header-icon vacation-icon-position beat-animation" id="openVacationDialog" style="--fa-animation-delay: 0.50s;">🏖️</span>
         <img src="motherson-logo.PNG" alt="Motherson Logo" class="logo" id="openSettingsDialog">
 
         <div class="header-section">
@@ -146,6 +148,31 @@
             <hr>
 
             <div class="settings-section">
+                <h4>Profileinstellungen</h4>
+                <div class="settings-option">
+                    <label for="profileName">Name:</label>
+                    <input type="text" id="profileName" placeholder="Ihr Name">
+                </div>
+                <div class="settings-option">
+                    <label for="profilePersonalNummer">Personalnummer:</label>
+                    <input type="text" id="profilePersonalNummer" placeholder="z.B. 12345">
+                </div>
+                <div class="settings-option">
+                    <label>Unterschrift zeichnen:</label>
+                    <div style="border: 2px solid #ddd; border-radius: 4px; background-color: white; margin: 10px 0; overflow: hidden;">
+                        <canvas id="signatureCanvas" width="300" height="120" style="display: block; cursor: crosshair; touch-action: none;"></canvas>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <button id="clearSignatureButton" class="confirm-button" style="flex: 1; background-color: #dc3545;">Löschen</button>
+                        <button id="resetSignatureButton" class="confirm-button" style="flex: 1; background-color: #6c757d;">Zurücksetzen</button>
+                    </div>
+                </div>
+                <button id="saveProfileButton" class="confirm-button" style="margin-top: 10px;">Profil speichern</button>
+            </div>
+
+            <hr>
+
+            <div class="settings-section">
                 <button id="openCustomShiftSystemSettings" class="action-button">Eigenes Schichtsystem festlegen</button>
                 <div id="customShiftSystemSection" style="display: none;">
                     <h4>Schichtsystem-Details</h4>
@@ -206,7 +233,45 @@
             <div class="button-group">
                 <button id="toggleVacationButton">Als Urlaub markieren</button>
                 <button id="deleteNoteButton">Notiz löschen</button>
+                <button id="urlaubsantragButton">Urlaubsantrag</button>
                 <button id="saveNoteButton">Notiz speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dialog-overlay" id="urlaubsantragDialogOverlay">
+        <div class="dialog">
+            <button class="close-button" id="closeUrlaubsantragDialog">&times;</button>
+            <h3>Urlaubsantrag</h3>
+            <div class="urlaubsantrag-content">
+                <div class="urlaubsantrag-field">
+                    <label>Name:</label>
+                    <input type="text" id="urlaubsantrag_name" readonly>
+                </div>
+                <div class="urlaubsantrag-field">
+                    <label>Personalnummer:</label>
+                    <input type="text" id="urlaubsantrag_personalnummer" readonly>
+                </div>
+                <div class="urlaubsantrag-field">
+                    <label>Datum vom:</label>
+                    <input type="date" id="urlaubsantrag_date_from" readonly>
+                </div>
+                <div class="urlaubsantrag-field">
+                    <label>Datum bis:</label>
+                    <input type="date" id="urlaubsantrag_date_to">
+                </div>
+                <div class="urlaubsantrag-field">
+                    <label>Grund des Urlaubs:</label>
+                    <textarea id="urlaubsantrag_grund" placeholder="z.B. Privaturlaub, Krankenurlaub..."></textarea>
+                </div>
+                <div class="urlaubsantrag-field">
+                    <label>Unterschrift:</label>
+                    <div id="urlaubsantrag_signature_preview" style="margin-top: 8px; max-height: 100px; overflow: auto; border: 2px solid #ddd; border-radius: 4px; padding: 5px; background-color: white;"></div>
+                </div>
+                <div class="button-group">
+                    <button id="generatePdfButton" class="confirm-button">Als PDF generieren</button>
+                    <button id="sendUrlaubsantragButton" class="confirm-button">PDF versenden</button>
+                </div>
             </div>
         </div>
     </div>
@@ -214,52 +279,6 @@
     <div id="update-banner" style="display: none;">
         <span>Eine neue Version ist verfügbar!</span>
         <button id="reload-button">Aktualisieren</button>
-    </div>
-
-    <div class="dialog-overlay" id="vacationDialogOverlay">
-        <div class="dialog vacation-dialog">
-            <button class="close-button" id="closeVacationDialog">&times;</button>
-            <h3>Urlaubsverwaltung</h3>
-            
-            <div class="vacation-tabs">
-                <button class="tab-button active" id="tabNewVacation">Neuer Antrag</button>
-                <button class="tab-button" id="tabMyVacations">Meine Anträge</button>
-            </div>
-            
-            <div class="tab-content" id="newVacationTab">
-                <h4>Neuer Urlaubsantrag</h4>
-                <div class="form-group">
-                    <label for="vacationStartDate">Startdatum:</label>
-                    <input type="date" id="vacationStartDate">
-                </div>
-                <div class="form-group">
-                    <label for="vacationEndDate">Enddatum:</label>
-                    <input type="date" id="vacationEndDate">
-                </div>
-                <div class="form-group">
-                    <label for="vacationType">Urlaubstyp:</label>
-                    <select id="vacationType">
-                        <option value="urlaub">Urlaub</option>
-                        <option value="krankheit">Krankheit</option>
-                        <option value="sonderurlaub">Sonderurlaub</option>
-                        <option value="unbezahlt">Unbezahlter Urlaub</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="vacationReason">Grund (optional):</label>
-                    <textarea id="vacationReason" placeholder="z.B. Familienangelegenheit, Zahnbehandlung..."></textarea>
-                </div>
-                <button id="submitVacationButton" class="confirm-button">Antrag einreichen</button>
-            </div>
-            
-            <div class="tab-content" id="myVacationsTab" style="display: none;">
-                <h4>Eingereichte Anträge</h4>
-                <div id="vacationList" class="vacation-list">
-                    <p class="empty-message">Keine Anträge vorhanden</p>
-                </div>
-                <button id="exportVacationsButton" class="action-button" style="margin-top: 15px;">📄 Anträge exportieren</button>
-            </div>
-        </div>
     </div>
 
     <script src="script.js"></script>
