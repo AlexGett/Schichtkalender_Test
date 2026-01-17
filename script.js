@@ -1382,7 +1382,7 @@ if (generatePdfButton) {
     });
 }
 
-function generateUrlaubsantragPDF() {
+function generateUrlaubsantragPDF(action = 'download') {
     try {
         console.log('Starte PDF-Generierung...');
         
@@ -1445,188 +1445,292 @@ function generateUrlaubsantragPDF() {
         }
         
         const htmlContent = `
-            <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 950px; margin: 0 auto; background-color: white; color: #000; position: relative;">
-                
-                <!-- Logo oben rechts -->
-                ${logoDataUrl ? `<div style="position: absolute; top: 20px; right: 20px;">
-                    <img src="${logoDataUrl}" style="max-width: 100px; max-height: 60px; object-fit: contain;">
-                </div>` : ''}
-                
-                <div style="text-align: center; margin-bottom: 15px;">
-                    <h2 style="margin: 0; font-size: 18px; font-weight: bold;">Urlaubsantrag / Abwesenheitsmeldung</h2>
-                </div>
-                
-                <!-- Header-Zeile mit Name, Pers-Nr, Abteilung -->
-                <div style="display: flex; gap: 30px; margin-bottom: 15px; font-size: 12px;">
-                    <div style="flex: 1;">
-                        <span style="font-weight: bold;">Name:</span>
-                        <div style="border-bottom: 1px solid #000; height: 20px; padding-top: 2px;">${name}</div>
-                    </div>
-                    <div style="flex: 0.8;">
-                        <span style="font-weight: bold;">Pers-Nr:</span>
-                        <div style="border-bottom: 1px solid #000; height: 20px; padding-top: 2px;">${personalnr}</div>
-                    </div>
-                    <div style="flex: 1;">
-                        <span style="font-weight: bold;">Kst./Abtlg:</span>
-                        <div style="border-bottom: 1px solid #000; height: 20px; padding-top: 2px;">${userProfile.abteilung || ''}</div>
-                    </div>
-                </div>
-                
-                <!-- Urlaubszeile 1 -->
-                <div style="border: 1px solid #000; margin-bottom: 3px; padding: 5px; font-size: 11px;">
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <label style="font-weight: bold; min-width: 80px;">Urlaub 1:</label>
-                        <div style="display: flex; gap: 15px; flex: 1;">
-                            <div style="flex: 0.6;">
-                                <span>vom</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;">${formatGermanDate(dateFrom)}</div>
-                            </div>
-                            <div style="flex: 0.6;">
-                                <span>bis</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;">${formatGermanDate(dateTo)}</div>
-                            </div>
-                            <div style="flex: 0.4;">
-                                <span>Tage</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px; text-align: center;">${workingDays}</div>
-                            </div>
-                            <div style="flex: 0.8;">
-                                <span>von bis Uhr</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
-                            <div style="flex: 0.5;">
-                                <span>Rest:</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
+            <!DOCTYPE html>
+            <html lang="de">
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    @page {
+                        size: A5 landscape;
+                        margin: 5mm;
+                    }
+            
+                    body {
+                        font-family: Arial, sans-serif;
+                        font-size: 9pt;
+                        color: #000;
+                        line-height: 1.1;
+                        margin: 0;
+                        padding: 10px;
+                        background-color: #fff;
+                    }
+            
+                    .container {
+                        width: 100%;
+                        max-width: 195mm;
+                        margin: 0 auto;
+                    }
+            
+                    /* Header */
+                    .header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 10px;
+                    }
+            
+                    .header h1 {
+                        font-size: 14pt;
+                        margin: 0;
+                    }
+            
+                    .logo {
+                        color: #db261f;
+                        font-weight: 900;
+                        font-size: 140pt;
+                    }
+            
+                    /* Top Info */
+                    .top-fields {
+                        display: flex;
+                        gap: 10px;
+                        margin-bottom: 10px;
+                    }
+            
+                    .field-group {
+                        display: flex;
+                        align-items: flex-end;
+                        border-bottom: 1px solid #000;
+                    }
+            
+                    .field-group label {
+                        font-weight: bold;
+                        margin-right: 3px;
+                        white-space: nowrap;
+                    }
+            
+                    .field-group input {
+                        border: none;
+                        width: 100%;
+                        outline: none;
+                        font-size: 9pt;
+                        background: transparent;
+                    }
+            
+                    /* Table */
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+            
+                    td {
+                        padding: 3px 0;
+                        vertical-align: middle;
+                    }
+            
+                    .col-num {
+                        width: 15px;
+                        font-weight: bold;
+                        font-size: 9pt;
+                    }
+            
+                    .col-label {
+                        width: 180px;
+                        font-weight: bold;
+                        font-size: 9pt;
+                    }
+            
+                    /* Kleine Schrift für Hilfstexte */
+                    .small-label {
+                        font-size: 9pt;
+                        font-weight: normal;
+                    }
+            
+                    .inline-input {
+                        border: none;
+                        border-bottom: 1px solid #000;
+                        outline: none;
+                        font-size: 8.5pt;
+                        background: transparent;
+                        text-align: center;
+                    }
+            
+                    /* Krank Section */
+                    .krank-container {
+                        margin-top: 10px;
+                        font-size: 8.7pt;
+                    }
+            
+                    .krank-title {
+                        font-weight: bold;
+                        font-size: 8.6pt;
+                    }
+            
+                    /* Bottom Grid */
+                    .bottom-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 320px;
+                        gap: 15px;
+                        margin-top: 10px;
+                    }
+            
+                    .remarks-area div {
+                        margin-bottom: 6px;
+                        display: flex;
+                        font-size: 8pt;
+                        font-weight: bold;
+                        align-items: center;
+                    }
+            
+                    .doctor-box {
+                        border: 1px solid #000;
+                        padding: 5px;
+                        min-height: 55px;
+                        font-size: 6pt;
+                    }
+            
+                    .doctor-stamp {
+                        margin-top: 12px;
+                        border-top: 1px dotted #666;
+                        font-size: 6pt;
+                    }
+            
+                    /* Signatures */
+                    .signature-section {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 30px;
+                        margin-top: 15px;
+                    }
+            
+                    .sig-labels {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 5px;
+                    }
+            
+                    .sig-underline {
+                        border-top: 1px solid #000;
+                        width: 45%;
+                        padding-top: 2px;
+                        font-size: 8pt;
+                        text-align: center;
+                    }
+                </style>
+            </head>
+            
+            <body>
+            
+                <div class="container">
+                    <div class="header">
+                        <h1>Urlaubsantrag/ Abwesenheitsmeldung</h1>
+                        <div class="logo">
+                            ${logoDataUrl ? `<img src="${logoDataUrl}" style="max-height: 40px;">` : 'motherson |||'}
                         </div>
                     </div>
-                </div>
-                
-                <!-- Urlaubszeilen 2 & 3 (leer für weitere Urlaubsblöcke) -->
-                <div style="border: 1px solid #000; margin-bottom: 3px; padding: 5px; font-size: 11px; min-height: 50px;">
-                    <div style="display: flex; gap: 10px; align-items: flex-start;">
-                        <label style="font-weight: bold; min-width: 80px;">Urlaub 2:</label>
-                        <div style="display: flex; gap: 15px; flex: 1;">
-                            <div style="flex: 0.6;">
-                                <span>vom</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
-                            <div style="flex: 0.6;">
-                                <span>bis</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
-                            <div style="flex: 0.4;">
-                                <span>Tage</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
-                            <div style="flex: 0.8;">
-                                <span>von bis Uhr</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
-                            <div style="flex: 0.5;">
-                                <span>Rest:</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
-                        </div>
+            
+                    <div class="top-fields">
+                        <div class="field-group" style="flex: 2;"><label>Name:</label><input type="text" value="${name}"></div>
+                        <div class="field-group" style="flex: 1;"><label>Pers-Nr:</label><input type="text" value="${personalnr}"></div>
+                        <div class="field-group" style="flex: 1;"><label>Kst./ Abtlg:</label><input type="text" value="${userProfile.abteilung || ''}"></div>
                     </div>
-                </div>
-                
-                <div style="border: 1px solid #000; margin-bottom: 10px; padding: 5px; font-size: 11px; min-height: 50px;">
-                    <div style="display: flex; gap: 10px; align-items: flex-start;">
-                        <label style="font-weight: bold; min-width: 80px;">Urlaub 3:</label>
-                        <div style="display: flex; gap: 15px; flex: 1;">
-                            <div style="flex: 0.6;">
-                                <span>vom</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
-                            <div style="flex: 0.6;">
-                                <span>bis</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
-                            <div style="flex: 0.4;">
-                                <span>Tage</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
-                            <div style="flex: 0.8;">
-                                <span>von bis Uhr</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
-                            <div style="flex: 0.5;">
-                                <span>Rest:</span>
-                                <div style="border-bottom: 1px solid #000; height: 18px;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Krankheit-Zeile -->
-                <div style="border: 1px solid #000; margin-bottom: 10px; padding: 5px; font-size: 11px;">
-                    <div style="margin-bottom: 8px;">
-                        <span style="font-weight: bold;">7. Krank (41)</span>
-                        <span style="margin-left: 30px; font-weight: bold;">Datum:</span>
-                        <span style="border-bottom: 1px solid #000; display: inline-block; width: 150px; text-align: center;"></span>
-                        <span style="margin-left: 20px;">abgemeldet um</span>
-                        <span style="border-bottom: 1px solid #000; display: inline-block; width: 80px; text-align: center;"></span>
-                        <span>Uhr. Schicht:</span>
-                    </div>
-                    <div>
-                        <span style="font-weight: bold;">voraussichtliche Dauer:</span>
-                        <span style="border-bottom: 1px solid #000; display: inline-block; width: 300px;"></span>
-                    </div>
-                </div>
-                
-                <!-- Grund/Bemerkung -->
-                <div style="border: 1px solid #000; margin-bottom: 15px; padding: 8px; font-size: 11px; min-height: 70px;">
-                    <div style="font-weight: bold; margin-bottom: 5px;">Grund / Bemerkung zu 5., 6.:</div>
-                    <div style="margin-bottom: 5px; padding: 3px; border-bottom: 1px solid #000; min-height: 60px; word-wrap: break-word; white-space: pre-wrap;">
-${grund}
-                    </div>
-                    <div style="font-size: 10px; color: #666; margin-top: 5px;">(bei Umzug bitte Adresse, Tel. angeben)</div>
-                    <div style="margin-top: 8px;">
-                        <span style="font-weight: bold;">Arztbesuch am:</span>
-                        <span>von</span>
-                        <span style="border-bottom: 1px solid #000; display: inline-block; width: 60px; text-align: center;"></span>
-                        <span>bis</span>
-                        <span style="border-bottom: 1px solid #000; display: inline-block; width: 60px; text-align: center;"></span>
-                        <span>Uhr</span>
-                    </div>
-                    <div style="margin-top: 15px; text-align: center; min-height: 40px; border-bottom: 1px solid #000;">
-                        <span style="font-weight: bold; font-size: 10px;">Unterschrift / Stempel Arzt</span>
-                    </div>
-                </div>
-                
-                <!-- Unterschriften-Zeile -->
-                <div style="margin-top: 20px;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr style="border: none;">
-                            <td style="width: 50%; padding: 10px; text-align: center; border: none;">
-                                <div style="min-height: 60px; border-bottom: 2px solid #000; margin-bottom: 5px; display: flex; align-items: flex-end; justify-content: center;">
-                                    ${userProfile.signature ? `<img src="${userProfile.signature}" style="max-width: 100%; max-height: 50px; object-fit: contain;">` : ''}
-                                </div>
-                                <div style="font-weight: bold; font-size: 11px;">Antragsteller/in: Unterschrift</div>
-                            </td>
-                            <td style="width: 50%; padding: 10px; text-align: center; border: none;">
-                                <div style="min-height: 60px; border-bottom: 2px solid #000; margin-bottom: 5px;"></div>
-                                <div style="font-weight: bold; font-size: 11px;">Vorgesetzter/in: Unterschrift</div>
+            
+                    <table>
+                        <tr>
+                            <td class="col-num">1.</td>
+                            <td class="col-label">Tarifurlaub (01)</td>
+                            <td>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${formatGermanDate(dateFrom)}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${formatGermanDate(dateTo)}">
+                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${workingDays}"> <span class="small-label">Tage &nbsp; Rest:</span> <input type="text" class="inline-input" style="width: 50px;">
                             </td>
                         </tr>
                         <tr>
-                            <td style="padding: 5px; text-align: center; border: none; font-size: 10px;">
-                                <span style="font-weight: bold;">Datum:</span>
-                                <span>${new Date().toLocaleDateString('de-DE')}</span>
+                            <td class="col-num">2.</td>
+                            <td class="col-label">Abbau (Gleit-)Zeitkonto (17)</td>
+                            <td>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;">
+                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
                             </td>
-                            <td style="padding: 5px; text-align: center; border: none; font-size: 10px;">
-                                <span style="font-weight: bold;">Datum:</span>
-                                <span style="border-bottom: 1px solid #000; display: inline-block; width: 120px;"></span>
+                        </tr>
+                        <tr>
+                            <td class="col-num">3.</td>
+                            <td class="col-label">Dienstreise/- gang (97)</td>
+                            <td>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;">
+                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-num">4.</td>
+                            <td class="col-label">Schulung (74)</td>
+                            <td>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;"> <span class="small-label">Tage</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-num">5.</td>
+                            <td class="col-label">tarifl. Freistellung (20/21)</td>
+                            <td>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;">
+                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-num">6.</td>
+                            <td class="col-label">unbez. Urlaub ( 30/34)</td>
+                            <td>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;"> <span class="small-label">Tage</span>
+                                <span style="font-size: 6pt;">(Umzug: Adresse/Tel angeben)</span>
                             </td>
                         </tr>
                     </table>
+            
+                    <div class="krank-container">
+                        <span class="col-num">7.</span> <span class="krank-title">Krank (41)</span> &nbsp;
+                        <span class="small-label">Datum:</span> <input type="text" class="inline-input" style="width: 80px;">
+                        <span class="small-label">um</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
+                        <span class="small-label">Schicht:</span> <input type="text" class="inline-input" style="width: 100px;">
+                        <div style="margin-top: 5px; margin-left: 17px;">
+                            <span class="small-label">voraussichtliche Dauer:</span> <input type="text" class="inline-input" style="width: 60%;">
+                        </div>
+                    </div>
+            
+                    <div class="bottom-grid">
+                        <div class="remarks-area">
+                            <div><span style="width: 80px; font-size: 8pt;">Grund 5, 6:</span> <input type="text" class="inline-input" style="width: 70%;"></div>
+                            <div><span style="width: 80px; font-size: 8pt;">Bemerkung:</span> <input type="text" class="inline-input" style="width: 70%;" value="${grund}"></div>
+                        </div>
+                        <div class="doctor-box">
+                            <span class="small-label">Arztbesuch am</span> <input type="text" class="inline-input" style="width: 60px;">
+                            <span class="small-label">von</span> <input type="text" class="inline-input" style="width: 30px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 30px;"> <span class="small-label">Uhr</span>
+                            <div class="doctor-stamp">Unterschrift/ Stempel Arzt</div>
+                        </div>
+                    </div>
+            
+                    <div class="signature-section">
+                        <div class="sig-block">
+                            <strong>Antragsteller:</strong>
+                            <div style="height: 40px; display: flex; align-items: flex-end; justify-content: center;">
+                                ${userProfile.signature ? `<img src="${userProfile.signature}" style="max-height: 40px; max-width: 100%;">` : ''}
+                            </div>
+                            <div class="sig-labels">
+                                <div class="sig-underline">${new Date().toLocaleDateString('de-DE')}</div>
+                                <div class="sig-underline">Unterschrift</div>
+                            </div>
+                        </div>
+                        <div class="sig-block">
+                            <strong>Vorgesetzter:</strong>
+                            <div style="height: 40px;"></div>
+                            <div class="sig-labels">
+                                <div class="sig-underline">Datum</div>
+                                <div class="sig-underline">Unterschrift</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
-                <!-- Footer -->
-                <div style="margin-top: 15px; font-size: 9px; text-align: center; color: #666;">
-                    <p style="margin: 5px 0;">Generiert: ${new Date().toLocaleDateString('de-DE')} ${new Date().toLocaleTimeString('de-DE')}</p>
-                </div>
-            </div>
+            
+            </body>
+            </html>
         `;
         
         console.log('HTML Content erstellt');
@@ -1635,11 +1739,11 @@ ${grund}
         element.innerHTML = htmlContent;
         
         const opt = {
-            margin: [8, 8, 8, 8],
+            margin: [5, 5, 5, 5],
             filename: `Urlaubsantrag_${name}_${formatGermanDate(dateFrom)}-${formatGermanDate(dateTo)}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, logging: false },
-            jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a5' }
         };
         
         console.log('Starte html2pdf...');
@@ -1648,37 +1752,47 @@ ${grund}
             throw new Error('html2pdf ist nicht geladen. Bitte überprüfen Sie die Bibliothek.');
         }
         
-        // PDF als Blob generieren, um es teilen zu können
-        html2pdf().set(opt).from(element).output('blob').then((blob) => {
-            const file = new File([blob], opt.filename, { type: 'application/pdf' });
-            
-            // Prüfen, ob das Teilen von Dateien unterstützt wird (z.B. auf Mobilgeräten)
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({
-                    files: [file],
-                    title: 'Urlaubsantrag',
-                    text: `Hier ist mein Urlaubsantrag: ${opt.filename}`
-                }).then(() => {
-                    console.log('PDF erfolgreich geteilt');
-                }).catch((error) => {
-                    console.log('Teilen abgebrochen oder fehlgeschlagen', error);
-                });
-            } else {
-                // Fallback: Download für Desktop oder nicht unterstützte Browser
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = opt.filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                alert('PDF wurde generiert und gespeichert!');
-            }
-        }).catch((error) => {
-            console.error('PDF-Generierungsfehler:', error);
-            alert('Fehler beim PDF-Generieren: ' + error.message);
-        });
+        if (action === 'print') {
+            html2pdf().set(opt).from(element).toPdf().get('pdf').then((pdf) => {
+                pdf.autoPrint();
+                window.open(pdf.output('bloburl'), '_blank');
+            }).catch((error) => {
+                console.error('PDF-Druckfehler:', error);
+                alert('Fehler beim Drucken: ' + error.message);
+            });
+        } else {
+            // PDF als Blob generieren, um es teilen zu können
+            html2pdf().set(opt).from(element).output('blob').then((blob) => {
+                const file = new File([blob], opt.filename, { type: 'application/pdf' });
+                
+                // Prüfen, ob das Teilen von Dateien unterstützt wird (z.B. auf Mobilgeräten)
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: 'Urlaubsantrag',
+                        text: `Hier ist mein Urlaubsantrag: ${opt.filename}`
+                    }).then(() => {
+                        console.log('PDF erfolgreich geteilt');
+                    }).catch((error) => {
+                        console.log('Teilen abgebrochen oder fehlgeschlagen', error);
+                    });
+                } else {
+                    // Fallback: Download für Desktop oder nicht unterstützte Browser
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = opt.filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    alert('PDF wurde generiert und gespeichert!');
+                }
+            }).catch((error) => {
+                console.error('PDF-Generierungsfehler:', error);
+                alert('Fehler beim PDF-Generieren: ' + error.message);
+            });
+        }
         
     } catch (error) {
         console.error('Fehler in generateUrlaubsantragPDF:', error);
@@ -1725,28 +1839,11 @@ function formatGermanDate(dateString) {
     return `${day}.${month}.${year}`;
 }
 
-// PDF versenden (E-Mail-Link)
+// PDF drucken
 if (sendUrlaubsantragButton) {
+    sendUrlaubsantragButton.textContent = 'PDF drucken';
     sendUrlaubsantragButton.addEventListener('click', () => {
-        const name = document.getElementById('urlaubsantrag_name').value;
-        const personalnr = document.getElementById('urlaubsantrag_personalnummer').value;
-        const dateFrom = document.getElementById('urlaubsantrag_date_from').value;
-        const dateTo = document.getElementById('urlaubsantrag_date_to').value;
-        const grund = document.getElementById('urlaubsantrag_grund').value;
-        
-        if (!dateTo) {
-            alert('Bitte geben Sie ein Enddatum ein!');
-            return;
-        }
-        
-        const subject = encodeURIComponent(`Urlaubsantrag - ${name}`);
-        const body = encodeURIComponent(
-            `Urlaubsantrag\n\nName: ${name}\nPersonalnummer: ${personalnr}\n\nUrlaubszeitraum:\nVon: ${formatGermanDate(dateFrom)}\nBis: ${formatGermanDate(dateTo)}\n\nGrund: ${grund}\n\nBitte beachten Sie das angehängte PDF mit der Unterschrift.`
-        );
-        
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
-        
-        alert('E-Mail-Programm wird geöffnet. Bitte fügen Sie die PDF-Datei manuell an.');
+        generateUrlaubsantragPDF('print');
     });
 }
 
