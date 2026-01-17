@@ -1354,6 +1354,38 @@ if (urlaubsantragButton) {
         
         urlaubsantragDialogOverlay.classList.add('active');
         noteDialogOverlay.classList.remove('active');
+
+        // --- NEU: Dynamisches Einfügen der Auswahlfelder 1-7 und Zusatz-Bemerkung ---
+        const dateFromInput = document.getElementById('urlaubsantrag_date_from');
+        // Prüfen, ob wir das Feld schon eingefügt haben, um Duplikate zu vermeiden
+        if (dateFromInput && !document.getElementById('urlaubsantrag_type_container')) {
+            const typeContainer = document.createElement('div');
+            typeContainer.id = 'urlaubsantrag_type_container';
+            typeContainer.className = 'urlaubsantrag-field';
+            typeContainer.innerHTML = `
+                <label>Antragsart (Bitte auswählen):</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.9em; background: #f0f0f0; padding: 10px; border-radius: 4px;">
+                    <div><input type="radio" name="urlaubsantrag_type" value="1" checked> 1. Tarifurlaub</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="2"> 2. Gleitzeit</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="3"> 3. Dienstreise</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="4"> 4. Schulung</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="5"> 5. Freistellung</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="6"> 6. unbez. Urlaub</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="7"> 7. Krank</div>
+                </div>
+            `;
+            // Einfügen vor dem Datumsfeld (angenommen dateFromInput ist im .urlaubsantrag-field div)
+            if (dateFromInput.parentNode) dateFromInput.parentNode.parentNode.insertBefore(typeContainer, dateFromInput.parentNode);
+
+            // Zusatz-Bemerkung Feld einfügen
+            const grundInput = document.getElementById('urlaubsantrag_grund');
+            if (grundInput && grundInput.parentNode) {
+                const extraRemarkDiv = document.createElement('div');
+                extraRemarkDiv.className = 'urlaubsantrag-field';
+                extraRemarkDiv.innerHTML = `<label>Zusätzliche Bemerkung:</label><input type="text" id="urlaubsantrag_zusatz_bemerkung" placeholder="Zusätzliche Zeile...">`;
+                grundInput.parentNode.parentNode.insertBefore(extraRemarkDiv, grundInput.parentNode.nextSibling);
+            }
+        }
     });
 }
 
@@ -1391,6 +1423,20 @@ function generateUrlaubsantragPDF(action = 'download') {
         const dateFrom = document.getElementById('urlaubsantrag_date_from').value;
         const dateTo = document.getElementById('urlaubsantrag_date_to').value;
         const grund = document.getElementById('urlaubsantrag_grund').value;
+        const zusatzBemerkung = document.getElementById('urlaubsantrag_zusatz_bemerkung') ? document.getElementById('urlaubsantrag_zusatz_bemerkung').value : '';
+        
+        // Ausgewählten Typ ermitteln (1-7)
+        let selectedType = '1';
+        const selectedRadio = document.querySelector('input[name="urlaubsantrag_type"]:checked');
+        if (selectedRadio) {
+            selectedType = selectedRadio.value;
+        }
+
+        // Validierung für Punkt 5 und 6
+        if ((selectedType === '5' || selectedType === '6') && !grund.trim()) {
+            alert('Bei Auswahl von Punkt 5 oder 6 muss zwingend ein Grund angegeben werden!');
+            return;
+        }
         
         console.log('Name:', name, 'Von:', dateFrom, 'Bis:', dateTo);
         
@@ -1463,8 +1509,18 @@ function generateUrlaubsantragPDF(action = 'download') {
                         margin: 0;
                         padding: 10px;
                         background-color: #fff;
+                        position: relative;
                     }
             
+                    /* Wrapper für Zentrierung auf dem Blatt */
+                    .pdf-wrapper {
+                        width: 100%;
+                        height: 130mm; /* A5 Höhe (148mm) minus Ränder (10mm) minus Puffer */
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+
                     .container {
                         width: 100%;
                         max-width: 195mm;
@@ -1488,6 +1544,9 @@ function generateUrlaubsantragPDF(action = 'download') {
                         color: #db261f;
                         font-weight: 900;
                         font-size: 140pt;
+                        position: absolute;
+                        top: -50px;
+                        right: 0;
                     }
             
                     /* Top Info */
@@ -1598,35 +1657,60 @@ function generateUrlaubsantragPDF(action = 'download') {
                     /* Signatures */
                     .signature-section {
                         display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        gap: 30px;
+                        grid-template-columns: 1fr 1fr; /* Zwei Spalten: Antragsteller und Vorgesetzter */
+                        gap: 40px;
                         margin-top: 15px;
                     }
             
-                    .sig-labels {
+                    .sig-block {
+                        /* Container für einen Unterschriftenblock */
+                    }
+
+                    .sig-row {
                         display: flex;
-                        justify-content: space-between;
-                        margin-top: 5px;
+                        gap: 20px;
+                        margin-top: 30px; /* Platz für die Unterschrift (Bild) */
+                        align-items: flex-end;
+                    }
+
+                    .sig-field {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: flex-end;
                     }
             
-                    .sig-underline {
-                        border-top: 1px solid #000;
-                        width: 45%;
-                        padding-top: 2px;
-                        font-size: 8pt;
+                    .sig-line {
+                        border-bottom: 1px solid #000;
+                        height: 1px;
+                        width: 100%;
+                        margin-bottom: 2px;
+                    }
+
+                    .sig-val {
+                        text-align: center;
+                        font-size: 9pt;
+                        margin-bottom: 2px;
+                        min-height: 15px;
+                        position: relative;
+                    }
+
+                    .sig-label {
+                        font-size: 7pt;
                         text-align: center;
                     }
                 </style>
             </head>
             
             <body>
-            
+            <div class="logo">
+                            <!-- EINSTELLUNG: Hier kann die Größe des Logos im PDF geändert werden (z.B. max-height: 60px) -->
+                            ${logoDataUrl ? `<img src="${logoDataUrl}" style="max-height: 95px;">` : 'motherson |||'}
+                        </div>
+                <div class="pdf-wrapper">
                 <div class="container">
                     <div class="header">
                         <h1>Urlaubsantrag/ Abwesenheitsmeldung</h1>
-                        <div class="logo">
-                            ${logoDataUrl ? `<img src="${logoDataUrl}" style="max-height: 40px;">` : 'motherson |||'}
-                        </div>
                     </div>
             
                     <div class="top-fields">
@@ -1640,54 +1724,54 @@ function generateUrlaubsantragPDF(action = 'download') {
                             <td class="col-num">1.</td>
                             <td class="col-label">Tarifurlaub (01)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${formatGermanDate(dateFrom)}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${formatGermanDate(dateTo)}">
-                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${workingDays}"> <span class="small-label">Tage &nbsp; Rest:</span> <input type="text" class="inline-input" style="width: 50px;">
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '1' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '1' ? formatGermanDate(dateTo) : ''}">
+                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '1' ? workingDays : ''}"> <span class="small-label">Tage &nbsp; Rest:</span> <input type="text" class="inline-input" style="width: 50px;">
                             </td>
                         </tr>
                         <tr>
                             <td class="col-num">2.</td>
                             <td class="col-label">Abbau (Gleit-)Zeitkonto (17)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;">
-                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '2' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '2' ? formatGermanDate(dateTo) : ''}">
+                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '2' ? workingDays : ''}"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
                             </td>
                         </tr>
                         <tr>
                             <td class="col-num">3.</td>
                             <td class="col-label">Dienstreise/- gang (97)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;">
-                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '3' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '3' ? formatGermanDate(dateTo) : ''}">
+                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '3' ? workingDays : ''}"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
                             </td>
                         </tr>
                         <tr>
                             <td class="col-num">4.</td>
                             <td class="col-label">Schulung (74)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;"> <span class="small-label">Tage</span>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '4' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '4' ? formatGermanDate(dateTo) : ''}"> <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '4' ? workingDays : ''}"> <span class="small-label">Tage</span>
                             </td>
                         </tr>
                         <tr>
                             <td class="col-num">5.</td>
                             <td class="col-label">tarifl. Freistellung (20/21)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;">
-                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '5' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '5' ? formatGermanDate(dateTo) : ''}">
+                                <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '5' ? workingDays : ''}"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
                             </td>
                         </tr>
                         <tr>
                             <td class="col-num">6.</td>
                             <td class="col-label">unbez. Urlaub ( 30/34)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;"> <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;"> <span class="small-label">Tage</span>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '6' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '6' ? formatGermanDate(dateTo) : ''}"> <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '6' ? workingDays : ''}"> <span class="small-label">Tage</span>
                                 <span style="font-size: 6pt;">(Umzug: Adresse/Tel angeben)</span>
                             </td>
                         </tr>
                     </table>
             
                     <div class="krank-container">
-                        <span class="col-num">7.</span> <span class="krank-title">Krank (41)</span> &nbsp;
-                        <span class="small-label">Datum:</span> <input type="text" class="inline-input" style="width: 80px;">
+                        <span class="col-num">7.</span> <span class="krank-title" style="${selectedType === '7' ? 'text-decoration: underline; font-weight: 900;' : ''}">Krank (41)</span> &nbsp;
+                        <span class="small-label">Datum:</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '7' ? formatGermanDate(dateFrom) : ''}">
                         <span class="small-label">um</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
                         <span class="small-label">Schicht:</span> <input type="text" class="inline-input" style="width: 100px;">
                         <div style="margin-top: 5px; margin-left: 17px;">
@@ -1699,6 +1783,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                         <div class="remarks-area">
                             <div><span style="width: 80px; font-size: 8pt;">Grund 5, 6:</span> <input type="text" class="inline-input" style="width: 70%;"></div>
                             <div><span style="width: 80px; font-size: 8pt;">Bemerkung:</span> <input type="text" class="inline-input" style="width: 70%;" value="${grund}"></div>
+                            <div><span style="width: 80px; font-size: 8pt;"></span> <input type="text" class="inline-input" style="width: 70%;" value="${zusatzBemerkung}"></div>
                         </div>
                         <div class="doctor-box">
                             <span class="small-label">Arztbesuch am</span> <input type="text" class="inline-input" style="width: 60px;">
@@ -1710,23 +1795,38 @@ function generateUrlaubsantragPDF(action = 'download') {
                     <div class="signature-section">
                         <div class="sig-block">
                             <strong>Antragsteller:</strong>
-                            <div style="height: 40px; display: flex; align-items: flex-end; justify-content: center;">
-                                ${userProfile.signature ? `<img src="${userProfile.signature}" style="max-height: 40px; max-width: 100%;">` : ''}
-                            </div>
-                            <div class="sig-labels">
-                                <div class="sig-underline">${new Date().toLocaleDateString('de-DE')}</div>
-                                <div class="sig-underline">Unterschrift</div>
+                            <div class="sig-row">
+                                <div class="sig-field" style="flex: 0.4;">
+                                    <div class="sig-val">${new Date().toLocaleDateString('de-DE')}</div>
+                                    <div class="sig-line"></div>
+                                    <div class="sig-label">Datum</div>
+                                </div>
+                                <div class="sig-field">
+                                    <div class="sig-val" style="height: 40px; display: flex; align-items: flex-end; justify-content: flex-end;">
+                                        ${userProfile.signature ? `<img src="${userProfile.signature}" style="max-height: 50px; max-width: 100%; position: relative; right: -10px;">` : ''}
+                                    </div>
+                                    <div class="sig-line"></div>
+                                    <div class="sig-label">Unterschrift</div>
+                                </div>
                             </div>
                         </div>
                         <div class="sig-block">
                             <strong>Vorgesetzter:</strong>
-                            <div style="height: 40px;"></div>
-                            <div class="sig-labels">
-                                <div class="sig-underline">Datum</div>
-                                <div class="sig-underline">Unterschrift</div>
+                            <div class="sig-row">
+                                <div class="sig-field" style="flex: 0.4;">
+                                    <div class="sig-val"></div>
+                                    <div class="sig-line"></div>
+                                    <div class="sig-label">Datum</div>
+                                </div>
+                                <div class="sig-field">
+                                    <div class="sig-val" style="height: 40px;"></div>
+                                    <div class="sig-line"></div>
+                                    <div class="sig-label">Unterschrift</div>
+                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
                 </div>
             
             </body>
