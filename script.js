@@ -1398,9 +1398,9 @@ if (urlaubsantragButton) {
 			typeContainer.className = 'urlaubsantrag-field';
 			typeContainer.innerHTML = `
                 <label>Antragsart (Bitte auswählen):</label>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.9em; background: #f0f0f0; padding: 10px; border-radius: 4px;">
+                <div class="urlaubsantrag-type-grid">
                     <div><input type="radio" name="urlaubsantrag_type" value="1" checked> 1. Tarifurlaub</div>
-                    <div><input type="radio" name="urlaubsantrag_type" value="2"> 2. Gleitzeit</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="2"> 2. Abbau Zeitkonto</div>
                     <div><input type="radio" name="urlaubsantrag_type" value="3"> 3. Dienstreise</div>
                     <div><input type="radio" name="urlaubsantrag_type" value="4"> 4. Schulung</div>
                     <div><input type="radio" name="urlaubsantrag_type" value="5"> 5. Freistellung</div>
@@ -1815,8 +1815,8 @@ function generateUrlaubsantragPDF(action = 'download') {
             
                     <div class="bottom-grid">
                         <div class="remarks-area">
-                            <div><span style="width: 80px; font-size: 8pt;">Grund 5, 6:</span> <input type="text" class="inline-input" style="width: 70%;"></div>
-                            <div><span style="width: 80px; font-size: 8pt;">Bemerkung:</span> <input type="text" class="inline-input" style="width: 70%;" value="${grund}"></div>
+                            <div><span style="width: 80px; font-size: 8pt;">Grund 5, 6:</span> <input type="text" class="inline-input" style="width: 70%;" value="${(selectedType === '5' || selectedType === '6') ? grund : ''}"></div>
+                            <div><span style="width: 80px; font-size: 8pt;">Bemerkung:</span> <input type="text" class="inline-input" style="width: 70%;" value="${(selectedType === '5' || selectedType === '6') ? '' : grund}"></div>
                             <div><span style="width: 80px; font-size: 8pt;"></span> <input type="text" class="inline-input" style="width: 70%;" value="${zusatzBemerkung}"></div>
                         </div>
                         <div class="doctor-box">

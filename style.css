@@ -1333,6 +1333,22 @@ body.dark-mode .urlaubsantrag-field textarea {
     min-height: 80px;
 }
 
+.urlaubsantrag-type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    font-size: 0.9em;
+    background: #f0f0f0;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+body.dark-mode .urlaubsantrag-type-grid {
+    background-color: #3a3a3a;
+    color: #f0f0f0;
+    border: 1px solid #555;
+}
+
 /* ===== BUTTONS STYLES ===== */
 .confirm-button {
     background-color: #007bff;
