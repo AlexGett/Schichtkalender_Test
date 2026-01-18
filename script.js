@@ -1366,7 +1366,7 @@ if (urlaubsantragButton) {
                 <label>Antragsart (Bitte auswählen):</label>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.9em; background: #f0f0f0; padding: 10px; border-radius: 4px;">
                     <div><input type="radio" name="urlaubsantrag_type" value="1" checked> 1. Tarifurlaub</div>
-                    <div><input type="radio" name="urlaubsantrag_type" value="2"> 2. Abbau Zeitkonto</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="2"> 2. Gleitzeit</div>
                     <div><input type="radio" name="urlaubsantrag_type" value="3"> 3. Dienstreise</div>
                     <div><input type="radio" name="urlaubsantrag_type" value="4"> 4. Schulung</div>
                     <div><input type="radio" name="urlaubsantrag_type" value="5"> 5. Freistellung</div>
@@ -1545,7 +1545,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                         font-weight: 900;
                         font-size: 140pt;
                         position: absolute;
-                        top: -60px;
+                        top: -50px;
                         right: 0;
                     }
             
@@ -1572,7 +1572,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                         border: none;
                         width: 100%;
                         outline: none;
-                        font-size: 10pt;
+                        font-size: 9pt;
                         background: transparent;
                     }
             
@@ -1609,7 +1609,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                         border: none;
                         border-bottom: 1px solid #000;
                         outline: none;
-                        font-size: 10pt;
+                        font-size: 8.5pt;
                         background: transparent;
                         text-align: center;
                     }
@@ -1645,11 +1645,12 @@ function generateUrlaubsantragPDF(action = 'download') {
                         border: 1px solid #000;
                         padding: 5px;
                         min-height: 55px;
+						max-width: 270px;
                         font-size: 6pt;
                     }
             
                     .doctor-stamp {
-                        margin-top: 34px;
+                        margin-top: 12px;
                         border-top: 1px dotted #666;
                         font-size: 6pt;
                     }
@@ -1669,7 +1670,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                     .sig-row {
                         display: flex;
                         gap: 20px;
-                        margin-top: 10px; /* Platz für die Unterschrift (Bild) */
+                        margin-top: 30px; /* Platz für die Unterschrift (Bild) */
                         align-items: flex-end;
                     }
 
@@ -1785,7 +1786,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                             <div><span style="width: 80px; font-size: 8pt;"></span> <input type="text" class="inline-input" style="width: 70%;" value="${zusatzBemerkung}"></div>
                         </div>
                         <div class="doctor-box">
-                            <span class="small-label">Arztbesuch am</span> <input type="text" class="inline-input" style="width: 210px;">
+                            <span class="small-label">Arztbesuch am</span> <input type="text" class="inline-input" style="width: 170px;">
                             <span class="small-label">von</span> <input type="text" class="inline-input" style="width: 80px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 80px;"> <span class="small-label">Uhr</span>
                             <div class="doctor-stamp">Unterschrift/ Stempel Arzt</div>
                         </div>
