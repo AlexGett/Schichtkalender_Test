@@ -699,7 +699,7 @@ const toggleDarkModeCheckbox = document.getElementById('toggleDarkMode');
 const toggleAutoDarkModeCheckbox = document.getElementById('toggleAutoDarkMode');
 
 const savedAnimationState = localStorage.getItem('animationsDisabled');
-if (savedAnimationState === 'true') {
+if (savedAnimationState === 'true' || savedAnimationState === null) {
 	toggleAnimationsCheckbox.checked = true;
 	calendarContainer.classList.add('no-animation');
 } else {
@@ -1139,13 +1139,16 @@ function registerServiceWorker() {
 
 // ===== PROFILVERWALTUNG =====
 let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
-	name: '',
+	vorname: '',
+	nachname: '',
 	personalNummer: '',
 	abteilung: '',
 	signature: null
 };
 
-const profileNameInput = document.getElementById('profileName');
+const profileVornameInput = document.getElementById('profileVornameInput');
+const profileNachnameInput = document.getElementById('profileNachnameInput');
+const profileNameDisplay = document.getElementById('profileNameDisplay');
 const profilePersonalNrInput = document.getElementById('profilePersonalNummer');
 const signatureCanvas = document.getElementById('signatureCanvas');
 const clearSignatureButton = document.getElementById('clearSignatureButton');
@@ -1247,8 +1250,8 @@ function loadProfile() {
 	}
 
 	// Collapsible logic for Profile Section
-	if (profileNameInput) {
-		const section = profileNameInput.closest('.settings-section');
+	if (profileVornameInput) {
+		const section = profileVornameInput.closest('.settings-section');
 		if (section && !section.classList.contains('collapsible-init')) {
 			section.classList.add('collapsible-init');
 			const header = section.querySelector('h4');
@@ -1280,9 +1283,25 @@ function loadProfile() {
 		}
 	}
 
-	if (profileNameInput) {
-		profileNameInput.value = userProfile.name || '';
+	if (profileVornameInput && profileNachnameInput) {
+		profileVornameInput.value = userProfile.vorname || '';
+		profileNachnameInput.value = userProfile.nachname || '';
 		profilePersonalNrInput.value = userProfile.personalNummer || '';
+		
+		if (profileNameDisplay) {
+			profileNameDisplay.textContent = userProfile.vorname || 'Profil';
+			profileNameDisplay.style.cursor = 'pointer';
+			profileNameDisplay.onclick = () => {
+				document.getElementById('settingsDialogOverlay').classList.add('active');
+				if (profileVornameInput) profileVornameInput.focus();
+			};
+		}
+
+		const greetingText = document.querySelector('.greeting-text');
+		if (greetingText) {
+			greetingText.style.display = userProfile.vorname ? 'block' : 'none';
+		}
+
 		const profileAbteilungInput = document.getElementById('profileAbteilung');
 		if (profileAbteilungInput) {
 			profileAbteilungInput.value = userProfile.abteilung || '';
@@ -1300,7 +1319,17 @@ function loadProfile() {
 // Profil speichern
 if (saveProfileButton) {
 	saveProfileButton.addEventListener('click', () => {
-		userProfile.name = profileNameInput.value.trim();
+		userProfile.vorname = profileVornameInput.value.trim();
+		userProfile.nachname = profileNachnameInput.value.trim();
+		if (profileNameDisplay) {
+			profileNameDisplay.textContent = userProfile.vorname || 'Profil';
+		}
+
+		const greetingText = document.querySelector('.greeting-text');
+		if (greetingText) {
+			greetingText.style.display = userProfile.vorname ? 'block' : 'none';
+		}
+
 		userProfile.personalNummer = profilePersonalNrInput.value.trim();
 
 		const profileAbteilungInput = document.getElementById('profileAbteilung');
@@ -1338,7 +1367,12 @@ if (urlaubsantragButton) {
 		const signaturePreviewDiv = document.getElementById('urlaubsantrag_signature_preview');
 
 		// Profildaten eintragen
-		nameInput.value = userProfile.name || '';
+		let fullName = '';
+		if (userProfile.vorname) fullName += userProfile.vorname;
+		if (userProfile.vorname && userProfile.nachname) fullName += ' ';
+		if (userProfile.nachname) fullName += userProfile.nachname;
+		
+		nameInput.value = fullName.trim();
 		personalnrInput.value = userProfile.personalNummer || '';
 		dateInput.value = urlaubsantragStartDate;
 		document.getElementById('urlaubsantrag_date_to').value = '';
@@ -1857,17 +1891,26 @@ function generateUrlaubsantragPDF(action = 'download') {
 			throw new Error('html2pdf ist nicht geladen. Bitte überprüfen Sie die Bibliothek.');
 		}
 
+		// Temporär Dark Mode entfernen für PDF-Generierung
+		const wasDarkMode = document.body.classList.contains('dark-mode');
+		if (wasDarkMode) {
+			document.body.classList.remove('dark-mode');
+		}
+
 		if (action === 'print') {
 			html2pdf().set(opt).from(element).toPdf().get('pdf').then((pdf) => {
+				if (wasDarkMode) document.body.classList.add('dark-mode');
 				pdf.autoPrint();
 				window.open(pdf.output('bloburl'), '_blank');
 			}).catch((error) => {
+				if (wasDarkMode) document.body.classList.add('dark-mode');
 				console.error('PDF-Druckfehler:', error);
 				alert('Fehler beim Drucken: ' + error.message);
 			});
 		} else {
 			// PDF als Blob generieren, um es teilen zu können
 			html2pdf().set(opt).from(element).output('blob').then((blob) => {
+				if (wasDarkMode) document.body.classList.add('dark-mode');
 				const file = new File([blob], opt.filename, { type: 'application/pdf' });
 
 				// Prüfen, ob das Teilen von Dateien unterstützt wird (z.B. auf Mobilgeräten)
@@ -1894,6 +1937,7 @@ function generateUrlaubsantragPDF(action = 'download') {
 					alert('PDF wurde generiert und gespeichert!');
 				}
 			}).catch((error) => {
+				if (wasDarkMode) document.body.classList.add('dark-mode');
 				console.error('PDF-Generierungsfehler:', error);
 				alert('Fehler beim PDF-Generieren: ' + error.message);
 			});

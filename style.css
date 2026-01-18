@@ -1,5 +1,6 @@
 :root {
     --calendar-border-color: #0161FD;
+    --motherson-red: #db261f;
 }
 
 body {
@@ -72,6 +73,14 @@ h2 {
     margin-bottom: 35px;
     text-align: center;
     color: inherit;
+}
+
+.greeting-text {
+    text-align: center;
+    font-size: 1.2em;
+    margin-bottom: -15px;
+    color: #666;
+    display: none;
 }
 
 .logo {
@@ -721,11 +730,11 @@ h2 {
 }
 
 .confirm-button {
-    background-color: #28a745;
+    background-color: var(--motherson-red);
     color: white;
 }
 .confirm-button:hover {
-    background-color: #218838;
+    background-color: #b01f19;
 }
 
 .delete-button {
@@ -761,8 +770,8 @@ hr {
     font-size: 1.2em; /* Größere Schrift */
     font-weight: bold;
     cursor: pointer;
-    background-color: white; /* Primärfarbe */
-    color: black;
+    background-color: #333;
+    color: white;
     text-align: center;
     margin-bottom: 20px; /* Abstand nach unten zum Inhalt */
     transition: background-color 0.3s ease, transform 0.2s ease;
@@ -770,7 +779,7 @@ hr {
 }
 
 .action-button:hover {
-    background-color: #CCCCCC; /* Dunklerer Farbton beim Hover */
+    background-color: #555; /* Dunklerer Farbton beim Hover */
     transform: translateY(-1px); /* Leichter Hoch-Effekt */
 }
 
@@ -1048,10 +1057,10 @@ body.dark-mode .settings-option input[type="number"] {
 }
 
 body.dark-mode .confirm-button {
-    background-color: #007bff;
+    background-color: var(--motherson-red);
 }
 body.dark-mode .confirm-button:hover {
-    background-color: #0056b3;
+    background-color: #b01f19;
 }
 
 body.dark-mode .delete-button {
@@ -1071,13 +1080,13 @@ body.dark-mode hr {
 
 /* Dark Mode für "Action-Button" */
 body.dark-mode .action-button {
-    background-color: #4a4a4a;
+    background-color: #333;
     color: white;/* Dunklerer Hintergrund im Dark Mode */
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
 body.dark-mode .action-button:hover {
-    background-color: #666666;
+    background-color: #555;
 }
 
 
@@ -1187,6 +1196,10 @@ body.dark-mode .loading-message {
 body.dark-mode #update-banner {
     background-color: #007bff;
     color: white;
+}
+
+body.dark-mode .greeting-text {
+    color: #aaa;
 }
 /* ===== PROFIL-EINSTELLUNGEN STYLES ===== */
 .settings-section {
@@ -1333,11 +1346,11 @@ body.dark-mode .urlaubsantrag-field textarea {
 }
 
 .confirm-button:hover {
-    background-color: #0056b3;
+    background-color: #b01f19;
 }
 
 .action-button {
-    background-color: #17a2b8;
+    background-color: #333;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -1350,23 +1363,23 @@ body.dark-mode .urlaubsantrag-field textarea {
 }
 
 .action-button:hover {
-    background-color: #138496;
+    background-color: #555;
 }
 
 body.dark-mode .confirm-button {
-    background-color: #0d6efd;
+    background-color: var(--motherson-red);
 }
 
 body.dark-mode .confirm-button:hover {
-    background-color: #0a58ca;
+    background-color: #b01f19;
 }
 
 body.dark-mode .action-button {
-    background-color: #0d6efd;
+    background-color: #333;
 }
 
 body.dark-mode .action-button:hover {
-    background-color: #0a58ca;
+    background-color: #555;
 }
 
 .button-group {
