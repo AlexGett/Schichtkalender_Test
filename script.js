@@ -1366,7 +1366,7 @@ if (urlaubsantragButton) {
                 <label>Antragsart (Bitte auswählen):</label>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.9em; background: #f0f0f0; padding: 10px; border-radius: 4px;">
                     <div><input type="radio" name="urlaubsantrag_type" value="1" checked> 1. Tarifurlaub</div>
-                    <div><input type="radio" name="urlaubsantrag_type" value="2"> 2. Gleitzeit</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="2"> 2. Abbau Zeitkonto</div>
                     <div><input type="radio" name="urlaubsantrag_type" value="3"> 3. Dienstreise</div>
                     <div><input type="radio" name="urlaubsantrag_type" value="4"> 4. Schulung</div>
                     <div><input type="radio" name="urlaubsantrag_type" value="5"> 5. Freistellung</div>
@@ -1545,7 +1545,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                         font-weight: 900;
                         font-size: 140pt;
                         position: absolute;
-                        top: -50px;
+                        top: -60px;
                         right: 0;
                     }
             
@@ -1572,7 +1572,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                         border: none;
                         width: 100%;
                         outline: none;
-                        font-size: 9pt;
+                        font-size: 10pt;
                         background: transparent;
                     }
             
@@ -1609,7 +1609,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                         border: none;
                         border-bottom: 1px solid #000;
                         outline: none;
-                        font-size: 8.5pt;
+                        font-size: 10pt;
                         background: transparent;
                         text-align: center;
                     }
@@ -1649,7 +1649,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                     }
             
                     .doctor-stamp {
-                        margin-top: 12px;
+                        margin-top: 34px;
                         border-top: 1px dotted #666;
                         font-size: 6pt;
                     }
@@ -1669,7 +1669,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                     .sig-row {
                         display: flex;
                         gap: 20px;
-                        margin-top: 30px; /* Platz für die Unterschrift (Bild) */
+                        margin-top: 10px; /* Platz für die Unterschrift (Bild) */
                         align-items: flex-end;
                     }
 
@@ -1723,7 +1723,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                             <td class="col-num">1.</td>
                             <td class="col-label">Tarifurlaub (01)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '1' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '1' ? formatGermanDate(dateTo) : ''}">
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '1' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '1' ? formatGermanDate(dateTo) : ''}">
                                 <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '1' ? workingDays : ''}"> <span class="small-label">Tage &nbsp; Rest:</span> <input type="text" class="inline-input" style="width: 50px;">
                             </td>
                         </tr>
@@ -1731,7 +1731,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                             <td class="col-num">2.</td>
                             <td class="col-label">Abbau (Gleit-)Zeitkonto (17)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '2' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '2' ? formatGermanDate(dateTo) : ''}">
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '2' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '2' ? formatGermanDate(dateTo) : ''}">
                                 <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '2' ? workingDays : ''}"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
                             </td>
                         </tr>
@@ -1739,7 +1739,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                             <td class="col-num">3.</td>
                             <td class="col-label">Dienstreise/- gang (97)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '3' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '3' ? formatGermanDate(dateTo) : ''}">
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '3' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '3' ? formatGermanDate(dateTo) : ''}">
                                 <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '3' ? workingDays : ''}"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
                             </td>
                         </tr>
@@ -1747,14 +1747,14 @@ function generateUrlaubsantragPDF(action = 'download') {
                             <td class="col-num">4.</td>
                             <td class="col-label">Schulung (74)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '4' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '4' ? formatGermanDate(dateTo) : ''}"> <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '4' ? workingDays : ''}"> <span class="small-label">Tage</span>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '4' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '4' ? formatGermanDate(dateTo) : ''}"> <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '4' ? workingDays : ''}"> <span class="small-label">Tage</span>
                             </td>
                         </tr>
                         <tr>
                             <td class="col-num">5.</td>
                             <td class="col-label">tarifl. Freistellung (20/21)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '5' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '5' ? formatGermanDate(dateTo) : ''}">
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '5' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '5' ? formatGermanDate(dateTo) : ''}">
                                 <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '5' ? workingDays : ''}"> <span class="small-label">Tage / von</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
                             </td>
                         </tr>
@@ -1762,7 +1762,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                             <td class="col-num">6.</td>
                             <td class="col-label">unbez. Urlaub ( 30/34)</td>
                             <td>
-                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '6' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 60px;" value="${selectedType === '6' ? formatGermanDate(dateTo) : ''}"> <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '6' ? workingDays : ''}"> <span class="small-label">Tage</span>
+                                <span class="small-label">vom</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '6' ? formatGermanDate(dateFrom) : ''}"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '6' ? formatGermanDate(dateTo) : ''}"> <span class="small-label">=</span> <input type="text" class="inline-input" style="width: 25px;" value="${selectedType === '6' ? workingDays : ''}"> <span class="small-label">Tage</span>
                                 <span style="font-size: 6pt;">(Umzug: Adresse/Tel angeben)</span>
                             </td>
                         </tr>
@@ -1785,8 +1785,8 @@ function generateUrlaubsantragPDF(action = 'download') {
                             <div><span style="width: 80px; font-size: 8pt;"></span> <input type="text" class="inline-input" style="width: 70%;" value="${zusatzBemerkung}"></div>
                         </div>
                         <div class="doctor-box">
-                            <span class="small-label">Arztbesuch am</span> <input type="text" class="inline-input" style="width: 60px;">
-                            <span class="small-label">von</span> <input type="text" class="inline-input" style="width: 30px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 30px;"> <span class="small-label">Uhr</span>
+                            <span class="small-label">Arztbesuch am</span> <input type="text" class="inline-input" style="width: 210px;">
+                            <span class="small-label">von</span> <input type="text" class="inline-input" style="width: 80px;"> <span class="small-label">bis</span> <input type="text" class="inline-input" style="width: 80px;"> <span class="small-label">Uhr</span>
                             <div class="doctor-stamp">Unterschrift/ Stempel Arzt</div>
                         </div>
                     </div>
@@ -1802,7 +1802,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                                 </div>
                                 <div class="sig-field">
                                     <div class="sig-val" style="height: 40px; display: flex; align-items: flex-end; justify-content: flex-end;">
-                                        ${userProfile.signature ? `<img src="${userProfile.signature}" style="max-height: 50px; max-width: 100%; position: relative; right: -10px;">` : ''}
+                                        ${userProfile.signature ? `<img src="${userProfile.signature}" style="max-height: 50px; max-width: 100%; position: relative; right: 55px;">` : ''}
                                     </div>
                                     <div class="sig-line"></div>
                                     <div class="sig-label">Unterschrift</div>
