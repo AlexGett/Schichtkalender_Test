@@ -1545,7 +1545,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                         font-weight: 900;
                         font-size: 140pt;
                         position: absolute;
-                        top: -50px;
+                        top: -65px;
                         right: 0;
                     }
             
