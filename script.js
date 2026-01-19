@@ -511,6 +511,13 @@ document.addEventListener('DOMContentLoaded', () => {
 		restoreButton.addEventListener('click', restoreSettings);
 	}
 
+	// NEU: Event Listener für den allgemeinen Einstellungs-Button
+	const openSettingsBtn = document.getElementById('openSettingsDialog');
+	if (openSettingsBtn) {
+		openSettingsBtn.addEventListener('click', () => {
+			toggleSettingsVisibility('general');
+		});
+	}
 
 	generateCalendar(currentCalendarYear); // Initialer Kalenderaufbau
 
@@ -1343,6 +1350,7 @@ function loadProfile() {
 			profileNameDisplay.style.cursor = 'pointer';
 			profileNameDisplay.onclick = () => {
 				document.getElementById('settingsDialogOverlay').classList.add('active');
+				toggleSettingsVisibility('profile');
 				if (profileVornameInput) profileVornameInput.focus();
 			};
 		}
@@ -1499,6 +1507,18 @@ if (generatePdfButton) {
 }
 
 function generateUrlaubsantragPDF(action = 'download') {
+	// NEU: Viewport speichern und Zoom zurücksetzen, um Verschiebungen zu vermeiden
+	const metaViewport = document.querySelector('meta[name="viewport"]');
+	const originalViewportContent = metaViewport ? metaViewport.getAttribute('content') : '';
+	const restoreViewport = () => {
+		if (metaViewport && originalViewportContent) {
+			metaViewport.setAttribute('content', originalViewportContent);
+		}
+	};
+	if (metaViewport) {
+		metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0');
+	}
+
 	try {
 		console.log('Starte PDF-Generierung...');
 
@@ -1519,6 +1539,7 @@ function generateUrlaubsantragPDF(action = 'download') {
 		// Validierung für Punkt 5 und 6
 		if ((selectedType === '5' || selectedType === '6') && !grund.trim()) {
 			alert('Bei Auswahl von Punkt 5 oder 6 muss zwingend ein Grund angegeben werden!');
+			restoreViewport();
 			return;
 		}
 
@@ -1526,6 +1547,7 @@ function generateUrlaubsantragPDF(action = 'download') {
 
 		if (!dateTo) {
 			alert('Bitte geben Sie ein Enddatum ein!');
+			restoreViewport();
 			return;
 		}
 
@@ -1950,10 +1972,12 @@ function generateUrlaubsantragPDF(action = 'download') {
 		if (action === 'print') {
 			html2pdf().set(opt).from(element).toPdf().get('pdf').then((pdf) => {
 				if (wasDarkMode) document.body.classList.add('dark-mode');
+				restoreViewport();
 				pdf.autoPrint();
 				window.open(pdf.output('bloburl'), '_blank');
 			}).catch((error) => {
 				if (wasDarkMode) document.body.classList.add('dark-mode');
+				restoreViewport();
 				console.error('PDF-Druckfehler:', error);
 				alert('Fehler beim Drucken: ' + error.message);
 			});
@@ -1961,6 +1985,7 @@ function generateUrlaubsantragPDF(action = 'download') {
 			// PDF als Blob generieren, um es teilen zu können
 			html2pdf().set(opt).from(element).output('blob').then((blob) => {
 				if (wasDarkMode) document.body.classList.add('dark-mode');
+				restoreViewport();
 				const file = new File([blob], opt.filename, { type: 'application/pdf' });
 
 				// Prüfen, ob das Teilen von Dateien unterstützt wird (z.B. auf Mobilgeräten)
@@ -1988,12 +2013,14 @@ function generateUrlaubsantragPDF(action = 'download') {
 				}
 			}).catch((error) => {
 				if (wasDarkMode) document.body.classList.add('dark-mode');
+				restoreViewport();
 				console.error('PDF-Generierungsfehler:', error);
 				alert('Fehler beim PDF-Generieren: ' + error.message);
 			});
 		}
 
 	} catch (error) {
+		restoreViewport();
 		console.error('Fehler in generateUrlaubsantragPDF:', error);
 		alert('Fehler beim Generieren der PDF: ' + error.message);
 	}
@@ -2044,6 +2071,74 @@ if (sendUrlaubsantragButton) {
 	sendUrlaubsantragButton.addEventListener('click', () => {
 		generateUrlaubsantragPDF('print');
 	});
+}
+
+// Funktion zum Umschalten der Sichtbarkeit im Einstellungsdialog
+function toggleSettingsVisibility(mode) {
+	const dialog = document.querySelector('#settingsDialogOverlay .dialog');
+	if (!dialog) return;
+
+	const profileInput = document.getElementById('profileVornameInput');
+	const profileSection = profileInput ? profileInput.closest('.settings-section') : null;
+	const saveBtn = document.getElementById('saveProfileButton');
+
+	Array.from(dialog.children).forEach(child => {
+		// Titel und Schließen-Button immer anzeigen
+		if (child.tagName === 'H3' || child.classList.contains('close-button')) return;
+
+		const isProfileSection = profileSection && (child === profileSection);
+		const containsSaveBtn = saveBtn && (child === saveBtn || child.contains(saveBtn));
+
+		if (mode === 'profile') {
+			if (isProfileSection) {
+				child.style.display = '';
+			} else if (containsSaveBtn) {
+				child.style.display = '';
+				// Falls der Button in einer Gruppe ist, andere Buttons ausblenden
+				if (saveBtn.parentElement.classList.contains('button-group')) {
+					Array.from(saveBtn.parentElement.children).forEach(btn => {
+						if (btn !== saveBtn) btn.style.display = 'none';
+						else btn.style.display = '';
+					});
+				}
+			} else {
+				child.style.display = 'none';
+			}
+		} else { // general
+			if (isProfileSection) {
+				child.style.display = 'none';
+			} else if (containsSaveBtn) {
+				// Falls Button in Gruppe, Gruppe zeigen aber Button ausblenden
+				if (saveBtn.parentElement.classList.contains('button-group')) {
+					child.style.display = '';
+					saveBtn.style.display = 'none';
+					Array.from(saveBtn.parentElement.children).forEach(btn => {
+						if (btn !== saveBtn) btn.style.display = '';
+					});
+				} else {
+					child.style.display = 'none';
+				}
+			} else {
+				// Alles andere anzeigen (außer customShiftSystemSection, das seinen eigenen Status hat)
+				if (child.id !== 'customShiftSystemSection') {
+					child.style.display = '';
+				} else {
+					// Inline-Style entfernen, damit CSS-Klasse greift (standardmäßig ausgeblendet)
+					child.style.display = '';
+				}
+			}
+		}
+	});
+
+	// Profil-Sektion aufklappen im Profil-Modus
+	if (mode === 'profile' && profileSection) {
+		const contentWrapper = profileSection.lastElementChild;
+		if (contentWrapper && contentWrapper.tagName === 'DIV') {
+			contentWrapper.style.display = 'block';
+			const icon = profileSection.querySelector('h4 i');
+			if (icon) icon.className = 'fas fa-chevron-up';
+		}
+	}
 }
 
 // Profil beim Laden der Seite laden
