@@ -1804,7 +1804,7 @@ function generateUrlaubsantragPDF(action = 'download') {
                     </table>
             
                     <div class="krank-container">
-                        <span class="col-num">7.</span> <span class="krank-title" style="${selectedType === '7' ? 'text-decoration: underline; font-weight: 900;' : ''}">Krank (41)</span> &nbsp;
+                        <span class="col-num">7.</span> <span class="krank-title" style="${selectedType === '7'}">Krank (41)</span> &nbsp;
                         <span class="small-label">Datum:</span> <input type="text" class="inline-input" style="width: 80px;" value="${selectedType === '7' ? formatGermanDate(dateFrom) : ''}">
                         <span class="small-label">um</span> <input type="text" class="inline-input" style="width: 35px;"> <span class="small-label">Uhr</span>
                         <span class="small-label">Schicht:</span> <input type="text" class="inline-input" style="width: 100px;">
