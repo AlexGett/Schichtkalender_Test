@@ -1314,7 +1314,7 @@ body.dark-mode .urlaubsantrag-field label {
 .urlaubsantrag-field input[type="text"],
 .urlaubsantrag-field input[type="date"],
 .urlaubsantrag-field textarea {
-    width: 100%;
+    width: 90%;
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
