@@ -1234,6 +1234,56 @@ if (resetSignatureButton) {
 			alert('Unterschrift wurde zurückgesetzt!');
 		}
 	});
+
+	// --- NEU: Button zum Hochladen einer Unterschrift als Bild ---
+	if (!document.getElementById('signatureUploadButton')) {
+		const uploadBtn = document.createElement('button');
+		uploadBtn.id = 'signatureUploadButton';
+		uploadBtn.textContent = 'Bild laden';
+		uploadBtn.type = 'button';
+		uploadBtn.style.marginLeft = '5px';
+
+		const fileInput = document.createElement('input');
+		fileInput.type = 'file';
+		fileInput.id = 'signatureUploadInput';
+		fileInput.accept = 'image/*';
+		fileInput.style.display = 'none';
+
+		// Einfügen nach dem Reset-Button
+		resetSignatureButton.parentNode.insertBefore(uploadBtn, resetSignatureButton.nextSibling);
+		resetSignatureButton.parentNode.insertBefore(fileInput, uploadBtn);
+
+		uploadBtn.addEventListener('click', (e) => {
+			e.preventDefault();
+			fileInput.click();
+		});
+
+		fileInput.addEventListener('change', (e) => {
+			const file = e.target.files[0];
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = (event) => {
+					const img = new Image();
+					img.onload = () => {
+						if (signatureCtx && signatureCanvas) {
+							// Canvas weiß füllen
+							signatureCtx.fillStyle = '#fff';
+							signatureCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+							
+							// Bild proportional einpassen und zentrieren
+							const scale = Math.min(signatureCanvas.width / img.width, signatureCanvas.height / img.height);
+							const x = (signatureCanvas.width / 2) - (img.width / 2) * scale;
+							const y = (signatureCanvas.height / 2) - (img.height / 2) * scale;
+							
+							signatureCtx.drawImage(img, x, y, img.width * scale, img.height * scale);
+						}
+					};
+					img.src = event.target.result;
+				};
+				reader.readAsDataURL(file);
+			}
+		});
+	}
 }
 
 // Laden des gespeicherten Profils

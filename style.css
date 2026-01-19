@@ -1282,10 +1282,11 @@ body.dark-mode #signatureCanvas {
 }
 
 #clearSignatureButton,
-#resetSignatureButton {
+#resetSignatureButton,
+#signatureUploadButton {
     padding: 8px 20px;
-    font-size: 13px;
-    width: 120px;
+    font-size: 10px;
+    width: 94px;
 }
 
 /* ===== URLAUBSANTRAG-DIALOG STYLES ===== */
