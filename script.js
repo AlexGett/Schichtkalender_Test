@@ -673,6 +673,7 @@ function setupDialog(openBtnId, dialogOverlayId, closeBtnId) {
 			// Wenn der Info-Dialog geöffnet wird, Dateien laden
 			if (dialogOverlayId === 'shiftInfoDialogOverlay') {
 				loadInfoFiles();
+				updateShiftInfoDisplay();
 			}
 		});
 	}
@@ -1454,6 +1455,25 @@ function updateShiftInfoDisplay() {
 		if (s) s.textContent = `Spätschicht: ${t.spaet.start} Uhr - ${t.spaet.end} Uhr`;
 		if (n) n.textContent = `Nachtschicht: ${t.nacht.start} Uhr - ${t.nacht.end} Uhr`;
 	}
+
+	// NEU: Sichtbarkeit basierend auf dem aktiven Schichtsystem steuern
+	const activeSystem = getActiveShiftSystem();
+	const sequence = activeSystem.sequence;
+
+	const setVisibility = (elementId, shiftClass) => {
+		const element = document.getElementById(elementId);
+		if (element) {
+			const row = element.closest('.shift-info-item');
+			if (row) {
+				// Zeige die Zeile nur an, wenn die Schichtart im System vorkommt
+				row.style.display = sequence.includes(shiftClass) ? 'flex' : 'none';
+			}
+		}
+	};
+
+	setVisibility('infoFruehschicht', 'fruehschicht');
+	setVisibility('infoSpaetschicht', 'spaetschicht');
+	setVisibility('infoNachtschicht', 'nachtschicht');
 }
 
 // ===== URLAUBSANTRAG-FUNKTIONALITÄT =====
