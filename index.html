@@ -78,15 +78,15 @@
             <h3>Schichtzeiten & Farben</h3>
             <div class="shift-info-item">
                 <div class="shift-color-box fruehschicht"></div>
-                <span>Frühschicht: 06:00 Uhr - 14:00 Uhr</span>
+                <span id="infoFruehschicht">Frühschicht: 06:00 Uhr - 14:00 Uhr</span>
             </div>
             <div class="shift-info-item">
                 <div class="shift-color-box spaetschicht"></div>
-                <span>Spätschicht: 14:00 Uhr - 22:00 Uhr</span>
+                <span id="infoSpaetschicht">Spätschicht: 14:00 Uhr - 22:00 Uhr</span>
             </div>
             <div class="shift-info-item">
                 <div class="shift-color-box nachtschicht"></div>
-                <span>Nachtschicht: 22:00 Uhr - 06:00 Uhr</span>
+                <span id="infoNachtschicht">Nachtschicht: 22:00 Uhr - 06:00 Uhr</span>
             </div>
             <div class="shift-info-item">
                 <div class="shift-color-box freischicht"></div>
@@ -161,6 +161,24 @@
                 <div class="settings-option">
                     <label for="profilePersonalNummer">Personalnummer:</label>
                     <input type="text" id="profilePersonalNummer" placeholder="z.B. 12345">
+                </div>
+                <div class="settings-option">
+                    <label>Schichtzeiten (Start - Ende):</label>
+                    <div style="display: grid; grid-template-columns: 60px 1fr 1fr; gap: 10px; align-items: center; margin-bottom: 5px;">
+                        <span>Früh:</span>
+                        <input type="time" id="profileFruehStart">
+                        <input type="time" id="profileFruehEnd">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 60px 1fr 1fr; gap: 10px; align-items: center; margin-bottom: 5px;">
+                        <span>Spät:</span>
+                        <input type="time" id="profileSpaetStart">
+                        <input type="time" id="profileSpaetEnd">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 60px 1fr 1fr; gap: 10px; align-items: center;">
+                        <span>Nacht:</span>
+                        <input type="time" id="profileNachtStart">
+                        <input type="time" id="profileNachtEnd">
+                    </div>
                 </div>
                 <div class="settings-option">
                     <label>Unterschrift zeichnen:</label>

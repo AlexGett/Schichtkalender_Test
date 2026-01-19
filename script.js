@@ -1153,6 +1153,15 @@ let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
 	signature: null
 };
 
+// Sicherstellen, dass Schichtzeiten existieren (für bestehende Profile)
+if (!userProfile.shiftTimes) {
+	userProfile.shiftTimes = {
+		frueh: { start: '06:00', end: '14:00' },
+		spaet: { start: '14:00', end: '22:00' },
+		nacht: { start: '22:00', end: '06:00' }
+	};
+}
+
 const profileVornameInput = document.getElementById('profileVornameInput');
 const profileNachnameInput = document.getElementById('profileNachnameInput');
 const profileNameDisplay = document.getElementById('profileNameDisplay');
@@ -1364,6 +1373,17 @@ function loadProfile() {
 		if (profileAbteilungInput) {
 			profileAbteilungInput.value = userProfile.abteilung || '';
 		}
+
+		// Schichtzeiten laden
+		if (userProfile.shiftTimes) {
+			document.getElementById('profileFruehStart').value = userProfile.shiftTimes.frueh.start;
+			document.getElementById('profileFruehEnd').value = userProfile.shiftTimes.frueh.end;
+			document.getElementById('profileSpaetStart').value = userProfile.shiftTimes.spaet.start;
+			document.getElementById('profileSpaetEnd').value = userProfile.shiftTimes.spaet.end;
+			document.getElementById('profileNachtStart').value = userProfile.shiftTimes.nacht.start;
+			document.getElementById('profileNachtEnd').value = userProfile.shiftTimes.nacht.end;
+		}
+
 		if (userProfile.signature && signatureCtx) {
 			const img = new Image();
 			img.onload = () => {
@@ -1395,6 +1415,23 @@ if (saveProfileButton) {
 			userProfile.abteilung = profileAbteilungInput.value.trim();
 		}
 
+		// Schichtzeiten speichern
+		userProfile.shiftTimes = {
+			frueh: {
+				start: document.getElementById('profileFruehStart').value,
+				end: document.getElementById('profileFruehEnd').value
+			},
+			spaet: {
+				start: document.getElementById('profileSpaetStart').value,
+				end: document.getElementById('profileSpaetEnd').value
+			},
+			nacht: {
+				start: document.getElementById('profileNachtStart').value,
+				end: document.getElementById('profileNachtEnd').value
+			}
+		};
+		updateShiftInfoDisplay(); // Anzeige aktualisieren
+
 		// Speichere die Unterschrift vom Canvas
 		if (signatureCanvas) {
 			userProfile.signature = signatureCanvas.toDataURL('image/png');
@@ -1403,6 +1440,20 @@ if (saveProfileButton) {
 		localStorage.setItem('userProfile', JSON.stringify(userProfile));
 		alert('Profil erfolgreich gespeichert!');
 	});
+}
+
+// Funktion zum Aktualisieren der Schichtzeiten-Anzeige im Info-Dialog
+function updateShiftInfoDisplay() {
+	if (userProfile.shiftTimes) {
+		const t = userProfile.shiftTimes;
+		const f = document.getElementById('infoFruehschicht');
+		const s = document.getElementById('infoSpaetschicht');
+		const n = document.getElementById('infoNachtschicht');
+
+		if (f) f.textContent = `Frühschicht: ${t.frueh.start} Uhr - ${t.frueh.end} Uhr`;
+		if (s) s.textContent = `Spätschicht: ${t.spaet.start} Uhr - ${t.spaet.end} Uhr`;
+		if (n) n.textContent = `Nachtschicht: ${t.nacht.start} Uhr - ${t.nacht.end} Uhr`;
+	}
 }
 
 // ===== URLAUBSANTRAG-FUNKTIONALITÄT =====
@@ -2144,3 +2195,4 @@ function toggleSettingsVisibility(mode) {
 // Profil beim Laden der Seite laden
 console.log('Profil-Verwaltung und Urlaubsantrag initialisiert');
 loadProfile();
+updateShiftInfoDisplay();
