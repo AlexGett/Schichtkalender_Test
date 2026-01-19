@@ -803,7 +803,7 @@ hr {
 }
 
 .year-input-dialog button.year-nav {
-    background-color: #007bff;
+    background-color: #555;
     color: white;
     border: none;
     padding: 8px 15px;
@@ -815,7 +815,7 @@ hr {
 }
 
 .year-input-dialog button.year-nav:hover {
-    background-color: #0056b3;
+    background-color: #333;
 }
 
 .year-input-dialog input[type="number"] {
@@ -837,7 +837,7 @@ hr {
 
 
 .year-input-dialog button.confirm-button {
-    background-color: #28a745;
+    background-color: #333;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -850,7 +850,7 @@ hr {
 }
 
 .year-input-dialog button.confirm-button:hover {
-    background-color: #218838;
+    background-color: #555;
 }
 
 #noteDialog textarea {
@@ -873,6 +873,8 @@ hr {
 
 #noteDialog .button-group button {
     padding: 10px 20px;
+    background-color: #333;
+    color: white;
     border-radius: 5px;
     font-size: 1em;
     cursor: pointer;
@@ -1281,9 +1283,9 @@ body.dark-mode #signatureCanvas {
 
 #clearSignatureButton,
 #resetSignatureButton {
-    padding: 8px 12px;
+    padding: 8px 20px;
     font-size: 13px;
-    width: calc(50% - 5px);
+    width: 120px;
 }
 
 /* ===== URLAUBSANTRAG-DIALOG STYLES ===== */
@@ -1351,7 +1353,7 @@ body.dark-mode .urlaubsantrag-type-grid {
 
 /* ===== BUTTONS STYLES ===== */
 .confirm-button {
-    background-color: #007bff;
+    background-color: #333;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -1383,7 +1385,9 @@ body.dark-mode .urlaubsantrag-type-grid {
 }
 
 body.dark-mode .confirm-button {
-    background-color: var(--motherson-red);
+    background-color: #333;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 body.dark-mode .confirm-button:hover {
