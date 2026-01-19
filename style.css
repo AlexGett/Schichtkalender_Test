@@ -1167,7 +1167,7 @@ body.dark-mode .loading-message {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #28a745;
+    background-color: #db261f;
     color: white;
     padding: 15px 25px;
     border-radius: 8px;
@@ -1181,7 +1181,7 @@ body.dark-mode .loading-message {
 
 #update-banner button {
     background-color: white;
-    color: #28a745;
+    color: #333;
     border: none;
     border-radius: 5px;
     padding: 8px 15px;
@@ -1196,7 +1196,7 @@ body.dark-mode .loading-message {
 
 /* Dark-Mode-Stile für die Benachrichtigung */
 body.dark-mode #update-banner {
-    background-color: #007bff;
+    background-color: #db261f;
     color: white;
 }
 
