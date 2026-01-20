@@ -8,6 +8,34 @@ function formatDate(date) {
 	return `${year}-${month}-${day}`;
 }
 
+// Hilfsfunktion für Toast-Nachrichten (Toastify)
+function showToast(message, type = 'info') {
+	if (typeof Toastify === 'function') {
+		let backgroundColor;
+		if (type === 'error') {
+			backgroundColor = "#dc3545"; // Rot für Fehler
+		} else if (type === 'success') {
+			backgroundColor = "#28a745"; // Grün für Erfolg
+		} else {
+			backgroundColor = "#333"; // Dunkelgrau für Info
+		}
+
+		Toastify({
+			text: message,
+			duration: 3000,
+			close: true,
+			gravity: "top", // `top` or `bottom`
+			position: "center", // `left`, `center` or `right`
+			style: {
+				background: backgroundColor,
+			},
+			stopOnFocus: true, // Prevents dismissing of toast on hover
+		}).showToast();
+	} else {
+		alert(message); // Fallback, falls Toastify nicht geladen ist
+	}
+}
+
 // Osterberechnung mit dem Gauss-Algorithmus (Computus)
 function calculateEaster(year) {
 	const a = year % 19;
@@ -532,7 +560,7 @@ function saveCustomShiftSystem() {
 
 	// Eingaben validieren
 	if (!sequenceInput || !startDateInput || !startTypeInput) {
-		alert('Bitte fülle alle Felder für das Schichtsystem aus.');
+		showToast('Bitte fülle alle Felder für das Schichtsystem aus.', 'error');
 		return;
 	}
 
@@ -546,7 +574,7 @@ function saveCustomShiftSystem() {
 	}).filter(s => s !== null); // Entferne ungültige Einträge
 
 	if (sequenceArray.length === 0 || sequenceArray.length !== sequenceArrayRaw.length) {
-		alert('Ungültige Schichtsequenz. Bitte verwende F, N, S, Frei oder die vollen Bezeichnungen und trenne mit Kommas.');
+		showToast('Ungültige Schichtsequenz. Bitte verwende F, N, S, Frei oder die vollen Bezeichnungen und trenne mit Kommas.', 'error');
 		return;
 	}
 
@@ -558,12 +586,12 @@ function saveCustomShiftSystem() {
 	else if (lowerStartType === 'frei') parsedStartType = 'freischicht';
 
 	if (!parsedStartType) {
-		alert('Ungültiger Startschicht-Typ. Bitte verwende Früh, Nacht, Spät oder Frei.');
+		showToast('Ungültiger Startschicht-Typ. Bitte verwende Früh, Nacht, Spät oder Frei.', 'error');
 		return;
 	}
 
 	if (!sequenceArray.includes(parsedStartType)) {
-		alert(`Der Startschicht-Typ "${startTypeInput}" ist nicht in deiner definierten Sequenz enthalten.`);
+		showToast(`Der Startschicht-Typ "${startTypeInput}" ist nicht in deiner definierten Sequenz enthalten.`, 'error');
 		return;
 	}
 
@@ -578,7 +606,7 @@ function saveCustomShiftSystem() {
 	};
 
 	localStorage.setItem('customShiftSystem', JSON.stringify(customShiftSystem));
-	alert('Dein Schichtsystem wurde gespeichert und der Kalender wird aktualisiert.');
+	showToast('Dein Schichtsystem wurde gespeichert und der Kalender wird aktualisiert.', 'success');
 	generateCalendar(currentCalendarYear); // Kalender neu generieren
 	document.getElementById('settingsDialogOverlay').classList.remove('active'); // Dialog schließen
 }
@@ -637,7 +665,7 @@ function setShiftGroup(group) {
 	document.getElementById('customShiftStartDate').value = startDate;
 	document.getElementById('customShiftStartType').value = startTypeInput;
 
-	alert(`Schichtsystem für Gruppe ${group} wurde eingestellt.`);
+	showToast(`Schichtsystem für Gruppe ${group} wurde eingestellt.`, 'success');
 	generateCalendar(currentCalendarYear);
 	document.getElementById('settingsDialogOverlay').classList.remove('active');
 }
@@ -822,7 +850,7 @@ setYearButton.addEventListener('click', () => {
 		generateCalendar(newYear);
 		yearInputDialogOverlay.classList.remove('active');
 	} else {
-		alert('Bitte geben Sie ein gültiges Jahr zwischen 1900 und 2100 ein.');
+		showToast('Bitte geben Sie ein gültiges Jahr zwischen 1900 und 2100 ein.', 'error');
 	}
 });
 
@@ -902,7 +930,7 @@ deleteNoteButton.addEventListener('click', () => {
 		const fullDate = currentDayCell.dataset.fullDate;
 		// Verhindere das Löschen der automatischen Buß- und Bettag Notiz
 		if (notesData[fullDate] === 'Buß- und Bettag') {
-			alert('Diese Notiz wird automatisch gesetzt und kann nicht direkt gelöscht werden. Du kannst sie aber überschreiben.');
+			showToast('Diese Notiz wird automatisch gesetzt und kann nicht direkt gelöscht werden. Du kannst sie aber überschreiben.', 'info');
 			return;
 		}
 		delete notesData[fullDate];
@@ -1029,7 +1057,7 @@ function backupSettings() {
 	a.click();
 	document.body.removeChild(a);
 	URL.revokeObjectURL(url); // Gib den URL-Speicher frei
-	alert('Backup erfolgreich erstellt! Datei wurde heruntergeladen.');
+	showToast('Backup erfolgreich erstellt! Datei wurde heruntergeladen.', 'success');
 }
 
 // Funktion zum Laden eines Backups der Einstellungen
@@ -1088,11 +1116,11 @@ function restoreSettings() {
 				updateDarkModeState(); // Stelle sicher, dass der Dark Mode korrekt angewendet wird
 
 				generateCalendar(currentCalendarYear); // Kalender neu rendern
-				alert('Backup erfolgreich geladen! Der Kalender wurde aktualisiert.');
+				showToast('Backup erfolgreich geladen! Der Kalender wurde aktualisiert.', 'success');
 				document.getElementById('settingsDialogOverlay').classList.remove('active'); // Dialog schließen
 			} catch (error) {
 				console.error('Fehler beim Laden des Backups:', error);
-				alert('Fehler beim Laden des Backups. Bitte stelle sicher, dass es eine gültige JSON-Datei ist.');
+				showToast('Fehler beim Laden des Backups. Bitte stelle sicher, dass es eine gültige JSON-Datei ist.', 'error');
 			}
 		};
 		reader.readAsText(file);
@@ -1248,7 +1276,7 @@ if (resetSignatureButton) {
 			signatureCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
 			userProfile.signature = null;
 			localStorage.setItem('userProfile', JSON.stringify(userProfile));
-			alert('Unterschrift wurde zurückgesetzt!');
+			showToast('Unterschrift wurde zurückgesetzt!', 'success');
 		}
 	});
 
@@ -1439,7 +1467,7 @@ if (saveProfileButton) {
 		}
 
 		localStorage.setItem('userProfile', JSON.stringify(userProfile));
-		alert('Profil erfolgreich gespeichert!');
+		showToast('Profil erfolgreich gespeichert!', 'success');
 	});
 }
 
@@ -1572,7 +1600,7 @@ if (generatePdfButton) {
 			generateUrlaubsantragPDF();
 		} catch (error) {
 			console.error('Fehler beim PDF-Generieren:', error);
-			alert('Fehler beim Generieren der PDF: ' + error.message);
+			showToast('Fehler beim Generieren der PDF: ' + error.message, 'error');
 		}
 	});
 }
@@ -1609,7 +1637,7 @@ function generateUrlaubsantragPDF(action = 'download') {
 
 		// Validierung für Punkt 5 und 6
 		if ((selectedType === '5' || selectedType === '6') && !grund.trim()) {
-			alert('Bei Auswahl von Punkt 5 oder 6 muss zwingend ein Grund angegeben werden!');
+			showToast('Bei Auswahl von Punkt 5 oder 6 muss zwingend ein Grund angegeben werden!', 'error');
 			restoreViewport();
 			return;
 		}
@@ -1617,7 +1645,7 @@ function generateUrlaubsantragPDF(action = 'download') {
 		console.log('Name:', name, 'Von:', dateFrom, 'Bis:', dateTo);
 
 		if (!dateTo) {
-			alert('Bitte geben Sie ein Enddatum ein!');
+			showToast('Bitte geben Sie ein Enddatum ein!', 'error');
 			restoreViewport();
 			return;
 		}
@@ -2050,7 +2078,7 @@ function generateUrlaubsantragPDF(action = 'download') {
 				if (wasDarkMode) document.body.classList.add('dark-mode');
 				restoreViewport();
 				console.error('PDF-Druckfehler:', error);
-				alert('Fehler beim Drucken: ' + error.message);
+				showToast('Fehler beim Drucken: ' + error.message, 'error');
 			});
 		} else {
 			// PDF als Blob generieren, um es teilen zu können
@@ -2080,20 +2108,20 @@ function generateUrlaubsantragPDF(action = 'download') {
 					a.click();
 					document.body.removeChild(a);
 					URL.revokeObjectURL(url);
-					alert('PDF wurde generiert und gespeichert!');
+					showToast('PDF wurde generiert und gespeichert!', 'success');
 				}
 			}).catch((error) => {
 				if (wasDarkMode) document.body.classList.add('dark-mode');
 				restoreViewport();
 				console.error('PDF-Generierungsfehler:', error);
-				alert('Fehler beim PDF-Generieren: ' + error.message);
+				showToast('Fehler beim PDF-Generieren: ' + error.message, 'error');
 			});
 		}
 
 	} catch (error) {
 		restoreViewport();
 		console.error('Fehler in generateUrlaubsantragPDF:', error);
-		alert('Fehler beim Generieren der PDF: ' + error.message);
+		showToast('Fehler beim Generieren der PDF: ' + error.message, 'error');
 	}
 }
 

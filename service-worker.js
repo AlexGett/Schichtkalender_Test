@@ -1,4 +1,4 @@
-const CACHE_NAME = 'schichtkalender-cache-test-v1.1.73';
+const CACHE_NAME = 'schichtkalender-cache-test-v1.1.77';
 const urlsToCache = [
     '/',
     '/index.html',
@@ -7,6 +7,8 @@ const urlsToCache = [
     '/manifest.json',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
     'https://images.seeklogo.com/logo-png/54/2/motherson-logo-png_seeklogo-544537.png',
+    'https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css',
+    'https://cdn.jsdelivr.net/npm/toastify-js',
     '/ios/16.png',
     '/ios/32.png',
     '/ios/60.png',
