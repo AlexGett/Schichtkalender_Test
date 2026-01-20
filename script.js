@@ -21,16 +21,20 @@ function showToast(message, type = 'info') {
 		}
 
 		Toastify({
-			text: message,
-			duration: 3000,
-			close: true,
-			gravity: "center", // `top` or `bottom`
-			position: "center", // `left`, `center` or `right`
-			style: {
-				background: backgroundColor,
-			},
-			stopOnFocus: true, // Prevents dismissing of toast on hover
-		}).showToast();
+    text: message,
+    duration: 3000,
+    close: true,
+    gravity: "top",    // Erscheint oben
+    position: "center", // Horizontal zentriert
+    offset: {
+        x: 0,  // Horizontale Verschiebung
+        y: 50  // Vertikale Verschiebung nach unten (50px reichen meist für die Notch)
+    },
+    style: {
+        background: backgroundColor,
+    },
+    stopOnFocus: true,
+}).showToast();
 	} else {
 		alert(message); // Fallback, falls Toastify nicht geladen ist
 	}
