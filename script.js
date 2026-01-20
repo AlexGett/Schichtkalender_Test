@@ -24,7 +24,7 @@ function showToast(message, type = 'info') {
 			text: message,
 			duration: 3000,
 			close: true,
-			gravity: "top", // `top` or `bottom`
+			gravity: "center", // `top` or `bottom`
 			position: "center", // `left`, `center` or `right`
 			style: {
 				background: backgroundColor,
