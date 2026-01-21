@@ -1613,9 +1613,24 @@ function addVacationRangeToCalendar(startDateStr, endDateStr) {
 	const start = new Date(startDateStr + 'T12:00:00');
 	const end = new Date(endDateStr + 'T12:00:00');
 
+	let cachedYear = null;
+	let cachedHolidays = [];
+
 	for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
 		const dateString = formatDate(d);
-		vacationData[dateString] = true;
+		const year = d.getFullYear();
+
+		if (year !== cachedYear) {
+			cachedYear = year;
+			cachedHolidays = getHolidaysForYear(year);
+		}
+
+		const isHoliday = cachedHolidays.some(h => h.date === dateString);
+		const shiftClass = getShiftForDate(dateString);
+
+		if (shiftClass !== 'freischicht' && !isHoliday) {
+			vacationData[dateString] = true;
+		}
 	}
 	localStorage.setItem('calendarVacations', JSON.stringify(vacationData));
 	generateCalendar(currentCalendarYear);
