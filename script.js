@@ -675,6 +675,28 @@ function setShiftGroup(group) {
 }
 // --- ENDE FUNKTIONEN FÜR BENUTZERDEFINIERTES SCHICHTSYSTEM ---
 
+// NEU: Funktion zum Zuklappen aller erweiterbaren Sektionen im Einstellungsdialog
+function collapseAllSettingsSections() {
+    const sections = document.querySelectorAll('#settingsDialogOverlay .settings-section.collapsible-init');
+    sections.forEach(section => {
+        // Der Inhalts-Wrapper ist das letzte div-Element in der Sektion
+        const contentWrapper = section.querySelector('div:last-child');
+        const header = section.querySelector('h4');
+        if (contentWrapper && header && contentWrapper.style.display !== 'none') {
+            contentWrapper.style.display = 'none';
+            const icon = header.querySelector('i');
+            if (icon) {
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+    });
+}
+
+
+
+
+
+
 
 const todayButton = document.getElementById('todayButton');
 if (todayButton) {
@@ -713,6 +735,10 @@ function setupDialog(openBtnId, dialogOverlayId, closeBtnId) {
 	if (closeBtn) {
 		closeBtn.addEventListener('click', () => {
 			dialogOverlay.classList.remove('active');
+			// NEU: Alle Sektionen zuklappen beim Schließen
+			if (dialogOverlayId === 'settingsDialogOverlay') {
+				collapseAllSettingsSections();
+			}
 		});
 	}
 
@@ -720,6 +746,10 @@ function setupDialog(openBtnId, dialogOverlayId, closeBtnId) {
 		dialogOverlay.addEventListener('click', (event) => {
 			if (event.target === dialogOverlay) {
 				dialogOverlay.classList.remove('active');
+				// NEU: Alle Sektionen zuklappen beim Schließen
+				if (dialogOverlayId === 'settingsDialogOverlay') {
+					collapseAllSettingsSections();
+				}
 			}
 		});
 	}
@@ -1186,6 +1216,45 @@ let userProfile = JSON.parse(localStorage.getItem('userProfile')) || {
 	signature: null
 };
 
+// NEU: Standard-Schichtfarben
+const DEFAULT_SHIFT_COLORS = {
+	fruehschicht: { light: '#FFF3E0', dark: '#40362b' },
+	spaetschicht: { light: '#C8E6C9', dark: '#314a32' },
+	nachtschicht: { light: '#BBDEFB', dark: '#25394e' },
+	freischicht:  { light: '#C4FFF8', dark: '#466F6A' }
+};
+
+// NEU: Feste Farbpaletten für die Auswahl
+const COLOR_PALETTES = [
+    { light: '#FFF3E0', dark: '#40362b', name: 'Orange' }, // Standard Früh
+    { light: '#C8E6C9', dark: '#314a32', name: 'Grün' },   // Standard Spät
+    { light: '#BBDEFB', dark: '#25394e', name: 'Blau' },   // Standard Nacht
+    { light: '#C4FFF8', dark: '#466F6A', name: 'Türkis' }  // Standard Frei
+];
+
+// NEU: Funktion zum Anwenden der benutzerdefinierten Schichtfarben
+function applyCustomShiftColors() {
+    const colors = userProfile.shiftColors || DEFAULT_SHIFT_COLORS;
+    let styleContent = '';
+
+    for (const shift in colors) {
+        if (colors.hasOwnProperty(shift)) {
+            styleContent += `
+                .${shift} { background-color: ${colors[shift].light} !important; }
+                body.dark-mode .${shift} { background-color: ${colors[shift].dark} !important; }
+            `;
+        }
+    }
+
+    let styleElement = document.getElementById('custom-shift-colors-style');
+    if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = 'custom-shift-colors-style';
+        document.head.appendChild(styleElement);
+    }
+    styleElement.innerHTML = styleContent;
+}
+
 // Sicherstellen, dass Schichtzeiten existieren (für bestehende Profile)
 if (!userProfile.shiftTimes) {
 	userProfile.shiftTimes = {
@@ -1193,6 +1262,11 @@ if (!userProfile.shiftTimes) {
 		spaet: { start: '14:00', end: '22:00' },
 		nacht: { start: '22:00', end: '06:00' }
 	};
+}
+
+// NEU: Sicherstellen, dass Schichtfarben existieren
+if (!userProfile.shiftColors) {
+    userProfile.shiftColors = JSON.parse(JSON.stringify(DEFAULT_SHIFT_COLORS)); // Tiefe Kopie
 }
 
 const profileVornameInput = document.getElementById('profileVornameInput');
@@ -1335,6 +1409,39 @@ if (resetSignatureButton) {
 	}
 }
 
+// NEU: Hilfsfunktion, um eine Sektion im Einstellungsdialog einklappbar zu machen
+function makeSectionCollapsible(section) {
+    if (section && !section.classList.contains('collapsible-init')) {
+        section.classList.add('collapsible-init');
+        const header = section.querySelector('h4');
+        if (header) {
+            header.style.cursor = 'pointer';
+            header.style.display = 'flex';
+            header.style.justifyContent = 'space-between';
+            header.style.alignItems = 'center';
+            header.innerHTML = `<span>${header.textContent}</span><i class="fas fa-chevron-down"></i>`;
+
+            const contentWrapper = document.createElement('div');
+            contentWrapper.style.display = 'none'; // Standardmäßig zugeklappt
+
+            // Alle nachfolgenden Elemente in den Wrapper verschieben
+            while (header.nextSibling) {
+                contentWrapper.appendChild(header.nextSibling);
+            }
+            section.appendChild(contentWrapper);
+
+            header.addEventListener('click', () => {
+                const isVisible = contentWrapper.style.display === 'block';
+                contentWrapper.style.display = isVisible ? 'none' : 'block';
+                const icon = header.querySelector('i');
+                if (icon) {
+                    icon.className = isVisible ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+                }
+            });
+        }
+    }
+}
+
 // Laden des gespeicherten Profils
 function loadProfile() {
 	// Inject Abteilung input if missing (da HTML nicht direkt bearbeitet werden kann)
@@ -1348,39 +1455,130 @@ function loadProfile() {
 		}
 	}
 
-	// Collapsible logic for Profile Section
-	if (profileVornameInput) {
-		const section = profileVornameInput.closest('.settings-section');
-		if (section && !section.classList.contains('collapsible-init')) {
-			section.classList.add('collapsible-init');
-			const header = section.querySelector('h4');
-			if (header) {
-				header.style.cursor = 'pointer';
-				header.style.display = 'flex';
-				header.style.justifyContent = 'space-between';
-				header.style.alignItems = 'center';
-				header.innerHTML = '<span>' + header.textContent + '</span><i class="fas fa-chevron-down"></i>';
+	// NEU: Sektion für Schichtfarben einfügen, falls nicht vorhanden
+	if (saveProfileButton && !document.getElementById('shiftColorSettingsSection')) {
+		const colorSection = document.createElement('div');
+		colorSection.className = 'settings-section';
+		colorSection.id = 'shiftColorSettingsSection';
+		
+        // Aufbau der HTML-Struktur mit Paletten und Dropdowns
+        let html = '<h4>Schichtzuordnung (Farben)</h4>';
+        
+        COLOR_PALETTES.forEach((palette, index) => {
+            // Versuchen herauszufinden, welche Schicht aktuell diese Farben hat
+            let selectedShift = '';
+            if (userProfile.shiftColors) {
+                for (const [shift, colors] of Object.entries(userProfile.shiftColors)) {
+                    // Vergleich der Farben (Groß-/Kleinschreibung ignorieren)
+                    if (colors.light.toLowerCase() === palette.light.toLowerCase() && 
+                        colors.dark.toLowerCase() === palette.dark.toLowerCase()) {
+                        selectedShift = shift;
+                        break;
+                    }
+                }
+            }
+            // Fallback: Standardzuordnung beim ersten Laden
+            if (!selectedShift) {
+                const defaults = ['fruehschicht', 'spaetschicht', 'nachtschicht', 'freischicht'];
+                selectedShift = defaults[index] || '';
+            }
 
-				const contentWrapper = document.createElement('div');
-				contentWrapper.style.display = 'none'; // Initially collapsed
+            html += `
+                <div class="settings-option inline color-assignment-row">
+                    <div class="color-preview-group">
+                        <div class="color-preview" style="background-color: ${palette.light};" title="Light Mode: ${palette.name}"></div>
+                        <div class="color-preview" style="background-color: ${palette.dark};" title="Dark Mode: ${palette.name}"></div>
+                    </div>
+                    <select class="shift-select" data-light="${palette.light}" data-dark="${palette.dark}">
+                        <option value="">- Keine -</option>
+                        <option value="fruehschicht" ${selectedShift === 'fruehschicht' ? 'selected' : ''}>Frühschicht</option>
+                        <option value="spaetschicht" ${selectedShift === 'spaetschicht' ? 'selected' : ''}>Spätschicht</option>
+                        <option value="nachtschicht" ${selectedShift === 'nachtschicht' ? 'selected' : ''}>Nachtschicht</option>
+                        <option value="freischicht" ${selectedShift === 'freischicht' ? 'selected' : ''}>Freischicht</option>
+                    </select>
+                </div>
+            `;
+        });
 
-				// Move all siblings of header into contentWrapper
-				while (header.nextSibling) {
-					contentWrapper.appendChild(header.nextSibling);
-				}
-				section.appendChild(contentWrapper);
+        html += `
+            <div class="button-group" style="margin-top: 15px;">
+                <button type="button" id="applyShiftColorsBtn" class="confirm-button">Übernehmen</button>
+                <button type="button" id="resetShiftColorsBtn" class="delete-button" style="background-color: #6c757d;">Zurücksetzen</button>
+            </div>
+        `;
 
-				header.addEventListener('click', () => {
-					const isVisible = contentWrapper.style.display === 'block';
-					contentWrapper.style.display = isVisible ? 'none' : 'block';
-					const icon = header.querySelector('i');
-					if (icon) {
-						icon.className = isVisible ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
-					}
-				});
-			}
+        colorSection.innerHTML = html;
+
+        // Event Listeners für die neuen Buttons
+        const applyBtn = colorSection.querySelector('#applyShiftColorsBtn');
+        const resetBtn = colorSection.querySelector('#resetShiftColorsBtn');
+
+        if (applyBtn) {
+            applyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const newShiftColors = {};
+                const selects = colorSection.querySelectorAll('.shift-select');
+                selects.forEach(select => {
+                    const shift = select.value;
+                    if (shift) {
+                        newShiftColors[shift] = {
+                            light: select.dataset.light,
+                            dark: select.dataset.dark
+                        };
+                    }
+                });
+                userProfile.shiftColors = newShiftColors;
+                localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                applyCustomShiftColors();
+                updateShiftInfoDisplay();
+                showToast('Farben erfolgreich übernommen!', 'success');
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                const selects = colorSection.querySelectorAll('.shift-select');
+                const defaults = ['fruehschicht', 'spaetschicht', 'nachtschicht', 'freischicht'];
+                selects.forEach((select, index) => {
+                    select.value = defaults[index] || '';
+                });
+                showToast('Standardauswahl wiederhergestellt. Klicke auf Übernehmen zum Speichern.', 'info');
+            });
+        }
+
+		// Nach der Profil-Sektion einfügen
+		const profileSection = profileVornameInput.closest('.settings-section');
+		if (profileSection && profileSection.parentNode) {
+			profileSection.parentNode.insertBefore(colorSection, profileSection.nextSibling);
 		}
 	}
+
+	if (profileVornameInput) {
+		const section = profileVornameInput.closest('.settings-section');
+		makeSectionCollapsible(section);
+	}
+
+    // NEU: Werte der Dropdowns aktualisieren (falls Sektion bereits existiert oder neu erstellt wurde)
+    const colorSection = document.getElementById('shiftColorSettingsSection');
+    if (colorSection) {
+        if (userProfile.shiftColors) {
+            const selects = colorSection.querySelectorAll('.shift-select');
+            selects.forEach(select => {
+                let selectedShift = '';
+                const pLight = select.dataset.light.toLowerCase();
+                const pDark = select.dataset.dark.toLowerCase();
+                
+                for (const [shift, colors] of Object.entries(userProfile.shiftColors)) {
+                    if (colors.light.toLowerCase() === pLight && colors.dark.toLowerCase() === pDark) {
+                        selectedShift = shift;
+                        break;
+                    }
+                }
+                select.value = selectedShift;
+            });
+        }
+        makeSectionCollapsible(colorSection);
+    }
 
 	if (profileVornameInput && profileNachnameInput) {
 		profileVornameInput.value = userProfile.vorname || '';
@@ -1425,6 +1623,9 @@ function loadProfile() {
 			img.src = userProfile.signature;
 		}
 	}
+
+	// NEU: Benutzerdefinierte Farben anwenden
+    applyCustomShiftColors();
 }
 
 // Profil speichern
@@ -1464,6 +1665,22 @@ if (saveProfileButton) {
 			}
 		};
 		updateShiftInfoDisplay(); // Anzeige aktualisieren
+
+		// NEU: Schichtfarben speichern
+        const newShiftColors = {};
+        const selects = document.querySelectorAll('.shift-select');
+        selects.forEach(select => {
+            const shift = select.value;
+            if (shift) {
+                newShiftColors[shift] = {
+                    light: select.dataset.light,
+                    dark: select.dataset.dark
+                };
+            }
+        });
+        userProfile.shiftColors = newShiftColors;
+        
+        applyCustomShiftColors(); // Neue Farben sofort anwenden
 
 		// Speichere die Unterschrift vom Canvas
 		if (signatureCanvas) {

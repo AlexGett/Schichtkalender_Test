@@ -711,6 +711,67 @@ h2 {
     margin-top: 0;
 }
 
+.color-picker-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.color-picker-group span {
+    font-size: 0.9em;
+}
+
+.color-picker-group input[type="color"] {
+    width: 40px;
+    height: 30px;
+    border: 1px solid #ccc;
+    padding: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    /* Überschreibt generische Regeln für input[type="color"] */
+    margin-top: 0;
+    align-self: auto;
+}
+
+/* NEU: Styles für die Schicht-Zuweisung (Farbe -> Schicht) */
+.color-assignment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #ccc;
+}
+.color-assignment-row:last-child {
+    border-bottom: none;
+}
+.color-preview-group {
+    display: flex;
+    gap: 10px;
+}
+.color-preview {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    border: 1px solid #999;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.shift-select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: white;
+    font-size: 1em;
+    width: 140px;
+    cursor: pointer;
+}
+body.dark-mode .shift-select {
+    background-color: #3a3a3a;
+    color: #e0e0e0;
+    border: 1px solid #555;
+}
+body.dark-mode .color-assignment-row {
+    border-bottom: 1px solid #555;
+}
 
 .button-group {
     display: flex;
