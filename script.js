@@ -691,6 +691,14 @@ function collapseAllSettingsSections() {
             }
         }
     });
+
+    // NEU: Auch den Bereich "Eigenes Schichtsystem" zuklappen
+    const customShiftSystemSection = document.getElementById('customShiftSystemSection');
+    const openCustomShiftSystemButton = document.getElementById('openCustomShiftSystemSettings');
+    if (customShiftSystemSection && openCustomShiftSystemButton) {
+        customShiftSystemSection.style.display = 'none';
+        openCustomShiftSystemButton.textContent = 'Eigenes Schichtsystem festlegen';
+    }
 }
 
 
@@ -2517,6 +2525,16 @@ function createBottomAppDock() {
 	dockContainer.appendChild(dockTrigger);
 	document.body.appendChild(dockContainer);
 
+	// Helper Funktion zum Schließen aller Overlays
+	const closeAllOverlays = () => {
+		document.querySelectorAll('.dialog-overlay.active').forEach(overlay => {
+			overlay.classList.remove('active');
+			if (overlay.id === 'settingsDialogOverlay') {
+				collapseAllSettingsSections();
+			}
+		});
+	};
+
 	// Funktion zum Schließen des Docks
 	const closeDock = () => {
 		dockContainer.classList.remove('open');
@@ -2553,6 +2571,7 @@ function createBottomAppDock() {
 				
 				// Klick auf das Dock-Icon öffnet die Einstellungen (simuliert Klick auf Logo)
 				wrapper.addEventListener('click', () => {
+					closeAllOverlays();
 					el.click();
 					closeDock();
 				});
@@ -2577,6 +2596,11 @@ function createBottomAppDock() {
 				wrapper.addEventListener('click', () => {
 					closeDock();
 				});
+
+				// Schließe andere Overlays bevor das Element-Event feuert (Capture Phase)
+				wrapper.addEventListener('click', () => {
+					closeAllOverlays();
+				}, true);
 				
 				dockContent.appendChild(wrapper);
 			}
@@ -2597,12 +2621,46 @@ function createBottomAppDock() {
 		
 		// Klick auf das Icon löst den ursprünglichen Profil-Klick aus
 		wrapper.addEventListener('click', () => {
+			closeAllOverlays();
 			profileEl.click();
 			closeDock();
 		});
 		
 		dockContent.appendChild(wrapper);
 	}
+
+	// NEU: Urlaubsantrag Button im Dock hinzufügen
+	const vacationWrapper = document.createElement('div');
+	vacationWrapper.className = 'app-icon-wrapper';
+	vacationWrapper.innerHTML = '<i class="fas fa-file-signature" style="font-size: 28px; margin-bottom: 5px;"></i>';
+	
+	const vacationLabel = document.createElement('span');
+	vacationLabel.className = 'app-label';
+	vacationLabel.textContent = 'Antrag';
+	vacationWrapper.appendChild(vacationLabel);
+	
+	vacationWrapper.addEventListener('click', () => {
+		const btn = document.getElementById('urlaubsantragButton');
+		if (btn) {
+			// Wenn kein Tag ausgewählt ist, versuche den heutigen Tag zu nehmen
+			if (!currentDayCell) {
+				const today = new Date();
+				const dateString = formatDate(today);
+				const cell = document.querySelector(`.date-cell[data-full-date="${dateString}"]`);
+				if (cell) {
+					currentDayCell = cell;
+				} else {
+					showToast('Bitte wähle zuerst einen Tag im Kalender aus.', 'info');
+					return;
+				}
+			}
+			closeAllOverlays();
+			btn.click();
+			closeDock();
+		}
+	});
+	
+	dockContent.appendChild(vacationWrapper);
 
 	// Toggle-Logik für das Menü
 	dockTrigger.addEventListener('click', () => {
