@@ -2507,6 +2507,145 @@ console.log('Profil-Verwaltung und Urlaubsantrag initialisiert');
 loadProfile();
 updateShiftInfoDisplay();
 
+// NEU: Funktionen für die Übersicht (Notizen & Urlaub)
+function createOverviewDialog() {
+	if (document.getElementById('overviewDialogOverlay')) return;
+
+	const overlay = document.createElement('div');
+	overlay.id = 'overviewDialogOverlay';
+	overlay.className = 'dialog-overlay';
+	
+	const dialog = document.createElement('div');
+	dialog.className = 'dialog';
+	
+	dialog.innerHTML = `
+		<button id="closeOverviewDialog" class="close-button">&times;</button>
+		<h3>Übersicht Einträge</h3>
+		<div id="overviewContent" style="max-height: 60vh; overflow-y: auto; margin-top: 10px;"></div>
+	`;
+	
+	overlay.appendChild(dialog);
+	document.body.appendChild(overlay);
+	
+	const closeBtn = dialog.querySelector('#closeOverviewDialog');
+	closeBtn.addEventListener('click', () => overlay.classList.remove('active'));
+	overlay.addEventListener('click', (e) => {
+		if (e.target === overlay) overlay.classList.remove('active');
+	});
+}
+
+function showOverview() {
+	createOverviewDialog();
+	const contentDiv = document.getElementById('overviewContent');
+	contentDiv.innerHTML = '';
+	
+	const allDates = new Set([...Object.keys(notesData), ...Object.keys(vacationData)]);
+	const sortedDates = Array.from(allDates).sort();
+	
+	// Gruppieren nach Jahr
+	const yearsData = {};
+	
+	sortedDates.forEach(dateStr => {
+		const note = notesData[dateStr];
+		const isVacation = vacationData[dateStr];
+		
+		// Filter: Buß- und Bettag ignorieren, wenn es kein Urlaub ist
+		if (note === 'Buß- und Bettag' && !isVacation) return;
+		if (!note && !isVacation) return;
+
+		const year = dateStr.split('-')[0];
+		if (!yearsData[year]) {
+			yearsData[year] = { entries: [], vacationCount: 0 };
+		}
+
+		// Urlaubstage zählen (Heiligabend/Silvester = 0.5)
+		if (isVacation) {
+			if (dateStr.endsWith('-12-24') || dateStr.endsWith('-12-31')) {
+				yearsData[year].vacationCount += 0.5;
+			} else {
+				yearsData[year].vacationCount += 1;
+			}
+		}
+
+		yearsData[year].entries.push({ dateStr, note, isVacation });
+	});
+	
+	const sortedYears = Object.keys(yearsData).sort();
+	
+	if (sortedYears.length === 0) {
+		contentDiv.innerHTML = '<p style="text-align: center; color: #666;">Keine Einträge vorhanden.</p>';
+	} else {
+		sortedYears.forEach(year => {
+			const yearData = yearsData[year];
+			const currentRealYear = new Date().getFullYear();
+			let yearLabel = year;
+			if (parseInt(year) === currentRealYear) yearLabel += ' (Aktuelles Jahr)';
+			else if (parseInt(year) === currentRealYear - 1) yearLabel += ' (Vorheriges Jahr)';
+			else if (parseInt(year) === currentRealYear + 1) yearLabel += ' (Nächstes Jahr)';
+
+			const yearSection = document.createElement('div');
+			yearSection.innerHTML = `
+				<div style="background-color: #eee; padding: 10px; font-weight: bold; border-radius: 5px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+					<span>${yearLabel}</span>
+					<span style="font-size: 0.9em; background: #fff; padding: 2px 6px; border-radius: 4px;">Urlaub: ${yearData.vacationCount} Tage</span>
+				</div>
+			`;
+			
+			const ul = document.createElement('ul');
+			ul.style.listStyle = 'none';
+			ul.style.padding = '0';
+			ul.style.margin = '0 0 20px 0';
+			
+			yearData.entries.forEach(entry => {
+				const li = document.createElement('li');
+				li.style.borderBottom = '1px solid #eee';
+				li.style.padding = '12px 5px';
+				li.style.cursor = 'pointer';
+				
+				li.addEventListener('click', () => {
+					document.getElementById('overviewDialogOverlay').classList.remove('active');
+					const targetYear = parseInt(entry.dateStr.split('-')[0]);
+					if (targetYear !== currentCalendarYear) {
+						generateCalendar(targetYear);
+					}
+					setTimeout(() => {
+						const cell = document.querySelector(`.date-cell[data-full-date="${entry.dateStr}"]`);
+						if (cell) {
+							cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+							cell.style.transition = 'background-color 0.5s';
+							cell.style.backgroundColor = '#ffff99';
+							setTimeout(() => cell.style.backgroundColor = '', 1000);
+						}
+					}, 100);
+				});
+
+				const dateObj = new Date(entry.dateStr);
+				const formattedDate = dateObj.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+				
+				let html = `<div style="font-weight: bold; margin-bottom: 5px; font-size: 1.1em;">${formattedDate}</div>`;
+				
+				if (entry.isVacation) {
+					const isHalfDay = entry.dateStr.endsWith('-12-24') || entry.dateStr.endsWith('-12-31');
+					const vacText = isHalfDay ? 'Urlaub (0,5 Tage)' : 'Urlaub';
+					html += `<div style="color: #6f42c1; margin-bottom: 3px; display: flex; align-items: center;"><i class="fas fa-umbrella-beach" style="width: 25px; text-align: center; margin-right: 5px;"></i> ${vacText}</div>`;
+				}
+				
+				if (entry.note) {
+					html += `<div style="display: flex; align-items: flex-start;"><i class="fas fa-sticky-note" style="width: 25px; text-align: center; margin-right: 5px; margin-top: 3px; color: #555;"></i> <span style="flex: 1;">${entry.note}</span></div>`;
+				}
+				
+				li.innerHTML = html;
+				ul.appendChild(li);
+			});
+			
+			yearSection.appendChild(ul);
+			contentDiv.appendChild(yearSection);
+		});
+	}
+	
+	document.getElementById('overviewDialogOverlay').classList.add('active');
+}
+
 // --- NEUE FUNKTION FÜR DIE APP-LEISTE (DOCK) ---
 function createBottomAppDock() {
 	// Container erstellen
@@ -2661,6 +2800,42 @@ function createBottomAppDock() {
 	});
 	
 	dockContent.appendChild(vacationWrapper);
+
+	// NEU: Übersicht Button
+	const overviewWrapper = document.createElement('div');
+	overviewWrapper.className = 'app-icon-wrapper';
+	overviewWrapper.innerHTML = '<i class="fas fa-list-ul" style="font-size: 28px; margin-bottom: 5px;"></i>';
+	
+	const overviewLabel = document.createElement('span');
+	overviewLabel.className = 'app-label';
+	overviewLabel.textContent = 'Übersicht';
+	overviewWrapper.appendChild(overviewLabel);
+	
+	overviewWrapper.addEventListener('click', () => {
+		closeAllOverlays();
+		showOverview();
+		closeDock();
+	});
+	
+	dockContent.appendChild(overviewWrapper);
+
+	// NEU: Arbeitskleidung Button
+	const workwearWrapper = document.createElement('div');
+	workwearWrapper.className = 'app-icon-wrapper';
+	workwearWrapper.innerHTML = '<i class="fas fa-tshirt" style="font-size: 28px; margin-bottom: 5px;"></i>';
+	
+	const workwearLabel = document.createElement('span');
+	workwearLabel.className = 'app-label';
+	workwearLabel.textContent = 'Arbeitskleidung';
+	workwearWrapper.appendChild(workwearLabel);
+	
+	workwearWrapper.addEventListener('click', () => {
+		closeAllOverlays();
+		window.open('https://forms.office.com/e/YzwV8pCFgZ', '_blank');
+		closeDock();
+	});
+	
+	dockContent.appendChild(workwearWrapper);
 
 	// Toggle-Logik für das Menü
 	dockTrigger.addEventListener('click', () => {
