@@ -2682,67 +2682,43 @@ function createBottomAppDock() {
 		dockContent.style.display = 'none';
 	};
 
-	// Elemente definieren, die verschoben werden sollen
-	const itemsToMove = [
-		{ id: 'openPhoneDialog', label: 'Telefon' },
-		{ id: 'todayButton', label: 'Heute' },
-		{ id: 'openShiftInfoDialog', label: 'Info' },
-		{ id: 'openSettingsDialog', label: 'Einst.' }
+	// Elemente definieren, die im Dock angezeigt werden sollen
+	const dockItems = [
+		{ id: 'openPhoneDialog', label: 'Telefon', icon: '📞' },
+		{ id: 'todayButton', label: 'Heute', icon: '🗓️' },
+		{ id: 'openShiftInfoDialog', label: 'Info', icon: 'ℹ️' },
+		{ id: 'openSettingsDialog', label: 'Einst.', icon: '⚙️' }
 	];
 
-	itemsToMove.forEach(item => {
+	dockItems.forEach(item => {
 		const el = document.getElementById(item.id);
 		if (el) {
-			// Sonderbehandlung für das Logo (Einstellungen): Es soll oben bleiben, aber eine Verknüpfung im Dock haben
-			if (item.id === 'openSettingsDialog') {
-				const wrapper = document.createElement('div');
-				wrapper.className = 'app-icon-wrapper';
-				
-				// Neues Icon für Einstellungen erstellen (Zahnrad)
-				const icon = document.createElement('i');
-				icon.className = 'fas fa-cog';
-				wrapper.appendChild(icon);
-				
-				const label = document.createElement('span');
-				label.className = 'app-label';
-				label.textContent = item.label;
-				wrapper.appendChild(label);
-				
-				// Klick auf das Dock-Icon öffnet die Einstellungen (simuliert Klick auf Logo)
-				wrapper.addEventListener('click', () => {
-					closeAllOverlays();
-					el.click();
-					closeDock();
-				});
-				
-				dockContent.appendChild(wrapper);
-			} else {
-				const wrapper = document.createElement('div');
-				wrapper.className = 'app-icon-wrapper';
-				
-				// Alte Positionierungsklassen entfernen
-				el.classList.remove('header-icon', 'phone-icon-position', 'info-icon-position', 'today-icon-position', 'beat-animation');
-				el.style.position = 'static'; // Wichtig: Absolute Positionierung aufheben
-				el.style.margin = '0';
-				
-				wrapper.appendChild(el);
-				
-				const label = document.createElement('span');
-				label.className = 'app-label';
-				label.textContent = item.label;
-				wrapper.appendChild(label);
+			const wrapper = document.createElement('div');
+			wrapper.className = 'app-icon-wrapper';
+			
+			const icon = document.createElement('span');
+			icon.textContent = item.icon;
+			icon.style.fontSize = '28px';
+			icon.style.marginBottom = '5px';
+			wrapper.appendChild(icon);
+			
+			const label = document.createElement('span');
+			label.className = 'app-label';
+			label.textContent = item.label;
+			wrapper.appendChild(label);
+			
+			wrapper.addEventListener('click', () => {
+				closeAllOverlays();
+				el.click();
+				closeDock();
+			});
 
-				wrapper.addEventListener('click', () => {
-					closeDock();
-				});
-
-				// Schließe andere Overlays bevor das Element-Event feuert (Capture Phase)
-				wrapper.addEventListener('click', () => {
-					closeAllOverlays();
-				}, true);
-				
-				dockContent.appendChild(wrapper);
+			// Original-Elemente ausblenden (außer Logo/Einstellungen)
+			if (item.id !== 'openSettingsDialog') {
+				el.style.display = 'none';
 			}
+			
+			dockContent.appendChild(wrapper);
 		}
 	});
 
@@ -2751,7 +2727,12 @@ function createBottomAppDock() {
 	if (profileEl) {
 		const wrapper = document.createElement('div');
 		wrapper.className = 'app-icon-wrapper';
-		wrapper.innerHTML = '<i class="fas fa-user-circle" style="font-size: 28px; margin-bottom: 5px;"></i>';
+		
+		const icon = document.createElement('span');
+		icon.textContent = '👤';
+		icon.style.fontSize = '28px';
+		icon.style.marginBottom = '5px';
+		wrapper.appendChild(icon);
 		
 		const label = document.createElement('span');
 		label.className = 'app-label';
@@ -2771,7 +2752,12 @@ function createBottomAppDock() {
 	// NEU: Urlaubsantrag Button im Dock hinzufügen
 	const vacationWrapper = document.createElement('div');
 	vacationWrapper.className = 'app-icon-wrapper';
-	vacationWrapper.innerHTML = '<i class="fas fa-file-signature" style="font-size: 28px; margin-bottom: 5px;"></i>';
+	
+	const vacationIcon = document.createElement('span');
+	vacationIcon.textContent = '📝';
+	vacationIcon.style.fontSize = '28px';
+	vacationIcon.style.marginBottom = '5px';
+	vacationWrapper.appendChild(vacationIcon);
 	
 	const vacationLabel = document.createElement('span');
 	vacationLabel.className = 'app-label';
@@ -2804,7 +2790,12 @@ function createBottomAppDock() {
 	// NEU: Übersicht Button
 	const overviewWrapper = document.createElement('div');
 	overviewWrapper.className = 'app-icon-wrapper';
-	overviewWrapper.innerHTML = '<i class="fas fa-list-ul" style="font-size: 28px; margin-bottom: 5px;"></i>';
+	
+	const overviewIcon = document.createElement('span');
+	overviewIcon.textContent = '📋';
+	overviewIcon.style.fontSize = '28px';
+	overviewIcon.style.marginBottom = '5px';
+	overviewWrapper.appendChild(overviewIcon);
 	
 	const overviewLabel = document.createElement('span');
 	overviewLabel.className = 'app-label';
@@ -2822,7 +2813,13 @@ function createBottomAppDock() {
 	// NEU: Arbeitskleidung Button
 	const workwearWrapper = document.createElement('div');
 	workwearWrapper.className = 'app-icon-wrapper';
-	workwearWrapper.innerHTML = '<i class="fas fa-tshirt" style="font-size: 28px; margin-bottom: 5px;"></i>';
+	
+	const workwearIcon = document.createElement('span');
+	workwearIcon.textContent = '👕';
+	workwearIcon.style.fontSize = '28px';
+	workwearIcon.style.marginBottom = '5px';
+	workwearIcon.style.filter = 'hue-rotate(258deg)';
+	workwearWrapper.appendChild(workwearIcon);
 	
 	const workwearLabel = document.createElement('span');
 	workwearLabel.className = 'app-label';
