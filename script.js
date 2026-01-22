@@ -554,6 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	generateCalendar(currentCalendarYear); // Initialer Kalenderaufbau
 
 	registerServiceWorker(); // Service Worker mit Update-Funktion registrieren
+	createBottomAppDock(); // NEU: Untere App-Leiste erstellen und Elemente verschieben
 });
 
 // --- FUNKTIONEN FÜR BENUTZERDEFINIERTES SCHICHTSYSTEM ---
@@ -2497,3 +2498,122 @@ function toggleSettingsVisibility(mode) {
 console.log('Profil-Verwaltung und Urlaubsantrag initialisiert');
 loadProfile();
 updateShiftInfoDisplay();
+
+// --- NEUE FUNKTION FÜR DIE APP-LEISTE (DOCK) ---
+function createBottomAppDock() {
+	// Container erstellen
+	const dockContainer = document.createElement('div');
+	dockContainer.id = 'bottomAppDock';
+
+	const dockContent = document.createElement('div');
+	dockContent.id = 'bottomAppDockContent';
+
+	const dockTrigger = document.createElement('div');
+	dockTrigger.id = 'bottomAppDockTrigger';
+	dockTrigger.innerHTML = '<i class="fas fa-bars"></i> <span>Menü</span>';
+
+	// Struktur zusammenbauen
+	dockContainer.appendChild(dockContent);
+	dockContainer.appendChild(dockTrigger);
+	document.body.appendChild(dockContainer);
+
+	// Funktion zum Schließen des Docks
+	const closeDock = () => {
+		dockContainer.classList.remove('open');
+		const icon = dockTrigger.querySelector('i');
+		icon.className = 'fas fa-bars';
+		dockContent.style.display = 'none';
+	};
+
+	// Elemente definieren, die verschoben werden sollen
+	const itemsToMove = [
+		{ id: 'openPhoneDialog', label: 'Telefon' },
+		{ id: 'todayButton', label: 'Heute' },
+		{ id: 'openShiftInfoDialog', label: 'Info' },
+		{ id: 'openSettingsDialog', label: 'Einst.' }
+	];
+
+	itemsToMove.forEach(item => {
+		const el = document.getElementById(item.id);
+		if (el) {
+			// Sonderbehandlung für das Logo (Einstellungen): Es soll oben bleiben, aber eine Verknüpfung im Dock haben
+			if (item.id === 'openSettingsDialog') {
+				const wrapper = document.createElement('div');
+				wrapper.className = 'app-icon-wrapper';
+				
+				// Neues Icon für Einstellungen erstellen (Zahnrad)
+				const icon = document.createElement('i');
+				icon.className = 'fas fa-cog';
+				wrapper.appendChild(icon);
+				
+				const label = document.createElement('span');
+				label.className = 'app-label';
+				label.textContent = item.label;
+				wrapper.appendChild(label);
+				
+				// Klick auf das Dock-Icon öffnet die Einstellungen (simuliert Klick auf Logo)
+				wrapper.addEventListener('click', () => {
+					el.click();
+					closeDock();
+				});
+				
+				dockContent.appendChild(wrapper);
+			} else {
+				const wrapper = document.createElement('div');
+				wrapper.className = 'app-icon-wrapper';
+				
+				// Alte Positionierungsklassen entfernen
+				el.classList.remove('header-icon', 'phone-icon-position', 'info-icon-position', 'today-icon-position', 'beat-animation');
+				el.style.position = 'static'; // Wichtig: Absolute Positionierung aufheben
+				el.style.margin = '0';
+				
+				wrapper.appendChild(el);
+				
+				const label = document.createElement('span');
+				label.className = 'app-label';
+				label.textContent = item.label;
+				wrapper.appendChild(label);
+
+				wrapper.addEventListener('click', () => {
+					closeDock();
+				});
+				
+				dockContent.appendChild(wrapper);
+			}
+		}
+	});
+
+	// Profilname speziell behandeln
+	const profileEl = document.getElementById('profileNameDisplay');
+	if (profileEl) {
+		const wrapper = document.createElement('div');
+		wrapper.className = 'app-icon-wrapper';
+		wrapper.innerHTML = '<i class="fas fa-user-circle" style="font-size: 28px; margin-bottom: 5px;"></i>';
+		
+		const label = document.createElement('span');
+		label.className = 'app-label';
+		label.textContent = 'Profil';
+		wrapper.appendChild(label);
+		
+		// Klick auf das Icon löst den ursprünglichen Profil-Klick aus
+		wrapper.addEventListener('click', () => {
+			profileEl.click();
+			closeDock();
+		});
+		
+		dockContent.appendChild(wrapper);
+	}
+
+	// Toggle-Logik für das Menü
+	dockTrigger.addEventListener('click', () => {
+		dockContainer.classList.toggle('open');
+		const icon = dockTrigger.querySelector('i');
+		if (dockContainer.classList.contains('open')) {
+			icon.className = 'fas fa-chevron-down';
+			dockContent.style.display = 'grid';
+		} else {
+			icon.className = 'fas fa-bars';
+			dockContent.style.display = 'none';
+		}
+	});
+}
