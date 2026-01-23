@@ -24,7 +24,8 @@ body {
     border-radius: 12px;
     box-sizing: border-box;
     position: relative;
-    animation: pulse-blue-border 2s infinite alternate;}
+    animation: pulse-blue-border 2s infinite alternate;
+}
 
 @keyframes pulse-blue-border {
     0% {
@@ -361,6 +362,13 @@ h2 {
     text-align: center;
 }
 
+.date-cell .emoji-indicator {
+    font-size: 0.8em;
+    line-height: 1;
+    margin-top: -2px;
+    margin-bottom: 1px;
+}
+
 .heute {
     border: 3px solid var(--calendar-border-color) !important; /* Dynamische Farbe passend zu den Einstellungen */
     font-weight: bold;
@@ -436,7 +444,7 @@ h2 {
         font-size: 0.9em;
     }
     .logo {
-        FONT-WEIGHT: 300;
+        font-weight: 300;
         width: 100px;
         top: -20px;
         right: 10px;
@@ -449,7 +457,7 @@ h2 {
         left: 12px;
     }
     .today-icon-position {
-        left:12px;
+        left: 12px;
 		top: 60px;
     }
     .info-icon-position {
@@ -885,8 +893,8 @@ hr {
     border-radius: 5px;
     font-size: 1.1em;
     text-align: center;
-    appearance: textfield;
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .year-input-dialog input[type="number"]::-webkit-outer-spin-button,
@@ -1232,7 +1240,7 @@ body.dark-mode .loading-message {
     padding: 15px 25px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    display: flex;
+    display: none;
     align-items: center;
     gap: 20px;
     z-index: 2000;
@@ -1262,64 +1270,6 @@ body.dark-mode #update-banner {
 
 body.dark-mode .greeting-text {
     color: #aaa;
-}
-/* ===== PROFIL-EINSTELLUNGEN STYLES ===== */
-.settings-section {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-}
-
-.settings-section h4 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #333;
-}
-
-body.dark-mode .settings-section {
-    background-color: #2a2a2a;
-}
-
-body.dark-mode .settings-section h4 {
-    color: #f0f0f0;
-}
-
-.settings-option {
-    margin-bottom: 15px;
-}
-
-.settings-option label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #333;
-}
-
-body.dark-mode .settings-option label {
-    color: #f0f0f0;
-}
-
-.settings-option input[type="text"],
-.settings-option input[type="date"],
-.settings-option input[type="file"],
-.settings-option textarea {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 16px;
-    box-sizing: border-box;
-}
-
-body.dark-mode .settings-option input[type="text"],
-body.dark-mode .settings-option input[type="date"],
-body.dark-mode .settings-option input[type="file"],
-body.dark-mode .settings-option textarea {
-    background-color: #3a3a3a;
-    color: #f0f0f0;
-    border-color: #555;
 }
 
 /* ===== SIGNATURE CANVAS STYLES ===== */
@@ -1593,4 +1543,164 @@ body.dark-mode #profileNameDisplay.app-label {
     max-width: 100%;
     max-height: 100px;
     object-fit: contain;
+}
+
+/* ===== NEUE KLASSEN ZUR BESEITIGUNG VON INLINE-STYLES ===== */
+
+#openPhoneDialog { --fa-animation-delay: 0.20s; }
+#todayButton { --fa-animation-delay: 0.40s; }
+#openShiftInfoDialog { --fa-animation-delay: 0.60s; }
+
+.shift-time-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.shift-time-row:last-child {
+    margin-bottom: 0;
+}
+
+.signature-container {
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+.signature-canvas {
+    display: block;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.signature-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.signature-buttons button {
+    flex: 1;
+}
+
+.btn-red { background-color: #dc3545 !important; }
+.btn-red:hover { background-color: #c82333 !important; }
+
+.btn-grey { background-color: #6c757d !important; }
+.btn-grey:hover { background-color: #5a6268 !important; }
+
+.btn-blue { background-color: #007bff !important; }
+.btn-blue:hover { background-color: #0056b3 !important; }
+
+#saveProfileButton { margin-top: 10px; }
+
+#customShiftSystemSection { display: none; }
+
+.preset-button {
+    flex: 1 0 40%;
+    margin: 5px;
+}
+
+.backup-intro { margin-bottom: 10px; }
+
+.backup-steps {
+    margin-left: 20px;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.signature-preview-box {
+    margin-top: 8px;
+    max-height: 100px;
+    overflow: auto;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+    background-color: white;
+}
+
+/* Styles für Wichtige Termine Liste */
+.important-dates-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.important-date-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    background-color: #f9f9f9;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+body.dark-mode .important-date-item {
+    background-color: #3a3a3a;
+    border-bottom: 1px solid #555;
+}
+
+.important-date-item .date-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.delete-date-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.delete-date-btn:hover {
+    color: #a71d2a;
+}
+
+/* Emoji Quick Select Styles */
+.emoji-input-container {
+    width: 100%;
+}
+
+.emoji-quick-select {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.emoji-option {
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.emoji-option:hover {
+    background-color: #e0e0e0;
+}
+
+body.dark-mode .emoji-option:hover {
+    background-color: #555;
+}
+
+/* Styles für die neue Tages-Notiz Liste */
+.day-note-list li:hover {
+    background-color: #f0f0f0 !important;
+}
+body.dark-mode .day-note-list li {
+    background-color: #3a3a3a !important;
+    border-bottom: 1px solid #555 !important;
+    color: #e0e0e0;
+}
+body.dark-mode .day-note-list li:hover {
+    background-color: #444 !important;
 }

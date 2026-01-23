@@ -133,6 +133,7 @@ function getBußUndBettag(year) {
 let currentCalendarYear = parseInt(localStorage.getItem('currentCalendarYear')) || new Date().getFullYear();
 let notesData = JSON.parse(localStorage.getItem('calendarNotes')) || {};
 let vacationData = JSON.parse(localStorage.getItem('calendarVacations')) || {};
+let importantDates = JSON.parse(localStorage.getItem('importantDates')) || [];
 
 // Stellt sicher, dass die Notiz für den Buß- und Bettag für das aktuelle Jahr existiert.
 function ensureBussUndBettagNote(year) {
@@ -287,6 +288,7 @@ function generateCalendar(year) {
 			const currentFormattedDate = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
 			const holiday = yearHolidays.find(h => h.date === currentFormattedDate);
 			const isVacation = vacationData[currentFormattedDate];
+            const importantDateEntries = importantDates.filter(entry => entry.recurring ? entry.date.slice(5) === currentFormattedDate.slice(5) : entry.date === currentFormattedDate);
 
 			let classes = [];
 			let holidayNames = {};
@@ -331,13 +333,13 @@ function generateCalendar(year) {
 
 			const weekNumber = getWeekNumber(currentDate);
 
-			currentWeek.push({ day: day, classes: classes.join(' '), originalDayOfWeek: dayOfWeek, weekNumber: weekNumber, holidayNames: holidayNames, fullDate: currentFormattedDate });
+			currentWeek.push({ day: day, classes: classes.join(' '), originalDayOfWeek: dayOfWeek, weekNumber: weekNumber, holidayNames: holidayNames, fullDate: currentFormattedDate, importantDates: importantDateEntries });
 		}
 
 		// Fill up the last week if it's not full
 		if (currentWeek.length % 7 !== 0) {
 			while (currentWeek.length % 7 !== 0) {
-				currentWeek.push({ day: '', classes: 'empty-cell', weekNumber: null, holidayNames: {}, fullDate: null });
+				currentWeek.push({ day: '', classes: 'empty-cell', weekNumber: null, holidayNames: {}, fullDate: null, importantDates: [] });
 			}
 		}
 
@@ -425,12 +427,19 @@ function generateCalendar(year) {
 				if (cellData && cellData.fullDate) {
 					dateCell.className = `date-cell ${cellData.classes}`;
 					dateCell.dataset.fullDate = cellData.fullDate;
-					dateCell.innerHTML = `<div class="day-number">${cellData.day}</div><div class="note-indicator"></div>`;
+                    
+                    let emojiHtml = '';
+                    if (cellData.importantDates && cellData.importantDates.length > 0) {
+                        emojiHtml = `<div class="emoji-indicator">${cellData.importantDates.map(e => e.emoji).join('')}</div>`;
+                    }
+
+					dateCell.innerHTML = `<div class="day-number">${cellData.day}</div>${emojiHtml}<div class="note-indicator"></div>`;
 
 					// Notiz direkt beim Generieren des Kalenders setzen
 					const noteText = notesData[cellData.fullDate];
-					if (noteText) {
-						dateCell.querySelector('.note-indicator').textContent = noteText;
+					if (noteText) { // NEU: [auto] Präfix entfernen
+						const displayNote = noteText.startsWith('[auto]') ? noteText.substring(7) : noteText;
+						dateCell.querySelector('.note-indicator').textContent = displayNote;
 					}
 
 					if (Object.keys(cellData.holidayNames).length > 0) {
@@ -521,7 +530,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	if (openCustomShiftSystemButton && customShiftSystemSection) {
 		openCustomShiftSystemButton.addEventListener('click', () => {
-			if (customShiftSystemSection.style.display === 'none') {
+            const isHidden = customShiftSystemSection.style.display === 'none' || getComputedStyle(customShiftSystemSection).display === 'none';
+			if (isHidden) {
 				// Passworteingabe und -prüfung wurden entfernt
 				customShiftSystemSection.style.display = 'block';
 				openCustomShiftSystemButton.textContent = 'Eigenes Schichtsystem schließen';
@@ -550,6 +560,37 @@ document.addEventListener('DOMContentLoaded', () => {
 			toggleSettingsVisibility('general');
 		});
 	}
+
+    // Event Listener für Wichtige Termine
+    const addImportantDateBtn = document.getElementById('addImportantDateBtn');
+    if (addImportantDateBtn) {
+        addImportantDateBtn.addEventListener('click', addImportantDate);
+    }
+    
+    // NEU: Eingabefelder in der "Notizen" (ehemals Termine) App verstecken
+    const impDateInput = document.getElementById('importantDateInput');
+    if(impDateInput && impDateInput.closest('.input-group')) {
+        impDateInput.closest('.input-group').style.display = 'none';
+    }
+    // NEU: Auch den Hinzufügen-Button verstecken
+    const addImpBtn = document.getElementById('addImportantDateBtn');
+    if (addImpBtn) addImpBtn.style.display = 'none';
+
+    // Titel des Dialogs anpassen
+    const impDialog = document.getElementById('importantDatesDialogOverlay');
+    if(impDialog) {
+        const h3 = impDialog.querySelector('h3');
+        if(h3) h3.textContent = 'Notizen';
+    }
+
+    // Event Listener für Emoji-Schnellauswahl
+    document.querySelectorAll('.emoji-option').forEach(option => {
+        option.addEventListener('click', () => {
+            document.getElementById('importantDateEmoji').value = option.textContent;
+        });
+    });
+
+    renderImportantDatesList();
 
 	generateCalendar(currentCalendarYear); // Initialer Kalenderaufbau
 
@@ -676,6 +717,114 @@ function setShiftGroup(group) {
 }
 // --- ENDE FUNKTIONEN FÜR BENUTZERDEFINIERTES SCHICHTSYSTEM ---
 
+// --- FUNKTIONEN FÜR WICHTIGE TERMINE ---
+
+// NEUE HILFSFUNKTION zum Aktualisieren der automatischen Notiz für ein Datum
+function updateAutoNoteForDate(dateStr) {
+    // Finde alle wichtigen Termine für dieses Datum
+    // NEU: Urlaubstypen (1,2,5,6) ausschließen, damit sie nicht als Text im Kalender erscheinen
+    const datesOnThisDay = importantDates.filter(d => d.date === dateStr && d.type !== 'vacation');
+
+    // Wenn keine Termine mehr an diesem Tag sind, lösche die Auto-Notiz (falls vorhanden)
+    if (datesOnThisDay.length === 0) {
+        if (notesData[dateStr] && notesData[dateStr].startsWith('[auto]')) {
+            delete notesData[dateStr];
+        }
+    } else {
+        // Erstelle eine neue kombinierte Auto-Notiz
+        const combinedNote = datesOnThisDay.map(d => `${d.emoji} ${d.name}`.trim()).join(', ');
+        const autoNoteText = `[auto] ${combinedNote}`;
+
+        // Setze die Notiz, aber nur, wenn keine manuelle Notiz existiert
+        if (!notesData[dateStr] || (notesData[dateStr] && notesData[dateStr].startsWith('[auto]'))) {
+            notesData[dateStr] = autoNoteText;
+        }
+    }
+    // Speichere die (möglicherweise geänderten) Notizen
+    localStorage.setItem('calendarNotes', JSON.stringify(notesData));
+}
+
+function addImportantDate() {
+    const dateInput = document.getElementById('importantDateInput').value;
+    const nameInput = document.getElementById('importantDateName').value.trim();
+    const emojiInput = document.getElementById('importantDateEmoji').value.trim();
+    const recurringInput = document.getElementById('importantDateRecurring').checked;
+
+    if (!dateInput || !nameInput || !emojiInput) {
+        showToast('Bitte alle Felder ausfüllen.', 'error');
+        return;
+    }
+
+    const newEntry = {
+        id: Date.now(),
+        date: dateInput,
+        name: nameInput,
+        emoji: emojiInput,
+        recurring: recurringInput
+    };
+
+    importantDates.push(newEntry);
+    localStorage.setItem('importantDates', JSON.stringify(importantDates));
+    
+    // NEU: Automatische Notiz aktualisieren
+    updateAutoNoteForDate(dateInput);
+
+    // Reset Inputs
+    document.getElementById('importantDateName').value = '';
+    document.getElementById('importantDateEmoji').value = '';
+    
+    renderImportantDatesList();
+    generateCalendar(currentCalendarYear);
+    showToast('Termin hinzugefügt!', 'success');
+}
+
+function deleteImportantDate(id) {
+    const entryToDelete = importantDates.find(entry => entry.id === id);
+    if (!entryToDelete) return;
+    const dateOfDeletedEntry = entryToDelete.date;
+
+    importantDates = importantDates.filter(entry => entry.id !== id);
+    localStorage.setItem('importantDates', JSON.stringify(importantDates));
+
+    // NEU: Automatische Notiz für das betroffene Datum aktualisieren
+    updateAutoNoteForDate(dateOfDeletedEntry);
+
+    renderImportantDatesList();
+    generateCalendar(currentCalendarYear);
+    showToast('Termin gelöscht.', 'info');
+}
+
+function renderImportantDatesList() {
+    const list = document.getElementById('importantDatesList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    // Sortieren nach Datum (MM-DD)
+    // NEU: Urlaubs-Einträge (Typ vacation) ausblenden
+    const filteredDates = importantDates.filter(entry => entry.type !== 'vacation');
+    const sortedDates = [...filteredDates].sort((a, b) => {
+        const dateA = a.date.slice(5);
+        const dateB = b.date.slice(5);
+        return dateA.localeCompare(dateB);
+    });
+
+    sortedDates.forEach(entry => {
+        const li = document.createElement('li');
+        li.className = 'important-date-item';
+        const dateDisplay = entry.recurring ? entry.date.slice(5).split('-').reverse().join('.') + ' (jährl.)' : entry.date.split('-').reverse().join('.');
+        
+        li.innerHTML = `
+            <div class="date-info">
+                <span class="date-emoji">${entry.emoji}</span>
+                <span class="date-text"><strong>${dateDisplay}</strong>: ${entry.name}</span>
+            </div>
+            <button class="delete-date-btn" onclick="deleteImportantDate(${entry.id})">&times;</button>
+        `;
+        list.appendChild(li);
+    });
+}
+// --- ENDE FUNKTIONEN FÜR WICHTIGE TERMINE ---
+
 // NEU: Funktion zum Zuklappen aller erweiterbaren Sektionen im Einstellungsdialog
 function collapseAllSettingsSections() {
     const sections = document.querySelectorAll('#settingsDialogOverlay .settings-section.collapsible-init');
@@ -768,6 +917,7 @@ setupDialog('openPhoneDialog', 'phoneDialogOverlay', 'closePhoneDialog');
 setupDialog(null, 'holidayDialogOverlay', 'closeHolidayDialog');
 setupDialog('openShiftInfoDialog', 'shiftInfoDialogOverlay', 'closeShiftInfoDialog');
 setupDialog('openSettingsDialog', 'settingsDialogOverlay', 'closeSettingsDialog');
+setupDialog('openImportantDatesDialog', 'importantDatesDialogOverlay', 'closeImportantDatesDialog');
 
 
 const settingsDialogOverlay = document.getElementById('settingsDialogOverlay');
@@ -907,6 +1057,96 @@ const toggleVacationButton = document.getElementById('toggleVacationButton');
 
 let currentDayCell = null;
 
+// Helper function for the new Note UI
+function renderCustomNoteUi(container, dateStr) {
+    container.innerHTML = '';
+    
+    // LIST
+    const list = document.createElement('ul');
+    list.className = 'day-note-list';
+    list.style.listStyle = 'none';
+    list.style.padding = '0';
+    list.style.marginBottom = '15px';
+
+    const entries = importantDates.filter(d => d.date === dateStr || (d.recurring && d.date.slice(5) === dateStr.slice(5)));
+    
+    entries.forEach(entry => {
+        const li = document.createElement('li');
+        li.style.display = 'flex';
+        li.style.justifyContent = 'space-between';
+        li.style.alignItems = 'center';
+        li.style.padding = '8px';
+        li.style.borderBottom = '1px solid #eee';
+        li.style.backgroundColor = '#f9f9f9';
+        li.style.marginBottom = '5px';
+        li.style.borderRadius = '4px';
+        
+        li.innerHTML = `
+            <span>${entry.emoji} ${entry.name} ${entry.recurring ? '<small style="color:#666">(jährl.)</small>' : ''}</span>
+            <button class="delete-day-note" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1.2em;padding:0 5px;">&times;</button>
+        `;
+        li.querySelector('.delete-day-note').addEventListener('click', () => {
+            deleteImportantDate(entry.id);
+            renderCustomNoteUi(container, dateStr);
+        });
+        list.appendChild(li);
+    });
+    container.appendChild(list);
+
+    // FORM
+    const form = document.createElement('div');
+    form.innerHTML = `
+        <div style="display:flex; gap:5px; margin-bottom:5px;">
+            <input type="text" id="dayNoteText" placeholder="Notiz eingeben..." style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;">
+            <input type="text" id="dayNoteEmoji" placeholder="Emoji" style="width:60px; padding:8px; border:1px solid #ccc; border-radius:4px; text-align:center;">
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <label style="font-size:0.9em; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="dayNoteRecurring"> Jährlich wiederholen</label>
+            <button id="addDayNoteBtn" style="background-color:#333; color:white; border:none; padding:8px 15px; border-radius:4px; cursor:pointer; font-weight:bold;">Hinzufügen</button>
+        </div>
+        <div class="emoji-quick-select">
+            <span class="emoji-option">🎂</span>
+            <span class="emoji-option">🩺</span>
+            <span class="emoji-option">🏖️</span>
+            <span class="emoji-option">📅</span>
+            <span class="emoji-option">🚗</span>
+            <span class="emoji-option">⚠️</span>
+        </div>
+    `;
+    
+    form.querySelector('#addDayNoteBtn').addEventListener('click', () => {
+        const text = form.querySelector('#dayNoteText').value.trim();
+        const emoji = form.querySelector('#dayNoteEmoji').value.trim();
+        const recurring = form.querySelector('#dayNoteRecurring').checked;
+        
+        if (text) {
+            const newEntry = {
+                id: Date.now(),
+                date: dateStr,
+                name: text,
+                emoji: emoji,
+                recurring: recurring
+            };
+            importantDates.push(newEntry);
+            localStorage.setItem('importantDates', JSON.stringify(importantDates));
+            updateAutoNoteForDate(dateStr);
+            generateCalendar(currentCalendarYear);
+            renderImportantDatesList();
+            renderCustomNoteUi(container, dateStr);
+        } else {
+            showToast('Bitte Text eingeben', 'error');
+        }
+    });
+
+    form.querySelectorAll('.emoji-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            form.querySelector('#dayNoteEmoji').value = opt.textContent;
+        });
+    });
+
+    container.appendChild(form);
+}
+
 function openNoteDialog(cell) {
 	currentDayCell = cell;
 	const fullDate = cell.dataset.fullDate;
@@ -917,7 +1157,22 @@ function openNoteDialog(cell) {
 	const monthName = new Date(year, monthIndex, 1).toLocaleString('de-DE', { month: 'long' });
 
 	noteDialogTitle.textContent = `Notiz für den ${day}. ${monthName} ${year}`;
-	noteInput.value = notesData[fullDate] || '';
+	
+    // ALTE INPUTS VERSTECKEN
+    noteInput.style.display = 'none';
+    saveNoteButton.style.display = 'none';
+    deleteNoteButton.style.display = 'none';
+
+    // NEUE UI ERSTELLEN ODER HOLEN
+    let ui = document.getElementById('customNoteUi');
+    if (!ui) {
+        ui = document.createElement('div');
+        ui.id = 'customNoteUi';
+        noteInput.parentNode.insertBefore(ui, noteInput.nextSibling);
+    }
+    
+    // UI RENDERN
+    renderCustomNoteUi(ui, fullDate);
 
 	// Update vacation button text
 	if (vacationData[fullDate]) {
@@ -1082,7 +1337,8 @@ function backupSettings() {
 			key.startsWith('darkModeEnabled') ||
 			key.startsWith('autoDarkModeEnabled') ||
 			key.startsWith('calendarVacations') ||
-			key.startsWith('userProfile')) {
+			key.startsWith('userProfile') ||
+            key.startsWith('importantDates')) {
 			settingsToBackup[key] = localStorage.getItem(key);
 		}
 	}
@@ -1126,7 +1382,7 @@ function restoreSettings() {
 
 				// Lösche nur die relevanten alten Daten, nicht das gesamte localStorage
 				['currentCalendarYear', 'calendarNotes', 'customShiftSystem',
-					'animationsDisabled', 'calendarBorderColor', 'darkModeEnabled', 'autoDarkModeEnabled', 'calendarVacations', 'userProfile'
+					'animationsDisabled', 'calendarBorderColor', 'darkModeEnabled', 'autoDarkModeEnabled', 'calendarVacations', 'userProfile', 'importantDates'
 				]
 				.forEach(key => localStorage.removeItem(key));
 
@@ -1143,8 +1399,10 @@ function restoreSettings() {
 				vacationData = JSON.parse(localStorage.getItem('calendarVacations')) || {};
 				customShiftSystem = JSON.parse(localStorage.getItem('customShiftSystem')) || { sequence: [], referenceStartDate: null, referenceShiftType: null };
 				userProfile = JSON.parse(localStorage.getItem('userProfile')) || { name: '', personalNummer: '', abteilung: '', signature: null };
+                importantDates = JSON.parse(localStorage.getItem('importantDates')) || [];
 				loadProfile(); // Profil-UI aktualisieren
-
+                renderImportantDatesList(); // Terminliste aktualisieren
+                
 				// Aktualisiere die UI-Elemente im Settings-Dialog sofort
 				document.getElementById('toggleAnimations').checked = (localStorage.getItem('animationsDisabled') === 'true');
 				document.getElementById('borderColorPicker').value = localStorage.getItem('calendarBorderColor') || '#0161FD';
@@ -1463,6 +1721,17 @@ function loadProfile() {
 			parent.parentNode.insertBefore(container, parent.nextSibling);
 		}
 	}
+    
+    // NEU: Checkbox für Wochenende als Urlaub zählen
+    if (profilePersonalNrInput && !document.getElementById('profileCountWeekends')) {
+        const container = document.createElement('div');
+        container.className = 'settings-option inline';
+        container.innerHTML = '<label for="profileCountWeekends">Wochenende als Urlaub zählen:</label><input type="checkbox" id="profileCountWeekends">';
+        const parent = profilePersonalNrInput.closest('.settings-option');
+        if (parent && parent.parentNode) {
+            parent.parentNode.insertBefore(container, parent.nextSibling);
+        }
+    }
 
 	// NEU: Sektion für Schichtfarben einfügen, falls nicht vorhanden
 	if (saveProfileButton && !document.getElementById('shiftColorSettingsSection')) {
@@ -1613,6 +1882,11 @@ function loadProfile() {
 		if (profileAbteilungInput) {
 			profileAbteilungInput.value = userProfile.abteilung || '';
 		}
+        
+        const countWeekendsCb = document.getElementById('profileCountWeekends');
+        if (countWeekendsCb) {
+            countWeekendsCb.checked = userProfile.countWeekends || false;
+        }
 
 		// Schichtzeiten laden
 		if (userProfile.shiftTimes) {
@@ -1657,6 +1931,11 @@ if (saveProfileButton) {
 		if (profileAbteilungInput) {
 			userProfile.abteilung = profileAbteilungInput.value.trim();
 		}
+        
+        const countWeekendsCb = document.getElementById('profileCountWeekends');
+        if (countWeekendsCb) {
+            userProfile.countWeekends = countWeekendsCb.checked;
+        }
 
 		// Schichtzeiten speichern
 		userProfile.shiftTimes = {
@@ -1835,9 +2114,12 @@ if (generatePdfButton) {
 	});
 }
 
-function addVacationRangeToCalendar(startDateStr, endDateStr) {
+function addVacationRangeToCalendar(startDateStr, endDateStr, typeName = '', remark = '', typeId = '1') {
 	const start = new Date(startDateStr + 'T12:00:00');
 	const end = new Date(endDateStr + 'T12:00:00');
+
+    const countWeekends = userProfile.countWeekends || false;
+    const isVacationType = ['1', '2', '5', '6'].includes(String(typeId));
 
 	let cachedYear = null;
 	let cachedHolidays = [];
@@ -1853,12 +2135,41 @@ function addVacationRangeToCalendar(startDateStr, endDateStr) {
 
 		const isHoliday = cachedHolidays.some(h => h.date === dateString);
 		const shiftClass = getShiftForDate(dateString);
+        
+        const dayOfWeek = d.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const isWorkDay = shiftClass !== 'freischicht';
 
-		if (shiftClass !== 'freischicht' && !isHoliday) {
-			vacationData[dateString] = true;
+        // NEU: Zählen wenn Arbeitstag UND (kein Wochenende ODER (Wochenende und Haken gesetzt))
+		if (isWorkDay && (!isWeekend || countWeekends) && !isHoliday) {
+            if (isVacationType) {
+			    vacationData[dateString] = true;
+            }
+            
+            // NEU: Notiz für den Urlaubstag erstellen
+            if (typeName) {
+                 const noteText = `${typeName}${remark ? ': ' + remark : ''}`;
+                 // Prüfen ob Eintrag schon existiert um Duplikate zu vermeiden
+                 const exists = importantDates.some(d => d.date === dateString && d.name === noteText);
+                 if (!exists) {
+                     importantDates.push({
+                         id: Date.now() + Math.random(),
+                         date: dateString,
+                         name: noteText,
+                         emoji: '',
+                         recurring: false,
+                         type: isVacationType ? 'vacation' : 'note'
+                     });
+                 }
+            }
 		}
 	}
 	localStorage.setItem('calendarVacations', JSON.stringify(vacationData));
+    localStorage.setItem('importantDates', JSON.stringify(importantDates));
+    // Auto-Notizen für alle betroffenen Tage aktualisieren
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        updateAutoNoteForDate(formatDate(d));
+    }
 	generateCalendar(currentCalendarYear);
 	showToast('Urlaub wurde in den Kalender eingetragen.', 'success');
 }
@@ -1885,6 +2196,16 @@ function generateUrlaubsantragPDF(action = 'download') {
 		const dateTo = document.getElementById('urlaubsantrag_date_to').value;
 		const grund = document.getElementById('urlaubsantrag_grund').value;
 		const zusatzBemerkung = document.getElementById('urlaubsantrag_zusatz_bemerkung') ? document.getElementById('urlaubsantrag_zusatz_bemerkung').value : '';
+        
+        const VACATION_TYPES = {
+            '1': 'Tarifurlaub',
+            '2': 'Abbau Zeitkonto',
+            '3': 'Dienstreise',
+            '4': 'Schulung',
+            '5': 'Freistellung',
+            '6': 'unbez. Urlaub',
+            '7': 'Krank'
+        };
 
 		// Ausgewählten Typ ermitteln (1-7)
 		let selectedType = '1';
@@ -1909,7 +2230,8 @@ function generateUrlaubsantragPDF(action = 'download') {
 		}
 
 		if (confirm('Soll der beantragte Urlaub in den Kalender eingetragen werden?')) {
-			addVacationRangeToCalendar(dateFrom, dateTo);
+            const typeName = VACATION_TYPES[selectedType] || 'Urlaub';
+			addVacationRangeToCalendar(dateFrom, dateTo, typeName, (selectedType === '5' || selectedType === '6') ? grund : zusatzBemerkung, selectedType);
 		}
 
 		// Hole alle Feiertage für das Jahr
@@ -1917,6 +2239,8 @@ function generateUrlaubsantragPDF(action = 'download') {
 		const toDate = new Date(dateTo);
 		const year = fromDate.getFullYear();
 		const yearHolidays = getHolidaysForYear(year);
+        
+        const countWeekends = userProfile.countWeekends || false;
 
 		// Konvertiere Feiertage in ein Set für schnelle Suche
 		const holidayDates = new Set(yearHolidays.map(h => h.date));
@@ -1930,11 +2254,15 @@ function generateUrlaubsantragPDF(action = 'download') {
 			const dateStr = formatDate(d);
 			const shiftClass = getShiftForDate(dateStr);
 			const isHoliday = holidayDates.has(dateStr);
+            
+            const dayOfWeek = d.getDay();
+            const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+            const isWorkDay = shiftClass !== 'freischicht';
 
 			console.log(dateStr, '- Schicht:', shiftClass, ', Feiertag:', isHoliday);
 
 			// Zähle nur Arbeitstage (nicht freischicht und keine Feiertage)
-			if (shiftClass !== 'freischicht' && !isHoliday) {
+			if (isWorkDay && (!isWeekend || countWeekends) && !isHoliday) {
 				workingDays++;
 			}
 		}
@@ -2520,7 +2848,7 @@ function createOverviewDialog() {
 	
 	dialog.innerHTML = `
 		<button id="closeOverviewDialog" class="close-button">&times;</button>
-		<h3>Übersicht Einträge</h3>
+		<h3>Urlaubstage</h3>
 		<div id="overviewContent" style="max-height: 60vh; overflow-y: auto; margin-top: 10px;"></div>
 	`;
 	
@@ -2542,32 +2870,83 @@ function showOverview() {
 	const allDates = new Set([...Object.keys(notesData), ...Object.keys(vacationData)]);
 	const sortedDates = Array.from(allDates).sort();
 	
+    // Helper um Notiztext zu holen (auch wenn er nicht in notesData steht, z.B. bei Urlaubstyp 1,2,5,6)
+    const getNoteText = (dStr) => {
+        let txt = notesData[dStr];
+        if (!txt && vacationData[dStr]) {
+            const imp = importantDates.find(d => d.date === dStr && d.type === 'vacation');
+            if (imp) txt = imp.name;
+        }
+        return txt;
+    };
+
+    // Gruppieren von zusammenhängenden Tagen
+    const groupedEntries = [];
+    if (sortedDates.length > 0) {
+        let currentGroup = {
+            dates: [sortedDates[0]],
+            note: getNoteText(sortedDates[0]),
+            isVacation: vacationData[sortedDates[0]]
+        };
+        
+        for (let i = 1; i < sortedDates.length; i++) {
+            const dateStr = sortedDates[i];
+            const prevDateStr = sortedDates[i-1];
+            const note = getNoteText(dateStr);
+            const isVacation = vacationData[dateStr];
+            
+            const d1 = new Date(prevDateStr);
+            const d2 = new Date(dateStr);
+            const diffTime = Math.abs(d2 - d1);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Gruppieren wenn: aufeinanderfolgend (1 Tag Diff) UND gleicher Typ (Urlaub) UND gleicher Notiz-Inhalt
+            const sameType = (isVacation === currentGroup.isVacation);
+            const sameNote = (note === currentGroup.note);
+            
+            if (diffDays === 1 && sameType && sameNote) {
+                currentGroup.dates.push(dateStr);
+            } else {
+                groupedEntries.push(currentGroup);
+                currentGroup = {
+                    dates: [dateStr],
+                    note: note,
+                    isVacation: isVacation
+                };
+            }
+        }
+        groupedEntries.push(currentGroup);
+    }
+
 	// Gruppieren nach Jahr
 	const yearsData = {};
 	
-	sortedDates.forEach(dateStr => {
-		const note = notesData[dateStr];
-		const isVacation = vacationData[dateStr];
-		
-		// Filter: Buß- und Bettag ignorieren, wenn es kein Urlaub ist
-		if (note === 'Buß- und Bettag' && !isVacation) return;
-		if (!note && !isVacation) return;
+	groupedEntries.forEach(group => {
+		// Filter: NUR Urlaubstage anzeigen
+		if (!group.isVacation) return;
 
-		const year = dateStr.split('-')[0];
+        const startDateStr = group.dates[0];
+		const year = startDateStr.split('-')[0];
+        
 		if (!yearsData[year]) {
 			yearsData[year] = { entries: [], vacationCount: 0 };
 		}
 
-		// Urlaubstage zählen (Heiligabend/Silvester = 0.5)
-		if (isVacation) {
-			if (dateStr.endsWith('-12-24') || dateStr.endsWith('-12-31')) {
-				yearsData[year].vacationCount += 0.5;
-			} else {
-				yearsData[year].vacationCount += 1;
-			}
-		}
+		// Urlaubstage zählen
+        let daysCount = 0;
+        group.dates.forEach(d => {
+            if (d.endsWith('-12-24') || d.endsWith('-12-31')) daysCount += 0.5;
+            else daysCount += 1;
+        });
 
-		yearsData[year].entries.push({ dateStr, note, isVacation });
+		yearsData[year].vacationCount += daysCount;
+		yearsData[year].entries.push({ 
+            startDate: group.dates[0],
+            endDate: group.dates[group.dates.length - 1],
+            daysCount: daysCount,
+            note: group.note, 
+            isVacation: group.isVacation 
+        });
 	});
 	
 	const sortedYears = Object.keys(yearsData).sort();
@@ -2604,12 +2983,12 @@ function showOverview() {
 				
 				li.addEventListener('click', () => {
 					document.getElementById('overviewDialogOverlay').classList.remove('active');
-					const targetYear = parseInt(entry.dateStr.split('-')[0]);
+					const targetYear = parseInt(entry.startDate.split('-')[0]);
 					if (targetYear !== currentCalendarYear) {
 						generateCalendar(targetYear);
 					}
 					setTimeout(() => {
-						const cell = document.querySelector(`.date-cell[data-full-date="${entry.dateStr}"]`);
+						const cell = document.querySelector(`.date-cell[data-full-date="${entry.startDate}"]`);
 						if (cell) {
 							cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
 							cell.style.transition = 'background-color 0.5s';
@@ -2619,19 +2998,25 @@ function showOverview() {
 					}, 100);
 				});
 
-				const dateObj = new Date(entry.dateStr);
-				const formattedDate = dateObj.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+				const startObj = new Date(entry.startDate);
+                const endObj = new Date(entry.endDate);
+				const formattedStart = startObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+                const formattedEnd = endObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                
+                const dateDisplay = (entry.startDate === entry.endDate) ? 
+                    startObj.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }) :
+                    `${formattedStart} - ${formattedEnd}`;
 				
-				let html = `<div style="font-weight: bold; margin-bottom: 5px; font-size: 1.1em;">${formattedDate}</div>`;
+				let html = `<div style="font-weight: bold; margin-bottom: 5px; font-size: 1.1em;">${dateDisplay}</div>`;
 				
 				if (entry.isVacation) {
-					const isHalfDay = entry.dateStr.endsWith('-12-24') || entry.dateStr.endsWith('-12-31');
-					const vacText = isHalfDay ? 'Urlaub (0,5 Tage)' : 'Urlaub';
+					const vacText = `Urlaub (${entry.daysCount} ${entry.daysCount === 1 ? 'Tag' : 'Tage'})`;
 					html += `<div style="color: #6f42c1; margin-bottom: 3px; display: flex; align-items: center;"><i class="fas fa-umbrella-beach" style="width: 25px; text-align: center; margin-right: 5px;"></i> ${vacText}</div>`;
 				}
 				
 				if (entry.note) {
-					html += `<div style="display: flex; align-items: flex-start;"><i class="fas fa-sticky-note" style="width: 25px; text-align: center; margin-right: 5px; margin-top: 3px; color: #555;"></i> <span style="flex: 1;">${entry.note}</span></div>`;
+					const displayNote = entry.note.startsWith('[auto]') ? entry.note.substring(7) : entry.note;
+					html += `<div style="display: flex; align-items: flex-start;"><i class="fas fa-sticky-note" style="width: 25px; text-align: center; margin-right: 5px; margin-top: 3px; color: #555;"></i> <span style="flex: 1;">${displayNote}</span></div>`;
 				}
 				
 				li.innerHTML = html;
@@ -2659,6 +3044,17 @@ function createBottomAppDock() {
 	dockTrigger.id = 'bottomAppDockTrigger';
 	dockTrigger.innerHTML = '<i class="fas fa-bars"></i> <span>Menü</span>';
 
+    // Auto-Close Logik
+    let dockTimeout;
+    const resetDockTimeout = () => {
+        clearTimeout(dockTimeout);
+        if (dockContainer.classList.contains('open')) {
+            dockTimeout = setTimeout(() => {
+                closeDock();
+            }, 5000);
+        }
+    };
+
 	// Struktur zusammenbauen
 	dockContainer.appendChild(dockContent);
 	dockContainer.appendChild(dockTrigger);
@@ -2680,12 +3076,18 @@ function createBottomAppDock() {
 		const icon = dockTrigger.querySelector('i');
 		icon.className = 'fas fa-bars';
 		dockContent.style.display = 'none';
+        clearTimeout(dockTimeout);
 	};
+
+    dockContainer.addEventListener('mousemove', resetDockTimeout);
+    dockContainer.addEventListener('click', resetDockTimeout);
+    dockContainer.addEventListener('touchstart', resetDockTimeout);
 
 	// Elemente definieren, die im Dock angezeigt werden sollen
 	const dockItems = [
 		{ id: 'openPhoneDialog', label: 'Telefon', icon: '📞' },
 		{ id: 'todayButton', label: 'Heute', icon: '🗓️' },
+        { id: 'openImportantDatesDialog', label: 'Notizen', icon: '🎂' },
 		{ id: 'openShiftInfoDialog', label: 'Info', icon: 'ℹ️' },
 		{ id: 'openSettingsDialog', label: 'Einst.', icon: '⚙️' }
 	];
@@ -2799,7 +3201,7 @@ function createBottomAppDock() {
 	
 	const overviewLabel = document.createElement('span');
 	overviewLabel.className = 'app-label';
-	overviewLabel.textContent = 'Übersicht';
+	overviewLabel.textContent = 'Urlaub';
 	overviewWrapper.appendChild(overviewLabel);
 	
 	overviewWrapper.addEventListener('click', () => {
@@ -2841,9 +3243,11 @@ function createBottomAppDock() {
 		if (dockContainer.classList.contains('open')) {
 			icon.className = 'fas fa-chevron-down';
 			dockContent.style.display = 'grid';
+            resetDockTimeout();
 		} else {
 			icon.className = 'fas fa-bars';
 			dockContent.style.display = 'none';
+            clearTimeout(dockTimeout);
 		}
 	});
 }
