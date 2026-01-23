@@ -577,20 +577,21 @@ document.addEventListener('DOMContentLoaded', () => {
         addImportantDateBtn.addEventListener('click', addImportantDate);
     }
     
-    // NEU: Eingabefelder in der "Notizen" (ehemals Termine) App verstecken
-    const impDateInput = document.getElementById('importantDateInput');
-    if(impDateInput && impDateInput.closest('.input-group')) {
-        impDateInput.closest('.input-group').style.display = 'none';
-    }
-    // NEU: Auch den Hinzufügen-Button verstecken
-    const addImpBtn = document.getElementById('addImportantDateBtn');
-    if (addImpBtn) addImpBtn.style.display = 'none';
-
-    // Titel des Dialogs anpassen
+    // Titel des Dialogs anpassen und Inhalt zwischen h3 und h4 entfernen
     const impDialog = document.getElementById('importantDatesDialogOverlay');
     if(impDialog) {
         const h3 = impDialog.querySelector('h3');
-        if(h3) h3.textContent = 'Notizen';
+        const h4 = impDialog.querySelector('h4');
+        if(h3) h3.textContent = '⭐ Notizen';
+        
+        if (h3 && h4) {
+            let nextSibling = h3.nextElementSibling;
+            while (nextSibling && nextSibling !== h4) {
+                const toRemove = nextSibling;
+                nextSibling = nextSibling.nextElementSibling;
+                toRemove.remove();
+            }
+        }
     }
 
     // Event Listener für Emoji-Schnellauswahl
@@ -599,6 +600,26 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('importantDateEmoji').value = option.textContent;
         });
     });
+
+    // Icons zu den Dialog-Überschriften hinzufügen
+    const dialogIcons = {
+        'phoneDialogOverlay': '📞',
+        'shiftInfoDialogOverlay': 'ℹ️',
+        'settingsDialogOverlay': '⚙️',
+        'holidayDialogOverlay': '🌍',
+        'yearInputDialogOverlay': '📅',
+        'urlaubsantragDialogOverlay': '📝'
+    };
+
+    for (const [id, icon] of Object.entries(dialogIcons)) {
+        const dialog = document.getElementById(id);
+        if (dialog) {
+            const h3 = dialog.querySelector('h3');
+            if (h3 && !h3.textContent.includes(icon)) {
+                h3.textContent = `${icon} ${h3.textContent}`;
+            }
+        }
+    }
 
     renderImportantDatesList();
 
@@ -1107,7 +1128,7 @@ function renderCustomNoteUi(container, dateStr) {
     const form = document.createElement('div');
     form.innerHTML = `
         <div style="display:flex; gap:5px; margin-bottom:5px;">
-            <input type="text" id="dayNoteText" placeholder="Notiz eingeben..." style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;">
+            <input type="text" id="dayNoteText" placeholder="Notiz eingeben..." style="flex:1; font-size: 16px; padding:8px; border:1px solid #ccc; border-radius:4px;">
             <input type="text" id="dayNoteEmoji" placeholder="Emoji" style="width:60px; padding:8px; border:1px solid #ccc; border-radius:4px; text-align:center;">
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -1121,6 +1142,8 @@ function renderCustomNoteUi(container, dateStr) {
             <span class="emoji-option">📅</span>
             <span class="emoji-option">🚗</span>
             <span class="emoji-option">⚠️</span>
+            <span class="emoji-option">🏋️</span>
+            <span class="emoji-option">💅</span>
         </div>
     `;
     
@@ -1166,12 +1189,15 @@ function openNoteDialog(cell) {
 	const year = dateParts[0];
 	const monthName = new Date(year, monthIndex, 1).toLocaleString('de-DE', { month: 'long' });
 
-	noteDialogTitle.textContent = `Notiz für den ${day}. ${monthName} ${year}`;
+	noteDialogTitle.textContent = `📝 Notiz für den ${day}. ${monthName} ${year}`;
 	
     // ALTE INPUTS VERSTECKEN
     noteInput.style.display = 'none';
     saveNoteButton.style.display = 'none';
     deleteNoteButton.style.display = 'none';
+    if (toggleVacationButton) toggleVacationButton.style.display = '';
+    const uaBtn = document.getElementById('urlaubsantragButton');
+    if (uaBtn) uaBtn.style.display = 'none';
 
     // NEUE UI ERSTELLEN ODER HOLEN
     let ui = document.getElementById('customNoteUi');
@@ -2878,7 +2904,7 @@ function showVacationModeDialog() {
         overlay.className = 'dialog-overlay';
         overlay.innerHTML = `
             <div class="dialog" style="text-align: center; max-width: 350px;">
-                <h3>Urlaubsantrag</h3>
+                <h3>📝 Urlaubsantrag</h3>
                 <p style="margin-bottom: 20px;">Wie möchtest du den Zeitraum festlegen?</p>
                 <div class="button-group" style="flex-direction: column; gap: 10px;">
                     <button id="btnSelectInCalendar" class="action-button">📅 Im Kalender auswählen</button>
@@ -2980,7 +3006,7 @@ function createOverviewDialog() {
 	
 	dialog.innerHTML = `
 		<button id="closeOverviewDialog" class="close-button">&times;</button>
-		<h3>Abwesenheit</h3>
+		<h3>🏖️ Abwesenheit</h3>
 		<div id="overviewContent" style="max-height: 60vh; overflow-y: auto; margin-top: 10px;"></div>
 	`;
 	

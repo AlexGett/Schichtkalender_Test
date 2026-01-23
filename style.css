@@ -1458,7 +1458,7 @@ body.dark-mode #urlaubsantrag_signature_preview {
 
 #bottomAppDockTrigger {
     background-color: #333;
-    color: white;
+    color: #dc3545;
     padding: 12px;
     text-align: center;
     cursor: pointer;
@@ -1521,7 +1521,7 @@ body.dark-mode #urlaubsantrag_signature_preview {
 /* Dark Mode für App-Leiste */
 body.dark-mode #bottomAppDockTrigger {
     background-color: #1e1e1e;
-    color: #e0e0e0;
+    color: #dc3545;
 }
 body.dark-mode #bottomAppDockContent {
     background-color: #2c2c2c;
