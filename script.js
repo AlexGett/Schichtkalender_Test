@@ -135,6 +135,10 @@ let notesData = JSON.parse(localStorage.getItem('calendarNotes')) || {};
 let vacationData = JSON.parse(localStorage.getItem('calendarVacations')) || {};
 let importantDates = JSON.parse(localStorage.getItem('importantDates')) || [];
 
+// NEU: Globale Variablen für die Urlaubsauswahl im Kalender
+let isSelectingVacationRange = false;
+let selectionStartDate = null;
+
 // Stellt sicher, dass die Notiz für den Buß- und Bettag für das aktuelle Jahr existiert.
 function ensureBussUndBettagNote(year) {
 	const bussUndBettagDate = getBußUndBettag(year);
@@ -461,6 +465,12 @@ function generateCalendar(year) {
 	document.querySelectorAll('.date-cell').forEach(cell => {
 		if (!cell.classList.contains('empty-cell')) {
 			cell.addEventListener('click', function(event) {
+				// NEU: Auswahlmodus für Urlaubsantrag
+				if (isSelectingVacationRange) {
+					handleVacationSelection(this.dataset.fullDate);
+					return;
+				}
+
 				const holidayNamesJson = this.dataset.holidayNames;
 				if (this.classList.contains('feiertag') && holidayNamesJson && (event.target === this || event.target.classList.contains('day-number'))) {
 					const holidayNames = JSON.parse(holidayNamesJson);
@@ -2024,45 +2034,71 @@ let urlaubsantragStartDate = null;
 
 if (urlaubsantragButton) {
 	urlaubsantragButton.addEventListener('click', () => {
-		if (!currentDayCell) return;
+		// Standardverhalten: Öffne Dialog mit aktuellem Tag oder heute
+		let startDate = null;
+		if (currentDayCell) {
+			startDate = currentDayCell.dataset.fullDate;
+		}
+		openUrlaubsantragWithDates(startDate, null);
+	});
+}
 
-		urlaubsantragStartDate = currentDayCell.dataset.fullDate;
-		const dateInput = document.getElementById('urlaubsantrag_date_from');
-		const nameInput = document.getElementById('urlaubsantrag_name');
-		const personalnrInput = document.getElementById('urlaubsantrag_personalnummer');
-		const signaturePreviewDiv = document.getElementById('urlaubsantrag_signature_preview');
+// NEU: Funktion zum Öffnen des Urlaubsantrags mit vorgegebenen Daten
+function openUrlaubsantragWithDates(startDateStr, endDateStr) {
+	// Fallback, falls kein Startdatum übergeben wurde
+	if (!startDateStr) {
+		startDateStr = formatDate(new Date());
+	}
 
-		// Profildaten eintragen
-		let fullName = '';
-		if (userProfile.vorname) fullName += userProfile.vorname;
-		if (userProfile.vorname && userProfile.nachname) fullName += ' ';
-		if (userProfile.nachname) fullName += userProfile.nachname;
-		
-		nameInput.value = fullName.trim();
-		personalnrInput.value = userProfile.personalNummer || '';
-		dateInput.value = urlaubsantragStartDate;
-		document.getElementById('urlaubsantrag_date_to').value = '';
-		document.getElementById('urlaubsantrag_grund').value = '';
+	urlaubsantragStartDate = startDateStr;
+	const dateInput = document.getElementById('urlaubsantrag_date_from');
+	const nameInput = document.getElementById('urlaubsantrag_name');
+	const personalnrInput = document.getElementById('urlaubsantrag_personalnummer');
+	const signaturePreviewDiv = document.getElementById('urlaubsantrag_signature_preview');
 
-		// Unterschrift anzeigen
+	// Profildaten eintragen
+	let fullName = '';
+	if (userProfile.vorname) fullName += userProfile.vorname;
+	if (userProfile.vorname && userProfile.nachname) fullName += ' ';
+	if (userProfile.nachname) fullName += userProfile.nachname;
+	
+	if (nameInput) nameInput.value = fullName.trim();
+	if (personalnrInput) personalnrInput.value = userProfile.personalNummer || '';
+	if (dateInput) dateInput.value = urlaubsantragStartDate;
+	
+	const dateToInput = document.getElementById('urlaubsantrag_date_to');
+	if (dateToInput) dateToInput.value = endDateStr || '';
+	
+	const grundInput = document.getElementById('urlaubsantrag_grund');
+	if (grundInput) grundInput.value = '';
+
+	// Unterschrift anzeigen
+	if (signaturePreviewDiv) {
 		signaturePreviewDiv.innerHTML = '';
 		if (userProfile.signature) {
 			signaturePreviewDiv.innerHTML = `<img src="${userProfile.signature}" style="max-width: 250px; max-height: 100px; border: 2px solid #ddd; border-radius: 4px; padding: 5px; display: block;">`;
 		} else {
 			signaturePreviewDiv.innerHTML = '<p style="color: #999; text-align: center;">Keine Unterschrift vorhanden. Bitte in den Einstellungen zeichnen.</p>';
 		}
+	}
 
-		urlaubsantragDialogOverlay.classList.add('active');
-		noteDialogOverlay.classList.remove('active');
+	const dialogOverlay = document.getElementById('urlaubsantragDialogOverlay');
+	if (dialogOverlay) dialogOverlay.classList.add('active');
+	const noteDialog = document.getElementById('noteDialogOverlay');
+	if (noteDialog) noteDialog.classList.remove('active');
 
-		// --- NEU: Dynamisches Einfügen der Auswahlfelder 1-7 und Zusatz-Bemerkung ---
-		const dateFromInput = document.getElementById('urlaubsantrag_date_from');
-		// Prüfen, ob wir das Feld schon eingefügt haben, um Duplikate zu vermeiden
-		if (dateFromInput && !document.getElementById('urlaubsantrag_type_container')) {
-			const typeContainer = document.createElement('div');
-			typeContainer.id = 'urlaubsantrag_type_container';
-			typeContainer.className = 'urlaubsantrag-field';
-			typeContainer.innerHTML = `
+	// Dynamische Felder einfügen
+	ensureUrlaubsantragFields();
+}
+
+// NEU: Hilfsfunktion zum Sicherstellen der Zusatzfelder im Antrag
+function ensureUrlaubsantragFields() {
+	const dateFromInput = document.getElementById('urlaubsantrag_date_from');
+	if (dateFromInput && !document.getElementById('urlaubsantrag_type_container')) {
+		const typeContainer = document.createElement('div');
+		typeContainer.id = 'urlaubsantrag_type_container';
+		typeContainer.className = 'urlaubsantrag-field';
+		typeContainer.innerHTML = `
                 <label>Antragsart (Bitte auswählen):</label>
                 <div class="urlaubsantrag-type-grid">
                     <div><input type="radio" name="urlaubsantrag_type" value="1" checked> 1. Tarifurlaub</div>
@@ -2074,19 +2110,16 @@ if (urlaubsantragButton) {
                     <div><input type="radio" name="urlaubsantrag_type" value="7"> 7. Krank</div>
                 </div>
             `;
-			// Einfügen vor dem Datumsfeld (angenommen dateFromInput ist im .urlaubsantrag-field div)
-			if (dateFromInput.parentNode) dateFromInput.parentNode.parentNode.insertBefore(typeContainer, dateFromInput.parentNode);
+		if (dateFromInput.parentNode) dateFromInput.parentNode.parentNode.insertBefore(typeContainer, dateFromInput.parentNode);
 
-			// Zusatz-Bemerkung Feld einfügen
-			const grundInput = document.getElementById('urlaubsantrag_grund');
-			if (grundInput && grundInput.parentNode) {
-				const extraRemarkDiv = document.createElement('div');
-				extraRemarkDiv.className = 'urlaubsantrag-field';
-				extraRemarkDiv.innerHTML = `<label>Zusätzliche Bemerkung:</label><input type="text" id="urlaubsantrag_zusatz_bemerkung" placeholder="Zusätzliche Zeile...">`;
-				grundInput.parentNode.parentNode.insertBefore(extraRemarkDiv, grundInput.parentNode.nextSibling);
-			}
+		const grundInput = document.getElementById('urlaubsantrag_grund');
+		if (grundInput && grundInput.parentNode) {
+			const extraRemarkDiv = document.createElement('div');
+			extraRemarkDiv.className = 'urlaubsantrag-field';
+			extraRemarkDiv.innerHTML = `<label>Zusätzliche Bemerkung:</label><input type="text" id="urlaubsantrag_zusatz_bemerkung" placeholder="Zusätzliche Zeile...">`;
+			grundInput.parentNode.parentNode.insertBefore(extraRemarkDiv, grundInput.parentNode.nextSibling);
 		}
-	});
+	}
 }
 
 if (closeUrlaubsantragDialog) {
@@ -2158,7 +2191,8 @@ function addVacationRangeToCalendar(startDateStr, endDateStr, typeName = '', rem
                          name: noteText,
                          emoji: '',
                          recurring: false,
-                         type: isVacationType ? 'vacation' : 'note'
+                         type: isVacationType ? 'vacation' : 'note',
+                         vacationTypeId: typeId
                      });
                  }
             }
@@ -2835,6 +2869,104 @@ console.log('Profil-Verwaltung und Urlaubsantrag initialisiert');
 loadProfile();
 updateShiftInfoDisplay();
 
+// NEU: Funktionen für den Auswahlmodus (Kalender vs. Manuell)
+function showVacationModeDialog() {
+    let overlay = document.getElementById('vacationModeDialogOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'vacationModeDialogOverlay';
+        overlay.className = 'dialog-overlay';
+        overlay.innerHTML = `
+            <div class="dialog" style="text-align: center; max-width: 350px;">
+                <h3>Urlaubsantrag</h3>
+                <p style="margin-bottom: 20px;">Wie möchtest du den Zeitraum festlegen?</p>
+                <div class="button-group" style="flex-direction: column; gap: 10px;">
+                    <button id="btnSelectInCalendar" class="action-button">📅 Im Kalender auswählen</button>
+                    <button id="btnManualEntry" class="action-button">✍️ Manuell eingeben</button>
+                </div>
+                <button class="close-button" style="top: 5px; right: 5px;">&times;</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        
+        overlay.querySelector('.close-button').addEventListener('click', () => overlay.classList.remove('active'));
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('active');
+        });
+        
+        document.getElementById('btnSelectInCalendar').addEventListener('click', () => {
+            overlay.classList.remove('active');
+            startCalendarSelectionMode();
+        });
+        
+        document.getElementById('btnManualEntry').addEventListener('click', () => {
+            overlay.classList.remove('active');
+            openUrlaubsantragWithDates(null, null);
+        });
+    }
+    overlay.classList.add('active');
+}
+
+function startCalendarSelectionMode() {
+    isSelectingVacationRange = true;
+    selectionStartDate = null;
+    showToast('Bitte klicke den ersten Tag des Urlaubs an.', 'info');
+    const dock = document.getElementById('bottomAppDock');
+    if (dock) dock.classList.remove('open');
+}
+
+function handleVacationSelection(dateStr) {
+    if (!selectionStartDate) {
+        selectionStartDate = dateStr;
+        showToast('Startdatum: ' + dateStr.split('-').reverse().join('.') + '. Bitte Enddatum wählen.', 'info');
+        const cell = document.querySelector(`.date-cell[data-full-date="${dateStr}"]`);
+        if (cell) cell.style.backgroundColor = '#ffeeba';
+    } else {
+        const d1 = new Date(selectionStartDate);
+        const d2 = new Date(dateStr);
+        const start = d1 < d2 ? selectionStartDate : dateStr;
+        const end = d1 < d2 ? dateStr : selectionStartDate;
+        
+        isSelectingVacationRange = false;
+        selectionStartDate = null;
+        
+        openUrlaubsantragWithDates(start, end);
+    }
+}
+
+// NEU: Funktion zum Löschen eines Urlaubsbereichs (für die Übersicht)
+function deleteVacationRange(startDateStr, endDateStr) {
+    const start = new Date(startDateStr + 'T12:00:00');
+    const end = new Date(endDateStr + 'T12:00:00');
+    
+    // Iteriere durch den Bereich
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateString = formatDate(d);
+        
+        // Entferne aus vacationData
+        if (vacationData[dateString]) {
+            delete vacationData[dateString];
+        }
+        
+        // Entferne aus importantDates (nur Einträge vom Typ 'vacation')
+        importantDates = importantDates.filter(entry => !(entry.date === dateString && entry.type === 'vacation'));
+        
+        // Aktualisiere automatische Notizen
+        updateAutoNoteForDate(dateString);
+    }
+    
+    // Speichere Änderungen
+    localStorage.setItem('calendarVacations', JSON.stringify(vacationData));
+    localStorage.setItem('importantDates', JSON.stringify(importantDates));
+    // calendarNotes wird bereits in updateAutoNoteForDate gespeichert, aber sicherheitshalber:
+    localStorage.setItem('calendarNotes', JSON.stringify(notesData));
+    
+    // UI aktualisieren
+    generateCalendar(currentCalendarYear);
+    showOverview(); // Liste neu laden
+    showToast('Urlaubseintrag gelöscht.', 'info');
+}
+
 // NEU: Funktionen für die Übersicht (Notizen & Urlaub)
 function createOverviewDialog() {
 	if (document.getElementById('overviewDialogOverlay')) return;
@@ -2848,7 +2980,7 @@ function createOverviewDialog() {
 	
 	dialog.innerHTML = `
 		<button id="closeOverviewDialog" class="close-button">&times;</button>
-		<h3>Urlaubstage</h3>
+		<h3>Abwesenheit</h3>
 		<div id="overviewContent" style="max-height: 60vh; overflow-y: auto; margin-top: 10px;"></div>
 	`;
 	
@@ -2867,6 +2999,16 @@ function showOverview() {
 	const contentDiv = document.getElementById('overviewContent');
 	contentDiv.innerHTML = '';
 	
+	const VACATION_TYPES = {
+		'1': 'Tarifurlaub',
+		'2': 'Abbau Zeitkonto',
+		'3': 'Dienstreise',
+		'4': 'Schulung',
+		'5': 'Freistellung',
+		'6': 'unbez. Urlaub',
+		'7': 'Krank'
+	};
+
 	const allDates = new Set([...Object.keys(notesData), ...Object.keys(vacationData)]);
 	const sortedDates = Array.from(allDates).sort();
 	
@@ -2900,11 +3042,14 @@ function showOverview() {
             const diffTime = Math.abs(d2 - d1);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
-            // Gruppieren wenn: aufeinanderfolgend (1 Tag Diff) UND gleicher Typ (Urlaub) UND gleicher Notiz-Inhalt
+            // Gruppieren wenn: 
+            // 1. Lücke ist klein (<= 4 Tage, z.B. Wochenende dazwischen)
+            // 2. Gleicher Typ (Urlaub) UND gleicher Notiz-Inhalt
+            const isConnected = diffDays <= 4;
             const sameType = (isVacation === currentGroup.isVacation);
             const sameNote = (note === currentGroup.note);
             
-            if (diffDays === 1 && sameType && sameNote) {
+            if (isConnected && sameType && sameNote) {
                 currentGroup.dates.push(dateStr);
             } else {
                 groupedEntries.push(currentGroup);
@@ -2929,7 +3074,7 @@ function showOverview() {
 		const year = startDateStr.split('-')[0];
         
 		if (!yearsData[year]) {
-			yearsData[year] = { entries: [], vacationCount: 0 };
+			yearsData[year] = { entries: [], vacationCount: 0, typeCounts: {} };
 		}
 
 		// Urlaubstage zählen
@@ -2939,6 +3084,22 @@ function showOverview() {
             else daysCount += 1;
         });
 
+		// Typ ermitteln und zählen
+		let typeId = '1';
+		const impDate = importantDates.find(d => d.date === group.dates[0] && d.type === 'vacation');
+		if (impDate && impDate.vacationTypeId) {
+			typeId = impDate.vacationTypeId;
+		} else if (group.note) {
+			for (const [tid, tname] of Object.entries(VACATION_TYPES)) {
+				if (group.note.startsWith(tname)) {
+					typeId = tid;
+					break;
+				}
+			}
+		}
+
+		if (!yearsData[year].typeCounts[typeId]) yearsData[year].typeCounts[typeId] = 0;
+		yearsData[year].typeCounts[typeId] += daysCount;
 		yearsData[year].vacationCount += daysCount;
 		yearsData[year].entries.push({ 
             startDate: group.dates[0],
@@ -2962,11 +3123,26 @@ function showOverview() {
 			else if (parseInt(year) === currentRealYear - 1) yearLabel += ' (Vorheriges Jahr)';
 			else if (parseInt(year) === currentRealYear + 1) yearLabel += ' (Nächstes Jahr)';
 
+			let breakdownHtml = '';
+			const sortedTypes = Object.keys(yearData.typeCounts).sort();
+			if (sortedTypes.length > 0) {
+				breakdownHtml = '<div style="font-size: 0.85em; color: #555; margin-top: 5px; padding: 5px; background: #fff; border-radius: 4px; border: 1px solid #ddd;">';
+				sortedTypes.forEach(tid => {
+					const count = yearData.typeCounts[tid];
+					const tname = VACATION_TYPES[tid] || 'Sonstiges';
+					breakdownHtml += `<div style="display:flex; justify-content:space-between;"><span>${tname}:</span> <strong>${count} Tage</strong></div>`;
+				});
+				breakdownHtml += '</div>';
+			}
+
 			const yearSection = document.createElement('div');
 			yearSection.innerHTML = `
-				<div style="background-color: #eee; padding: 10px; font-weight: bold; border-radius: 5px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
-					<span>${yearLabel}</span>
-					<span style="font-size: 0.9em; background: #fff; padding: 2px 6px; border-radius: 4px;">Urlaub: ${yearData.vacationCount} Tage</span>
+				<div style="background-color: #eee; padding: 10px; font-weight: bold; border-radius: 5px; margin-bottom: 5px;">
+					<div style="display: flex; justify-content: space-between; align-items: center;">
+						<span>${yearLabel}</span>
+						<span style="font-size: 0.9em; background: #fff; padding: 2px 6px; border-radius: 4px;">Gesamt: ${yearData.vacationCount} Tage</span>
+					</div>
+					${breakdownHtml}
 				</div>
 			`;
 			
@@ -2977,11 +3153,17 @@ function showOverview() {
 			
 			yearData.entries.forEach(entry => {
 				const li = document.createElement('li');
+                li.style.display = 'flex';
+                li.style.justifyContent = 'space-between';
+                li.style.alignItems = 'center';
 				li.style.borderBottom = '1px solid #eee';
 				li.style.padding = '12px 5px';
 				li.style.cursor = 'pointer';
 				
-				li.addEventListener('click', () => {
+                const contentDiv = document.createElement('div');
+                contentDiv.style.flex = '1';
+
+				contentDiv.addEventListener('click', () => {
 					document.getElementById('overviewDialogOverlay').classList.remove('active');
 					const targetYear = parseInt(entry.startDate.split('-')[0]);
 					if (targetYear !== currentCalendarYear) {
@@ -3010,8 +3192,8 @@ function showOverview() {
 				let html = `<div style="font-weight: bold; margin-bottom: 5px; font-size: 1.1em;">${dateDisplay}</div>`;
 				
 				if (entry.isVacation) {
-					const vacText = `Urlaub (${entry.daysCount} ${entry.daysCount === 1 ? 'Tag' : 'Tage'})`;
-					html += `<div style="color: #6f42c1; margin-bottom: 3px; display: flex; align-items: center;"><i class="fas fa-umbrella-beach" style="width: 25px; text-align: center; margin-right: 5px;"></i> ${vacText}</div>`;
+					const vacText = `Abwesenheit (${entry.daysCount} ${entry.daysCount === 1 ? 'Tag' : 'Tage'})`;
+					html += `<div style="color: #6f42c1; margin-bottom: 3px; display: flex; align-items: center;"><i class="fas fa-calendar-minus" style="width: 25px; text-align: center; margin-right: 5px;"></i> ${vacText}</div>`;
 				}
 				
 				if (entry.note) {
@@ -3019,7 +3201,26 @@ function showOverview() {
 					html += `<div style="display: flex; align-items: flex-start;"><i class="fas fa-sticky-note" style="width: 25px; text-align: center; margin-right: 5px; margin-top: 3px; color: #555;"></i> <span style="flex: 1;">${displayNote}</span></div>`;
 				}
 				
-				li.innerHTML = html;
+				contentDiv.innerHTML = html;
+                li.appendChild(contentDiv);
+
+                // Löschen-Button hinzufügen
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteBtn.style.background = 'none';
+                deleteBtn.style.border = 'none';
+                deleteBtn.style.color = '#dc3545';
+                deleteBtn.style.fontSize = '1.2em';
+                deleteBtn.style.cursor = 'pointer';
+                deleteBtn.style.padding = '0 10px';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if(confirm('Möchtest du diesen Eintrag wirklich löschen?')) {
+                        deleteVacationRange(entry.startDate, entry.endDate);
+                    }
+                });
+                li.appendChild(deleteBtn);
+
 				ul.appendChild(li);
 			});
 			
@@ -3087,7 +3288,7 @@ function createBottomAppDock() {
 	const dockItems = [
 		{ id: 'openPhoneDialog', label: 'Telefon', icon: '📞' },
 		{ id: 'todayButton', label: 'Heute', icon: '🗓️' },
-        { id: 'openImportantDatesDialog', label: 'Notizen', icon: '🎂' },
+        { id: 'openImportantDatesDialog', label: 'Wichtige Tage', icon: '⭐' },
 		{ id: 'openShiftInfoDialog', label: 'Info', icon: 'ℹ️' },
 		{ id: 'openSettingsDialog', label: 'Einst.', icon: '⚙️' }
 	];
@@ -3167,24 +3368,9 @@ function createBottomAppDock() {
 	vacationWrapper.appendChild(vacationLabel);
 	
 	vacationWrapper.addEventListener('click', () => {
-		const btn = document.getElementById('urlaubsantragButton');
-		if (btn) {
-			// Wenn kein Tag ausgewählt ist, versuche den heutigen Tag zu nehmen
-			if (!currentDayCell) {
-				const today = new Date();
-				const dateString = formatDate(today);
-				const cell = document.querySelector(`.date-cell[data-full-date="${dateString}"]`);
-				if (cell) {
-					currentDayCell = cell;
-				} else {
-					showToast('Bitte wähle zuerst einen Tag im Kalender aus.', 'info');
-					return;
-				}
-			}
-			closeAllOverlays();
-			btn.click();
-			closeDock();
-		}
+		closeAllOverlays();
+		showVacationModeDialog(); // Öffnet den neuen Auswahldialog
+		closeDock();
 	});
 	
 	dockContent.appendChild(vacationWrapper);
@@ -3194,14 +3380,14 @@ function createBottomAppDock() {
 	overviewWrapper.className = 'app-icon-wrapper';
 	
 	const overviewIcon = document.createElement('span');
-	overviewIcon.textContent = '📋';
+	overviewIcon.textContent = '🏖️';
 	overviewIcon.style.fontSize = '28px';
 	overviewIcon.style.marginBottom = '5px';
 	overviewWrapper.appendChild(overviewIcon);
 	
 	const overviewLabel = document.createElement('span');
 	overviewLabel.className = 'app-label';
-	overviewLabel.textContent = 'Urlaub';
+	overviewLabel.textContent = 'Abwesenheit';
 	overviewWrapper.appendChild(overviewLabel);
 	
 	overviewWrapper.addEventListener('click', () => {
