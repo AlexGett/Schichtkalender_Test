@@ -114,10 +114,6 @@
 
             <h3>Weitere Informationen</h3>
             <ul>
-                <li>
-                    <span>Arbeitskleidung:</span>
-                    <a href="https://forms.office.com/e/YzwV8pCFgZ">Zur Bestellung</a>
-                </li>
             </ul>
             <div id="infoFilesList" class="info-files-list">
                 <p class="loading-message">Lade Informationen...</p>
@@ -150,7 +146,7 @@
             <hr>
 
             <div class="settings-section">
-                <h4>Profileinstellungen</h4>
+                <h4 id="settingsHeaderProfile">Profileinstellungen</h4>
                 <div class="settings-option">
                     <label for="profileVornameInput">Vorname:</label>
                     <input type="text" id="profileVornameInput" placeholder="Ihr Vorname">
@@ -199,7 +195,7 @@
             <div class="settings-section">
                 <button id="openCustomShiftSystemSettings" class="action-button">Eigenes Schichtsystem festlegen</button>
                 <div id="customShiftSystemSection">
-                    <h4>Schichtsystem-Details</h4>
+                    <h4 id="settingsHeaderCustomShift">Schichtsystem-Details</h4>
                     <p class="small-text">Hier kannst du dein eigenes Schichtsystem definieren. Trenne die Schichttypen mit Kommas (z.B. F,F,F,N,N,Frei).</p>
                     <div class="settings-option">
                         <label for="customShiftSequence">Schicht- & Freie-Tage-Sequenz (z.B. F,F,N,N,S,S,Frei,Frei):</label>
@@ -222,7 +218,7 @@
                 </div>
             </div>
             <div class="settings-section">
-                <h4>Backup & Wiederherstellung</h4>
+                <h4 id="settingsHeaderBackup">Backup & Wiederherstellung</h4>
                 <p class="backup-intro">Bei einem Handywechsel kann der aktuelle Kalender gesichert werden:</p>
                 <ol class="backup-steps">
                     <li>Auf dem alten Handy ein Backup erstellen</li>
@@ -346,6 +342,7 @@
     </div>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="translations.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

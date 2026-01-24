@@ -60,27 +60,6 @@ function calculateEaster(year) {
 	return new Date(year, month - 1, day);
 }
 
-// Zentralisierte Feiertagsnamen zur Wiederverwendung
-const holidayNames = {
-	neujahr: { de: 'Neujahr', en: 'New Year\'s Day', ru: 'Новый год', tr: 'Yılbaşı', sq: 'Viti i Ri', ar: 'رأس السنة', hr: 'Nova godina', sk: 'Nový rok' },
-	heiligeDreiKoenige: { de: 'Heilige Drei Könige', en: 'Epiphany', ru: 'Богоявление', tr: 'Epifani', sq: 'Uji i Bekuar', ar: 'عيد الغطاس', hr: 'Sveta Tri kralja', sk: 'Zjavenie Pána' },
-	karfreitag: { de: 'Karfreitag', en: 'Good Friday', ru: 'Страстная пятница', tr: 'Kutsal Cuma', sq: 'E Premtja e Madhe', ar: 'الجمعة العظيمة', hr: 'Veliki petak', sk: 'Veľký piatok' },
-	ostersonntag: { de: 'Ostersonntag', en: 'Easter Sunday', ru: 'Пасха', tr: 'Paskalya Pazarı', sq: 'E Diela e Pashkëve', ar: 'أحد الفصح', hr: 'Uskrsna nedeľa', sk: 'Veľkonočná nedeľa' },
-	ostermontag: { de: 'Ostermontag', en: 'Easter Monday', ru: 'Пасхальный понедельник', tr: 'Paskalya Pazartesi', sq: 'E Hëna e Pashkëve', ar: 'اثنين الفصح', hr: 'Uskrsni ponedjeljak', sk: 'Veľkonočný pondelok' },
-	tagDerArbeit: { de: 'Tag der Arbeit', en: 'Labour Day', ru: 'День труда', tr: 'İşçi Bayramı', sq: 'Dita e Punës', ar: 'عيد العمال', hr: 'Praznik rada', sk: 'Sviatok práce' },
-	christiHimmelfahrt: { de: 'Christi Himmelfahrt', en: 'Ascension Day', ru: 'Вознесение Господне', tr: 'İsa\'nın Göğe Yükselişi', sq: 'Dita e Ngritjes së Krishtit', ar: 'عيد الصعود', hr: 'Uzašašće', sk: 'Nanebovstúpenie Pána' },
-	pfingstsonntag: { de: 'Pfingstsonntag', en: 'Pentecost Sunday', ru: 'Пятидесятница', tr: 'Pentekost Pazarı', sq: 'E Diela e Rrëshajëve', ar: 'أحد العنصرة', hr: 'Duhovi', sk: 'Turíce' },
-	pfingstmontag: { de: 'Pfingstmontag', en: 'Pentecost Monday', ru: 'Понедельник Пятидесятницы', tr: 'Pentekost Pazartesi', sq: 'E Hëna e Pashkëve', ar: 'اثنين العنصرة', hr: 'Duhovski ponedjeljak', sk: 'Turíčny pondelok' },
-	fronleichnam: { de: 'Fronleichnam', en: 'Corpus Christi', ru: 'Празdник Тела и Крови Христовых', tr: 'Katolik Yortusu', sq: 'Corpus Christi', ar: 'عيد القربان', hr: 'Tijelovo', sk: 'Božie Telo' },
-	mariaeHimmelfahrt: { de: 'Mariä Himmelfahrt', en: 'Assumption Day', ru: 'Успение Пресвятой Богородицы', tr: 'Meryem\'in Göğe Kabulü', sq: 'Fjetja e Shën Mërisë', ar: 'عيد انتقال العذراء', hr: 'Velika Gospa', sk: 'Nanebovzatie Panny Márie' },
-	tagDerDeutschenEinheit: { de: 'Tag der Deutschen Einheit', en: 'German Unity Day', ru: 'День герmanского единства', tr: 'Alman Birliği Günü', sq: 'Dita e Bashkimit Gjerman', ar: 'يوم الوحدة الألمانية', hr: 'Dan njemačkog jedinstwa', sk: 'Deň nemeckej jednoty' },
-	allerheiligen: { de: 'Allerheiligen', en: 'All Saints\' Day', ru: 'День всех святых', tr: 'Azizler Günü', sq: 'Dita e të Gjithë Shenjtorëve', ar: 'عيد جميع القديسين', hr: 'Svi Sveti', sk: 'Sviatok Všetkých svätých' },
-	heiligabend: { de: 'Heiligabend', en: 'Christmas Eve', ru: 'Сочельник', tr: 'Noel Arifesi', sq: 'Nata e Krishtlindjes', ar: 'ليلة عيد الميلاد', hr: 'Badnjak', sk: 'Štedrý deň' },
-	weihnachtstag1: { de: '1. Weihnachtstag', en: 'Christmas Day', ru: 'Рождество', tr: 'Noel', sq: 'Dita e Parë e Krishtlindjes', ar: 'عيد الميلاد الأول', hr: 'Božić', sk: 'Prvý sviatok vianočný' },
-	weihnachtstag2: { de: '2. Weihnachtstag', en: 'St. Stephen\'s Day', ru: 'Второй день Рождества', tr: 'Noel\'in Икиии Günü', sq: 'Dita e Dytë e Krishtlindjes', ar: 'عيد الميلاد الثاني', hr: 'Sveti Stjepan', sk: 'Druhý sviatok vianočný' },
-	silvester: { de: 'Silvester', en: 'New Year\'s Eve', ru: 'Новый год', tr: 'Yılbaşı Gecesi', sq: 'Nata e Vitit të Ri', ar: 'ليلة رأس السنة', hr: 'Stara godina', sk: 'Silvester' }
-};
-
 // Generiert alle Feiertage für ein bestimmtes Jahr
 function getHolidaysForYear(year) {
 	const easterSunday = calculateEaster(year);
@@ -134,6 +113,360 @@ let currentCalendarYear = parseInt(localStorage.getItem('currentCalendarYear')) 
 let notesData = JSON.parse(localStorage.getItem('calendarNotes')) || {};
 let vacationData = JSON.parse(localStorage.getItem('calendarVacations')) || {};
 let importantDates = JSON.parse(localStorage.getItem('importantDates')) || [];
+
+// --- SPRACHEINSTELLUNGEN ---
+let currentLanguage = localStorage.getItem('calendarLanguage') || 'de';
+const validLanguages = ['de', 'en', 'ru', 'tr', 'sq', 'ar', 'hr', 'sk'];
+if (!validLanguages.includes(currentLanguage)) currentLanguage = 'de';
+
+function injectLanguageSelector() {
+    const settingsDialog = document.querySelector('#settingsDialogOverlay .dialog');
+    if (!settingsDialog) return;
+
+    if (document.getElementById('languageSelectorContainer')) return;
+
+    const container = document.createElement('div');
+    container.id = 'languageSelectorContainer';
+    container.className = 'settings-section';
+    container.innerHTML = `
+        <h4>🌐 ${uiTranslations[currentLanguage].settings.language}</h4>
+        <div class="settings-option">
+            <select id="languageSelect" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                <option value="de">Deutsch 🇩🇪</option>
+                <option value="en">English 🇬🇧</option>
+                <option value="ru">Русский 🇷🇺</option>
+                <option value="tr">Türkçe 🇹🇷</option>
+                <option value="sq">Shqip 🇦🇱</option>
+                <option value="ar">العربية 🇸🇦</option>
+                <option value="hr">Hrvatski 🇭🇷</option>
+                <option value="sk">Slovenčina 🇸🇰</option>
+            </select>
+        </div>
+    `;
+
+    const title = settingsDialog.querySelector('h3');
+    if (title && title.nextSibling) {
+        settingsDialog.insertBefore(container, title.nextSibling);
+    } else {
+        settingsDialog.appendChild(container);
+    }
+
+    const select = document.getElementById('languageSelect');
+    select.value = currentLanguage;
+    select.addEventListener('change', (e) => {
+        currentLanguage = e.target.value;
+        localStorage.setItem('calendarLanguage', currentLanguage);
+        
+        generateCalendar(currentCalendarYear);
+        
+        const oldDock = document.getElementById('bottomAppDock');
+        if(oldDock) oldDock.remove();
+        createBottomAppDock();
+        
+        container.querySelector('h4').textContent = '🌐 ' + uiTranslations[currentLanguage].settings.language;
+        
+        applyLanguageToUI(); // NEU: UI-Texte aktualisieren
+        showToast('Sprache geändert / Language changed', 'success');
+    });
+}
+
+// NEU: Funktion zum Anwenden der Sprache auf statische UI-Elemente
+function applyLanguageToUI() {
+    const t = uiTranslations[currentLanguage];
+
+    // Settings Dialog
+    const settingsDialog = document.getElementById('settingsDialogOverlay');
+    if (settingsDialog) {
+        const title = settingsDialog.querySelector('h3');
+        if (title) title.textContent = '⚙️ ' + t.settings.title;
+        
+        const setLabel = (id, text) => {
+            const el = document.querySelector(`label[for="${id}"]`);
+            if (el) el.textContent = text;
+        };
+
+        const setPlaceholder = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.placeholder = text;
+        };
+        
+        setLabel('toggleAnimations', t.settings.animations);
+        setLabel('borderColorPicker', t.settings.borderColor);
+        setLabel('toggleDarkMode', t.settings.darkMode);
+        setLabel('toggleAutoDarkMode', t.settings.autoDarkMode);
+        setLabel('profileVornameInput', t.settings.firstName);
+        setLabel('profileNachnameInput', t.settings.lastName);
+        setLabel('profilePersonalNummer', t.settings.personId);
+        setLabel('profileAbteilung', t.settings.department);
+        setLabel('profileCountWeekends', t.settings.countWeekends);
+
+        setPlaceholder('profileVornameInput', t.settings.firstNamePlaceholder);
+        setPlaceholder('profileNachnameInput', t.settings.lastNamePlaceholder);
+        setPlaceholder('profilePersonalNummer', t.settings.personIdPlaceholder);
+        setPlaceholder('profileAbteilung', t.settings.departmentPlaceholder);
+        
+        // Buttons
+        const btnCustomShift = document.getElementById('openCustomShiftSystemSettings');
+        if (btnCustomShift) {
+            const isHidden = document.getElementById('customShiftSystemSection').style.display === 'none';
+            btnCustomShift.textContent = isHidden ? t.settings.customShift : t.settings.customShiftClose;
+        }
+        
+        const btnSaveShift = document.getElementById('saveCustomShiftSystem');
+        if (btnSaveShift) btnSaveShift.textContent = t.settings.saveShift;
+        
+        const btnBackup = document.getElementById('backupSettingsButton');
+        if (btnBackup) btnBackup.innerHTML = `<i class="fas fa-download"></i> ${t.settings.backupCreate}`;
+        
+        const btnRestore = document.getElementById('restoreSettingsButton');
+        if (btnRestore) btnRestore.innerHTML = `<i class="fas fa-upload"></i> ${t.settings.restore}`;
+        
+        const btnSaveProfile = document.getElementById('saveProfileButton');
+        if (btnSaveProfile) btnSaveProfile.textContent = t.settings.saveProfile;
+        
+        const btnClearSig = document.getElementById('clearSignatureButton');
+        if (btnClearSig) btnClearSig.textContent = t.settings.clear;
+        
+        const btnResetSig = document.getElementById('resetSignatureButton');
+        if (btnResetSig) btnResetSig.textContent = t.settings.reset;
+        
+        const btnUploadSig = document.getElementById('signatureUploadButton');
+        if (btnUploadSig) btnUploadSig.textContent = t.settings.upload;
+
+        // Headers in Settings (jetzt mit IDs für zuverlässige Auswahl)
+        const headerProfile = document.getElementById('settingsHeaderProfile');
+        if (headerProfile) headerProfile.innerHTML = `<span>${t.settings.profile}</span><i class="fas fa-chevron-down"></i>`;
+
+        const headerCustomShift = document.getElementById('settingsHeaderCustomShift');
+        if (headerCustomShift) headerCustomShift.textContent = t.settings.customShiftDetails;
+
+        const headerBackup = document.getElementById('settingsHeaderBackup');
+        if (headerBackup) headerBackup.textContent = t.settings.backupTitle;
+
+        // Schichtfarben Header (dynamisch generiert, daher Suche im Container)
+        const colorSection = document.getElementById('shiftColorSettingsSection');
+        if (colorSection) {
+            const h4 = colorSection.querySelector('h4');
+            if (h4) h4.innerHTML = `<span>${t.settings.shiftColors}</span><i class="fas fa-chevron-down"></i>`;
+        }
+        
+        // Shift Time Labels
+        const shiftTimeLabels = settingsDialog.querySelectorAll('.shift-time-row span');
+        if (shiftTimeLabels.length >= 3) {
+            shiftTimeLabels[0].textContent = t.settings.early + ':';
+            shiftTimeLabels[1].textContent = t.settings.late + ':';
+            shiftTimeLabels[2].textContent = t.settings.night + ':';
+        }
+
+        // Shift Times Label (Header for the section)
+        const shiftTimeRows = settingsDialog.querySelectorAll('.shift-time-row');
+        if (shiftTimeRows.length > 0) {
+            const container = shiftTimeRows[0].parentElement;
+            const label = container.querySelector('label');
+            if (label) label.textContent = t.settings.shiftTimesLabel;
+        }
+        
+        // Signature Label
+        const sigContainer = settingsDialog.querySelector('.signature-container');
+        if (sigContainer) {
+             const label = sigContainer.previousElementSibling;
+             if (label && label.tagName === 'LABEL') label.textContent = t.settings.signatureLabel;
+        }
+        
+        // Color Section Buttons
+        const btnApplyColors = document.getElementById('applyShiftColorsBtn');
+        if (btnApplyColors) btnApplyColors.textContent = t.settings.apply;
+        const btnResetColors = document.getElementById('resetShiftColorsBtn');
+        if (btnResetColors) btnResetColors.textContent = t.settings.reset;
+
+        // Update Dropdown Options in Color Section
+        if (colorSection) {
+            const selects = colorSection.querySelectorAll('.shift-select');
+            selects.forEach(select => {
+                const options = select.options;
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].value === 'fruehschicht') options[i].text = t.settings.early;
+                    if (options[i].value === 'spaetschicht') options[i].text = t.settings.late;
+                    if (options[i].value === 'nachtschicht') options[i].text = t.settings.night;
+                    if (options[i].value === 'freischicht') options[i].text = t.settings.free;
+                }
+            });
+        }
+
+        // Update Backup Section Text
+        const backupIntro = settingsDialog.querySelector('.backup-intro');
+        if (backupIntro) backupIntro.textContent = t.settings.backupIntro;
+        
+        const backupSteps = settingsDialog.querySelectorAll('.backup-steps li');
+        if (backupSteps.length === 3) {
+            backupSteps[0].textContent = t.settings.backupSteps[0];
+            backupSteps[1].textContent = t.settings.backupSteps[1];
+            backupSteps[2].textContent = t.settings.backupSteps[2];
+        }
+
+        // Update Custom Shift Section
+        const customShiftSection = document.getElementById('customShiftSystemSection');
+        if (customShiftSection) {
+            const p = customShiftSection.querySelector('.small-text');
+            if (p) p.textContent = t.settings.customShiftIntro;
+            
+            setLabel('customShiftSequence', t.settings.customShiftSequenceLabel);
+            setLabel('customShiftStartDate', t.settings.customShiftStartLabel);
+            setLabel('customShiftStartType', t.settings.customShiftTypeLabel);
+        }
+    }
+
+    // Important Dates Dialog
+    const impDialog = document.getElementById('importantDatesDialogOverlay');
+    if (impDialog) {
+        const title = impDialog.querySelector('h3');
+        if (title) title.textContent = '⭐ ' + t.important.title;
+        
+        const btnAdd = document.getElementById('addImportantDateBtn');
+        if (btnAdd) btnAdd.textContent = t.important.add;
+        
+        const inputs = impDialog.querySelectorAll('input');
+        if (inputs.length > 0) {
+            const nameInput = document.getElementById('importantDateName');
+            if (nameInput) nameInput.placeholder = t.important.name;
+        }
+        
+        const recurringLabel = impDialog.querySelector('label[for="importantDateRecurring"]');
+        if (recurringLabel) recurringLabel.textContent = ' ' + t.important.recurring;
+    }
+
+    // Info Dialog
+    const infoDialog = document.getElementById('shiftInfoDialogOverlay');
+    if (infoDialog) {
+        const title = infoDialog.querySelector('h3');
+        if (title) title.textContent = 'ℹ️ ' + t.info.title;
+        
+        // Update static labels in Info Dialog
+        const infoItems = infoDialog.querySelectorAll('.shift-info-item span:not([id])');
+        // Reihenfolge im HTML: Frei, Samstag, Sonntag, Feiertag, Urlaub
+        if (infoItems.length >= 5) {
+            infoItems[0].textContent = t.info.free;
+            infoItems[1].textContent = t.info.saturday;
+            infoItems[2].textContent = t.info.sunday;
+            infoItems[3].textContent = t.info.holiday;
+            infoItems[4].textContent = t.info.vacation;
+        }
+
+        // Update Headers and Links
+        const headers = infoDialog.querySelectorAll('h3');
+        if (headers.length >= 2) {
+            headers[0].textContent = t.info.shiftTimesColors;
+            headers[1].textContent = t.info.furtherInfo;
+        }
+        const linkSpan = infoDialog.querySelector('ul li span');
+        if (linkSpan) linkSpan.textContent = t.info.workwear + ':';
+        const linkA = infoDialog.querySelector('ul li a');
+        if (linkA) linkA.textContent = t.info.toOrder;
+
+        updateShiftInfoDisplay(); // Update dynamic text
+    }
+
+    // Vacation Dialog (Static parts)
+    const vacDialog = document.getElementById('urlaubsantragDialogOverlay');
+    if (vacDialog) {
+        const title = vacDialog.querySelector('h3');
+        if (title) title.textContent = '📝 ' + t.vacation.title;
+        
+        const setVacLabel = (id, text) => {
+             const el = vacDialog.querySelector(`label[for="${id}"]`);
+             if (el) el.textContent = text + ':';
+        };
+        
+        // Update placeholders/labels if possible
+        const nameInput = document.getElementById('urlaubsantrag_name');
+        if (nameInput && nameInput.previousElementSibling) nameInput.previousElementSibling.textContent = t.vacation.name + ':';
+        
+        const persInput = document.getElementById('urlaubsantrag_personalnummer');
+        if (persInput && persInput.previousElementSibling) persInput.previousElementSibling.textContent = t.vacation.personId + ':';
+        
+        const fromInput = document.getElementById('urlaubsantrag_date_from');
+        if (fromInput && fromInput.previousElementSibling) fromInput.previousElementSibling.textContent = t.vacation.from + ':';
+        
+        const toInput = document.getElementById('urlaubsantrag_date_to');
+        if (toInput && toInput.previousElementSibling) toInput.previousElementSibling.textContent = t.vacation.to + ':';
+        
+        const reasonInput = document.getElementById('urlaubsantrag_grund');
+        if (reasonInput) {
+            if (reasonInput.previousElementSibling) reasonInput.previousElementSibling.textContent = t.vacation.reason + ':';
+            reasonInput.placeholder = t.vacation.reasonPlaceholder;
+        }
+        
+        const remarkInput = document.getElementById('urlaubsantrag_zusatz_bemerkung');
+        if (remarkInput) {
+            if (remarkInput.previousElementSibling) remarkInput.previousElementSibling.textContent = t.vacation.remark + ':';
+            remarkInput.placeholder = t.vacation.remarkPlaceholder;
+        }
+
+        const btnGen = document.getElementById('generatePdfButton');
+        if (btnGen) btnGen.textContent = t.vacation.generatePdf;
+        
+        const btnPrint = document.getElementById('sendUrlaubsantragButton');
+        if (btnPrint) btnPrint.textContent = t.vacation.print;
+        
+        // Update Type Radio Labels
+        const typeContainer = document.getElementById('urlaubsantrag_type_container');
+        if (typeContainer) {
+            const label = typeContainer.querySelector('label');
+            if (label) label.textContent = t.vacation.type;
+            
+            const radios = typeContainer.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                if (t.vacation.types[radio.value]) {
+                    radio.nextSibling.textContent = ' ' + t.vacation.types[radio.value];
+                }
+            });
+        }
+    }
+
+    // Phone Dialog
+    const phoneDialog = document.getElementById('phoneDialogOverlay');
+    if (phoneDialog) {
+        const title = phoneDialog.querySelector('h3');
+        if (title) title.textContent = '📞 ' + t.phone.title;
+        
+        const listItems = phoneDialog.querySelectorAll('li span');
+        // Wir nutzen feste Indizes, da die Struktur in index.html statisch ist
+        if (listItems.length >= 5) {
+            listItems[0].textContent = t.phone.master + ':';
+            listItems[1].textContent = t.phone.foreman + ' BMW-U1x:';
+            listItems[2].textContent = t.phone.foreman + ' BMW-U1x:';
+            listItems[3].textContent = t.phone.foreman + ' BMW-U10:';
+            listItems[4].textContent = t.phone.foreman + ' Audi:';
+        }
+    }
+
+    // Year Input Dialog
+    const yearDialog = document.getElementById('yearInputDialogOverlay');
+    if (yearDialog) {
+        const title = yearDialog.querySelector('h3');
+        if (title) title.textContent = '📅 ' + t.yearInput.title;
+        const label = yearDialog.querySelector('label');
+        if (label) label.textContent = t.yearInput.label;
+        const btn = document.getElementById('setYearButton');
+        if (btn) btn.textContent = t.yearInput.confirm;
+    }
+
+    // Holiday Dialog
+    const holidayDialog = document.getElementById('holidayDialogOverlay');
+    if (holidayDialog) {
+        const title = holidayDialog.querySelector('h3');
+        if (title) title.textContent = '🌍 ' + t.holiday.title;
+    }
+
+    // Update Banner
+    const updateBanner = document.getElementById('update-banner');
+    if (updateBanner) {
+        const span = updateBanner.querySelector('span');
+        if (span) span.textContent = t.update.message;
+        const btn = document.getElementById('reload-button');
+        if (btn) btn.textContent = t.update.button;
+    }
+}
 
 // NEU: Globale Variablen für die Urlaubsauswahl im Kalender
 let isSelectingVacationRange = false;
@@ -242,7 +575,7 @@ function generateCalendar(year) {
 	}
 	// --- ENDE ANPASSUNG FÜR INDIVIDUELLES SCHICHTSYSTEM ---
 
-	const orderedDayNames = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+	const orderedDayNames = uiTranslations[currentLanguage].days;
 	const orderedDayIndices = [1, 2, 3, 4, 5, 6, 0];
 
 	// Heutiges Datum für die Markierung einmalig abrufen (Performance-Optimierung)
@@ -273,7 +606,7 @@ function generateCalendar(year) {
 		const monthCard = document.createElement('div');
 		monthCard.classList.add('month-card');
 
-		monthCard.innerHTML = `<div class="month-title">${new Date(year, month, 1).toLocaleString('de-DE', { month: 'long' }).toUpperCase()}</div>`;
+		monthCard.innerHTML = `<div class="month-title">${new Date(year, month, 1).toLocaleString(locales[currentLanguage], { month: 'long' }).toUpperCase()}</div>`;
 
 		const weeksData = [];
 		const firstDayOfMonth = new Date(year, month, 1);
@@ -442,7 +775,10 @@ function generateCalendar(year) {
 					// Notiz direkt beim Generieren des Kalenders setzen
 					const noteText = notesData[cellData.fullDate];
 					if (noteText) { // NEU: [auto] Präfix entfernen
-						const displayNote = noteText.startsWith('[auto]') ? noteText.substring(7) : noteText;
+						let displayNote = noteText.startsWith('[auto]') ? noteText.substring(7) : noteText;
+                        if (displayNote === 'Buß- und Bettag') {
+                            displayNote = uiTranslations[currentLanguage].bussUndBettag || displayNote;
+                        }
 						dateCell.querySelector('.note-indicator').textContent = displayNote;
 					}
 
@@ -623,6 +959,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderImportantDatesList();
 
+    injectLanguageSelector(); // NEU: Sprachauswahl einfügen
+    applyLanguageToUI(); // NEU: Initiale Übersetzung anwenden
+
 	generateCalendar(currentCalendarYear); // Initialer Kalenderaufbau
 
 	registerServiceWorker(); // Service Worker mit Update-Funktion registrieren
@@ -637,7 +976,7 @@ function saveCustomShiftSystem() {
 
 	// Eingaben validieren
 	if (!sequenceInput || !startDateInput || !startTypeInput) {
-		showToast('Bitte fülle alle Felder für das Schichtsystem aus.', 'error');
+		showToast(uiTranslations[currentLanguage].prompts.fillAllFields, 'error');
 		return;
 	}
 
@@ -651,7 +990,7 @@ function saveCustomShiftSystem() {
 	}).filter(s => s !== null); // Entferne ungültige Einträge
 
 	if (sequenceArray.length === 0 || sequenceArray.length !== sequenceArrayRaw.length) {
-		showToast('Ungültige Schichtsequenz. Bitte verwende F, N, S, Frei oder die vollen Bezeichnungen und trenne mit Kommas.', 'error');
+		showToast(uiTranslations[currentLanguage].prompts.invalidSequence, 'error');
 		return;
 	}
 
@@ -663,12 +1002,12 @@ function saveCustomShiftSystem() {
 	else if (lowerStartType === 'frei') parsedStartType = 'freischicht';
 
 	if (!parsedStartType) {
-		showToast('Ungültiger Startschicht-Typ. Bitte verwende Früh, Nacht, Spät oder Frei.', 'error');
+		showToast(uiTranslations[currentLanguage].prompts.invalidStartType, 'error');
 		return;
 	}
 
 	if (!sequenceArray.includes(parsedStartType)) {
-		showToast(`Der Startschicht-Typ "${startTypeInput}" ist nicht in deiner definierten Sequenz enthalten.`, 'error');
+		showToast(uiTranslations[currentLanguage].prompts.startTypeNotInSequence, 'error');
 		return;
 	}
 
@@ -683,7 +1022,7 @@ function saveCustomShiftSystem() {
 	};
 
 	localStorage.setItem('customShiftSystem', JSON.stringify(customShiftSystem));
-	showToast('Dein Schichtsystem wurde gespeichert und der Kalender wird aktualisiert.', 'success');
+	showToast(uiTranslations[currentLanguage].prompts.shiftSystemSaved, 'success');
 	generateCalendar(currentCalendarYear); // Kalender neu generieren
 	document.getElementById('settingsDialogOverlay').classList.remove('active'); // Dialog schließen
 }
@@ -742,7 +1081,7 @@ function setShiftGroup(group) {
 	document.getElementById('customShiftStartDate').value = startDate;
 	document.getElementById('customShiftStartType').value = startTypeInput;
 
-	showToast(`Schichtsystem für Gruppe ${group} wurde eingestellt.`, 'success');
+	showToast(uiTranslations[currentLanguage].prompts.groupSet.replace('{0}', group), 'success');
 	generateCalendar(currentCalendarYear);
 	document.getElementById('settingsDialogOverlay').classList.remove('active');
 }
@@ -782,7 +1121,7 @@ function addImportantDate() {
     const recurringInput = document.getElementById('importantDateRecurring').checked;
 
     if (!dateInput || !nameInput || !emojiInput) {
-        showToast('Bitte alle Felder ausfüllen.', 'error');
+        showToast(uiTranslations[currentLanguage].prompts.fillAllFields, 'error');
         return;
     }
 
@@ -806,7 +1145,7 @@ function addImportantDate() {
     
     renderImportantDatesList();
     generateCalendar(currentCalendarYear);
-    showToast('Termin hinzugefügt!', 'success');
+    showToast(uiTranslations[currentLanguage].prompts.dateAdded, 'success');
 }
 
 function deleteImportantDate(id) {
@@ -822,7 +1161,7 @@ function deleteImportantDate(id) {
 
     renderImportantDatesList();
     generateCalendar(currentCalendarYear);
-    showToast('Termin gelöscht.', 'info');
+    showToast(uiTranslations[currentLanguage].prompts.dateDeleted, 'info');
 }
 
 function renderImportantDatesList() {
@@ -1074,7 +1413,7 @@ setYearButton.addEventListener('click', () => {
 		generateCalendar(newYear);
 		yearInputDialogOverlay.classList.remove('active');
 	} else {
-		showToast('Bitte geben Sie ein gültiges Jahr zwischen 1900 und 2100 ein.', 'error');
+		showToast(uiTranslations[currentLanguage].prompts.invalidYear, 'error');
 	}
 });
 
@@ -1126,17 +1465,18 @@ function renderCustomNoteUi(container, dateStr) {
 
     // FORM
     const form = document.createElement('div');
+    const t = uiTranslations[currentLanguage];
     form.innerHTML = `
         <div style="display:flex; gap:5px; margin-bottom:5px;">
-            <input type="text" id="dayNoteText" placeholder="Notiz eingeben..." style="flex:1; font-size: 16px; padding:8px; border:1px solid #ccc; border-radius:4px;">
+            <input type="text" id="dayNoteText" placeholder="${t.notes.placeholder}" style="flex:1; font-size: 16px; padding:8px; border:1px solid #ccc; border-radius:4px;">
             <div style="display:flex;">
                 <input type="text" id="dayNoteEmoji" placeholder="Emoji" style="width:50px; padding:8px; font-size: 16px; border:1px solid #ccc; border-radius:4px 0 0 4px; text-align:center; border-right:none;">
                 <button id="openEmojiPaletteBtn" type="button" style="padding: 0 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 0 4px 4px 0; cursor: pointer; background: #f0f0f0;">😀</button>
             </div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <label style="font-size:0.9em; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="dayNoteRecurring"> Jährlich wiederholen</label>
-            <button id="addDayNoteBtn" style="background-color:#333; color:white; border:none; padding:8px 15px; border-radius:4px; cursor:pointer; font-weight:bold;">Hinzufügen</button>
+            <label style="font-size:0.9em; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="dayNoteRecurring"> ${t.notes.recurring}</label>
+            <button id="addDayNoteBtn" style="background-color:#333; color:white; border:none; padding:8px 15px; border-radius:4px; cursor:pointer; font-weight:bold;">${t.notes.add}</button>
         </div>
         <div class="emoji-quick-select">
             <span class="emoji-option">🎂</span>
@@ -1170,7 +1510,7 @@ function renderCustomNoteUi(container, dateStr) {
             renderImportantDatesList();
             renderCustomNoteUi(container, dateStr);
         } else {
-            showToast('Bitte Text eingeben', 'error');
+            showToast(uiTranslations[currentLanguage].prompts.enterText, 'error');
         }
     });
 
@@ -1197,8 +1537,9 @@ function openNoteDialog(cell) {
 	const monthIndex = parseInt(dateParts[1], 10) - 1;
 	const year = dateParts[0];
 	const monthName = new Date(year, monthIndex, 1).toLocaleString('de-DE', { month: 'long' });
-
-	noteDialogTitle.textContent = `📝 Notiz für den ${day}. ${monthName} ${year}`;
+    
+    const t = uiTranslations[currentLanguage];
+	noteDialogTitle.textContent = `📝 ${t.notes.titlePrefix} ${day}. ${monthName} ${year}`;
 	
     // ALTE INPUTS VERSTECKEN
     noteInput.style.display = 'none';
@@ -1221,9 +1562,9 @@ function openNoteDialog(cell) {
 
 	// Update vacation button text
 	if (vacationData[fullDate]) {
-		toggleVacationButton.textContent = 'Urlaub entfernen';
+		toggleVacationButton.textContent = t.notes.removeVacation;
 	} else {
-		toggleVacationButton.textContent = 'Als Urlaub markieren';
+		toggleVacationButton.textContent = t.notes.markVacation;
 	}
 
 	noteDialogOverlay.classList.add('active');
@@ -1273,7 +1614,7 @@ deleteNoteButton.addEventListener('click', () => {
 		const fullDate = currentDayCell.dataset.fullDate;
 		// Verhindere das Löschen der automatischen Buß- und Bettag Notiz
 		if (notesData[fullDate] === 'Buß- und Bettag') {
-			showToast('Diese Notiz wird automatisch gesetzt und kann nicht direkt gelöscht werden. Du kannst sie aber überschreiben.', 'info');
+			showToast(uiTranslations[currentLanguage].prompts.autoNoteDelete, 'info');
 			return;
 		}
 		delete notesData[fullDate];
@@ -1321,14 +1662,15 @@ async function fetchInfoFiles() {
 
 async function loadInfoFiles() {
 	const infoFilesList = document.getElementById('infoFilesList');
-	infoFilesList.innerHTML = '<p class="loading-message">Lade Informationen...</p>'; // Ladeanzeige
+    const t = uiTranslations[currentLanguage];
+	infoFilesList.innerHTML = `<p class="loading-message">${t.info.loading}</p>`; // Ladeanzeige
 
 	const files = await fetchInfoFiles();
 
 	infoFilesList.innerHTML = ''; // Lösche die Ladeanzeige
 
 	if (files.length === 0) {
-		infoFilesList.innerHTML = '<p>Keine weiteren Informationen verfügbar.</p>';
+		infoFilesList.innerHTML = `<p>${t.info.noInfo}</p>`;
 		return;
 	}
 
@@ -1401,12 +1743,12 @@ function backupSettings() {
 	a.click();
 	document.body.removeChild(a);
 	URL.revokeObjectURL(url); // Gib den URL-Speicher frei
-	showToast('Backup erfolgreich erstellt! Datei wurde heruntergeladen.', 'success');
+	showToast(uiTranslations[currentLanguage].prompts.backupCreated, 'success');
 }
 
 // Funktion zum Laden eines Backups der Einstellungen
 function restoreSettings() {
-	if (!confirm('Möchtest du wirklich ein Backup laden? Dies überschreibt alle aktuellen Kalendereinstellungen und Notizen!')) {
+	if (!confirm(uiTranslations[currentLanguage].prompts.backupRestoreConfirm)) {
 		return;
 	}
 
@@ -1462,11 +1804,11 @@ function restoreSettings() {
 				updateDarkModeState(); // Stelle sicher, dass der Dark Mode korrekt angewendet wird
 
 				generateCalendar(currentCalendarYear); // Kalender neu rendern
-				showToast('Backup erfolgreich geladen! Der Kalender wurde aktualisiert.', 'success');
+				showToast(uiTranslations[currentLanguage].prompts.backupRestored, 'success');
 				document.getElementById('settingsDialogOverlay').classList.remove('active'); // Dialog schließen
 			} catch (error) {
 				console.error('Fehler beim Laden des Backups:', error);
-				showToast('Fehler beim Laden des Backups. Bitte stelle sicher, dass es eine gültige JSON-Datei ist.', 'error');
+				showToast(uiTranslations[currentLanguage].prompts.backupError, 'error');
 			}
 		};
 		reader.readAsText(file);
@@ -1666,7 +2008,7 @@ if (resetSignatureButton) {
 			signatureCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
 			userProfile.signature = null;
 			localStorage.setItem('userProfile', JSON.stringify(userProfile));
-			showToast('Unterschrift wurde zurückgesetzt!', 'success');
+			showToast(uiTranslations[currentLanguage].prompts.signatureReset, 'success');
 		}
 	});
 
@@ -1785,7 +2127,8 @@ function loadProfile() {
 		colorSection.id = 'shiftColorSettingsSection';
 		
         // Aufbau der HTML-Struktur mit Paletten und Dropdowns
-        let html = '<h4>Schichtzuordnung (Farben)</h4>';
+        const t = uiTranslations[currentLanguage];
+        let html = `<h4>${t.settings.shiftColors}</h4>`;
         
         COLOR_PALETTES.forEach((palette, index) => {
             // Versuchen herauszufinden, welche Schicht aktuell diese Farben hat
@@ -1814,10 +2157,10 @@ function loadProfile() {
                     </div>
                     <select class="shift-select" data-light="${palette.light}" data-dark="${palette.dark}">
                         <option value="">- Keine -</option>
-                        <option value="fruehschicht" ${selectedShift === 'fruehschicht' ? 'selected' : ''}>Frühschicht</option>
-                        <option value="spaetschicht" ${selectedShift === 'spaetschicht' ? 'selected' : ''}>Spätschicht</option>
-                        <option value="nachtschicht" ${selectedShift === 'nachtschicht' ? 'selected' : ''}>Nachtschicht</option>
-                        <option value="freischicht" ${selectedShift === 'freischicht' ? 'selected' : ''}>Freischicht</option>
+                        <option value="fruehschicht" ${selectedShift === 'fruehschicht' ? 'selected' : ''}>${t.settings.early}</option>
+                        <option value="spaetschicht" ${selectedShift === 'spaetschicht' ? 'selected' : ''}>${t.settings.late}</option>
+                        <option value="nachtschicht" ${selectedShift === 'nachtschicht' ? 'selected' : ''}>${t.settings.night}</option>
+                        <option value="freischicht" ${selectedShift === 'freischicht' ? 'selected' : ''}>${t.settings.free}</option>
                     </select>
                 </div>
             `;
@@ -1825,8 +2168,8 @@ function loadProfile() {
 
         html += `
             <div class="button-group" style="margin-top: 15px;">
-                <button type="button" id="applyShiftColorsBtn" class="confirm-button">Übernehmen</button>
-                <button type="button" id="resetShiftColorsBtn" class="delete-button" style="background-color: #6c757d;">Zurücksetzen</button>
+                <button type="button" id="applyShiftColorsBtn" class="confirm-button">${t.settings.apply}</button>
+                <button type="button" id="resetShiftColorsBtn" class="delete-button" style="background-color: #6c757d;">${t.settings.reset}</button>
             </div>
         `;
 
@@ -1854,7 +2197,7 @@ function loadProfile() {
                 localStorage.setItem('userProfile', JSON.stringify(userProfile));
                 applyCustomShiftColors();
                 updateShiftInfoDisplay();
-                showToast('Farben erfolgreich übernommen!', 'success');
+                showToast(uiTranslations[currentLanguage].prompts.colorsSaved, 'success');
             });
         }
 
@@ -1865,7 +2208,7 @@ function loadProfile() {
                 selects.forEach((select, index) => {
                     select.value = defaults[index] || '';
                 });
-                showToast('Standardauswahl wiederhergestellt. Klicke auf Übernehmen zum Speichern.', 'info');
+                showToast(uiTranslations[currentLanguage].prompts.standardColorsRestored, 'info');
             });
         }
 
@@ -2021,21 +2364,22 @@ if (saveProfileButton) {
 		}
 
 		localStorage.setItem('userProfile', JSON.stringify(userProfile));
-		showToast('Profil erfolgreich gespeichert!', 'success');
+		showToast(uiTranslations[currentLanguage].prompts.profileSaved, 'success');
 	});
 }
 
 // Funktion zum Aktualisieren der Schichtzeiten-Anzeige im Info-Dialog
 function updateShiftInfoDisplay() {
+    const langT = uiTranslations[currentLanguage];
 	if (userProfile.shiftTimes) {
 		const t = userProfile.shiftTimes;
 		const f = document.getElementById('infoFruehschicht');
 		const s = document.getElementById('infoSpaetschicht');
 		const n = document.getElementById('infoNachtschicht');
 
-		if (f) f.textContent = `Frühschicht: ${t.frueh.start} Uhr - ${t.frueh.end} Uhr`;
-		if (s) s.textContent = `Spätschicht: ${t.spaet.start} Uhr - ${t.spaet.end} Uhr`;
-		if (n) n.textContent = `Nachtschicht: ${t.nacht.start} Uhr - ${t.nacht.end} Uhr`;
+		if (f) f.textContent = `${langT.settings.early}: ${t.frueh.start} - ${t.frueh.end}`;
+		if (s) s.textContent = `${langT.settings.late}: ${t.spaet.start} - ${t.spaet.end}`;
+		if (n) n.textContent = `${langT.settings.night}: ${t.nacht.start} - ${t.nacht.end}`;
 	}
 
 	// NEU: Sichtbarkeit basierend auf dem aktiven Schichtsystem steuern
@@ -2128,21 +2472,22 @@ function openUrlaubsantragWithDates(startDateStr, endDateStr) {
 
 // NEU: Hilfsfunktion zum Sicherstellen der Zusatzfelder im Antrag
 function ensureUrlaubsantragFields() {
+    const t = uiTranslations[currentLanguage];
 	const dateFromInput = document.getElementById('urlaubsantrag_date_from');
 	if (dateFromInput && !document.getElementById('urlaubsantrag_type_container')) {
 		const typeContainer = document.createElement('div');
 		typeContainer.id = 'urlaubsantrag_type_container';
 		typeContainer.className = 'urlaubsantrag-field';
 		typeContainer.innerHTML = `
-                <label>Antragsart (Bitte auswählen):</label>
+                <label>${t.vacation.type}</label>
                 <div class="urlaubsantrag-type-grid">
-                    <div><input type="radio" name="urlaubsantrag_type" value="1" checked> 1. Tarifurlaub</div>
-                    <div><input type="radio" name="urlaubsantrag_type" value="2"> 2. Abbau Zeitkonto</div>
-                    <div><input type="radio" name="urlaubsantrag_type" value="3"> 3. Dienstreise</div>
-                    <div><input type="radio" name="urlaubsantrag_type" value="4"> 4. Schulung</div>
-                    <div><input type="radio" name="urlaubsantrag_type" value="5"> 5. Freistellung</div>
-                    <div><input type="radio" name="urlaubsantrag_type" value="6"> 6. unbez. Urlaub</div>
-                    <div><input type="radio" name="urlaubsantrag_type" value="7"> 7. Krank</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="1" checked> ${t.vacation.types[1]}</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="2"> ${t.vacation.types[2]}</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="3"> ${t.vacation.types[3]}</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="4"> ${t.vacation.types[4]}</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="5"> ${t.vacation.types[5]}</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="6"> ${t.vacation.types[6]}</div>
+                    <div><input type="radio" name="urlaubsantrag_type" value="7"> ${t.vacation.types[7]}</div>
                 </div>
             `;
 		if (dateFromInput.parentNode) dateFromInput.parentNode.parentNode.insertBefore(typeContainer, dateFromInput.parentNode);
@@ -2151,7 +2496,7 @@ function ensureUrlaubsantragFields() {
 		if (grundInput && grundInput.parentNode) {
 			const extraRemarkDiv = document.createElement('div');
 			extraRemarkDiv.className = 'urlaubsantrag-field';
-			extraRemarkDiv.innerHTML = `<label>Zusätzliche Bemerkung:</label><input type="text" id="urlaubsantrag_zusatz_bemerkung" placeholder="Zusätzliche Zeile...">`;
+			extraRemarkDiv.innerHTML = `<label>${t.vacation.remark}:</label><input type="text" id="urlaubsantrag_zusatz_bemerkung" placeholder="${t.vacation.remarkPlaceholder}">`;
 			grundInput.parentNode.parentNode.insertBefore(extraRemarkDiv, grundInput.parentNode.nextSibling);
 		}
 	}
@@ -2187,7 +2532,7 @@ function showEmojiPicker(onSelect) {
         
         dialog.innerHTML = `
             <button class="close-button">&times;</button>
-            <h3 style="margin-bottom: 10px;">Emoji auswählen</h3>
+            <h3 style="margin-bottom: 10px;">${uiTranslations[currentLanguage].emoji.title}</h3>
             <div id="emojiGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(35px, 1fr)); gap: 5px; overflow-y: auto; padding: 5px; flex: 1;"></div>
         `;
         
@@ -2234,7 +2579,7 @@ if (generatePdfButton) {
 			generateUrlaubsantragPDF();
 		} catch (error) {
 			console.error('Fehler beim PDF-Generieren:', error);
-			showToast('Fehler beim Generieren der PDF: ' + error.message, 'error');
+			showToast(uiTranslations[currentLanguage].prompts.pdfError + ' ' + error.message, 'error');
 		}
 	});
 }
@@ -2297,7 +2642,7 @@ function addVacationRangeToCalendar(startDateStr, endDateStr, typeName = '', rem
         updateAutoNoteForDate(formatDate(d));
     }
 	generateCalendar(currentCalendarYear);
-	showToast('Urlaub wurde in den Kalender eingetragen.', 'success');
+	showToast(uiTranslations[currentLanguage].prompts.vacationAdded, 'success');
 }
 
 function generateUrlaubsantragPDF(action = 'download') {
@@ -2323,15 +2668,7 @@ function generateUrlaubsantragPDF(action = 'download') {
 		const grund = document.getElementById('urlaubsantrag_grund').value;
 		const zusatzBemerkung = document.getElementById('urlaubsantrag_zusatz_bemerkung') ? document.getElementById('urlaubsantrag_zusatz_bemerkung').value : '';
         
-        const VACATION_TYPES = {
-            '1': 'Tarifurlaub',
-            '2': 'Abbau Zeitkonto',
-            '3': 'Dienstreise',
-            '4': 'Schulung',
-            '5': 'Freistellung',
-            '6': 'unbez. Urlaub',
-            '7': 'Krank'
-        };
+        const VACATION_TYPES = uiTranslations[currentLanguage].vacation.types;
 
 		// Ausgewählten Typ ermitteln (1-7)
 		let selectedType = '1';
@@ -2342,7 +2679,7 @@ function generateUrlaubsantragPDF(action = 'download') {
 
 		// Validierung für Punkt 5 und 6
 		if ((selectedType === '5' || selectedType === '6') && !grund.trim()) {
-			showToast('Bei Auswahl von Punkt 5 oder 6 muss zwingend ein Grund angegeben werden!', 'error');
+			showToast(uiTranslations[currentLanguage].prompts.vacationReasonRequired, 'error');
 			restoreViewport();
 			return;
 		}
@@ -2350,12 +2687,12 @@ function generateUrlaubsantragPDF(action = 'download') {
 		console.log('Name:', name, 'Von:', dateFrom, 'Bis:', dateTo);
 
 		if (!dateTo) {
-			showToast('Bitte geben Sie ein Enddatum ein!', 'error');
+			showToast(uiTranslations[currentLanguage].prompts.enterEndDate, 'error');
 			restoreViewport();
 			return;
 		}
 
-		if (confirm('Soll der beantragte Urlaub in den Kalender eingetragen werden?')) {
+		if (confirm(uiTranslations[currentLanguage].prompts.addVacationConfirm)) {
             const typeName = VACATION_TYPES[selectedType] || 'Urlaub';
 			addVacationRangeToCalendar(dateFrom, dateTo, typeName, (selectedType === '5' || selectedType === '6') ? grund : zusatzBemerkung, selectedType);
 		}
@@ -2794,7 +3131,7 @@ function generateUrlaubsantragPDF(action = 'download') {
 				if (wasDarkMode) document.body.classList.add('dark-mode');
 				restoreViewport();
 				console.error('PDF-Druckfehler:', error);
-				showToast('Fehler beim Drucken: ' + error.message, 'error');
+				showToast(uiTranslations[currentLanguage].prompts.printError + ' ' + error.message, 'error');
 			});
 		} else {
 			// PDF als Blob generieren, um es teilen zu können
@@ -2824,13 +3161,13 @@ function generateUrlaubsantragPDF(action = 'download') {
 					a.click();
 					document.body.removeChild(a);
 					URL.revokeObjectURL(url);
-					showToast('PDF wurde generiert und gespeichert!', 'success');
+					showToast(uiTranslations[currentLanguage].prompts.pdfGenerated, 'success');
 				}
 			}).catch((error) => {
 				if (wasDarkMode) document.body.classList.add('dark-mode');
 				restoreViewport();
 				console.error('PDF-Generierungsfehler:', error);
-				showToast('Fehler beim PDF-Generieren: ' + error.message, 'error');
+				showToast(uiTranslations[currentLanguage].prompts.pdfError + ' ' + error.message, 'error');
 			});
 		}
 
@@ -2963,46 +3300,49 @@ updateShiftInfoDisplay();
 
 // NEU: Funktionen für den Auswahlmodus (Kalender vs. Manuell)
 function showVacationModeDialog() {
+    const t = uiTranslations[currentLanguage];
+    // Immer neu erstellen, um Sprache zu aktualisieren
     let overlay = document.getElementById('vacationModeDialogOverlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'vacationModeDialogOverlay';
-        overlay.className = 'dialog-overlay';
-        overlay.innerHTML = `
+    if (overlay) overlay.remove();
+
+    overlay = document.createElement('div');
+    overlay.id = 'vacationModeDialogOverlay';
+    overlay.className = 'dialog-overlay';
+    overlay.innerHTML = `
             <div class="dialog" style="text-align: center; max-width: 350px;">
-                <h3>📝 Urlaubsantrag</h3>
-                <p style="margin-bottom: 20px;">Wie möchtest du den Zeitraum festlegen?</p>
+                <h3>📝 ${t.vacation.title}</h3>
+                <p style="margin-bottom: 20px;">${t.vacation.modeTitle}</p>
                 <div class="button-group" style="flex-direction: column; gap: 10px;">
-                    <button id="btnSelectInCalendar" class="action-button">📅 Im Kalender auswählen</button>
-                    <button id="btnManualEntry" class="action-button">✍️ Manuell eingeben</button>
+                    <button id="btnSelectInCalendar" class="action-button">${t.vacation.calendarSelect}</button>
+                    <button id="btnManualEntry" class="action-button">${t.vacation.manualEntry}</button>
                 </div>
                 <button class="close-button" style="top: 5px; right: 5px;">&times;</button>
             </div>
         `;
-        document.body.appendChild(overlay);
-        
-        overlay.querySelector('.close-button').addEventListener('click', () => overlay.classList.remove('active'));
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) overlay.classList.remove('active');
-        });
-        
-        document.getElementById('btnSelectInCalendar').addEventListener('click', () => {
-            overlay.classList.remove('active');
-            startCalendarSelectionMode();
-        });
-        
-        document.getElementById('btnManualEntry').addEventListener('click', () => {
-            overlay.classList.remove('active');
-            openUrlaubsantragWithDates(null, null);
-        });
-    }
+    document.body.appendChild(overlay);
+    
+    overlay.querySelector('.close-button').addEventListener('click', () => overlay.classList.remove('active'));
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+    });
+    
+    document.getElementById('btnSelectInCalendar').addEventListener('click', () => {
+        overlay.classList.remove('active');
+        startCalendarSelectionMode();
+    });
+    
+    document.getElementById('btnManualEntry').addEventListener('click', () => {
+        overlay.classList.remove('active');
+        openUrlaubsantragWithDates(null, null);
+    });
+    
     overlay.classList.add('active');
 }
 
 function startCalendarSelectionMode() {
     isSelectingVacationRange = true;
     selectionStartDate = null;
-    showToast('Bitte klicke den ersten Tag des Urlaubs an.', 'info');
+    showToast(uiTranslations[currentLanguage].prompts.selectStartDate, 'info');
     const dock = document.getElementById('bottomAppDock');
     if (dock) dock.classList.remove('open');
 }
@@ -3010,7 +3350,7 @@ function startCalendarSelectionMode() {
 function handleVacationSelection(dateStr) {
     if (!selectionStartDate) {
         selectionStartDate = dateStr;
-        showToast('Startdatum: ' + dateStr.split('-').reverse().join('.') + '. Bitte Enddatum wählen.', 'info');
+        showToast(uiTranslations[currentLanguage].prompts.selectEndDate.replace('{0}', dateStr.split('-').reverse().join('.')), 'info');
         const cell = document.querySelector(`.date-cell[data-full-date="${dateStr}"]`);
         if (cell) cell.style.backgroundColor = '#ffeeba';
     } else {
@@ -3056,50 +3396,48 @@ function deleteVacationRange(startDateStr, endDateStr) {
     // UI aktualisieren
     generateCalendar(currentCalendarYear);
     showOverview(); // Liste neu laden
-    showToast('Urlaubseintrag gelöscht.', 'info');
+    showToast(uiTranslations[currentLanguage].prompts.vacationDeleted, 'info');
 }
 
 // NEU: Funktionen für die Übersicht (Notizen & Urlaub)
 function createOverviewDialog() {
-	if (document.getElementById('overviewDialogOverlay')) return;
-
-	const overlay = document.createElement('div');
-	overlay.id = 'overviewDialogOverlay';
-	overlay.className = 'dialog-overlay';
-	
-	const dialog = document.createElement('div');
-	dialog.className = 'dialog';
-	
-	dialog.innerHTML = `
-		<button id="closeOverviewDialog" class="close-button">&times;</button>
-		<h3>🏖️ Abwesenheit</h3>
-		<div id="overviewContent" style="max-height: 60vh; overflow-y: auto; margin-top: 10px;"></div>
-	`;
-	
-	overlay.appendChild(dialog);
-	document.body.appendChild(overlay);
-	
-	const closeBtn = dialog.querySelector('#closeOverviewDialog');
-	closeBtn.addEventListener('click', () => overlay.classList.remove('active'));
-	overlay.addEventListener('click', (e) => {
-		if (e.target === overlay) overlay.classList.remove('active');
-	});
+    const t = uiTranslations[currentLanguage];
+    // Dialog neu erstellen oder Titel aktualisieren
+    let overlay = document.getElementById('overviewDialogOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'overviewDialogOverlay';
+        overlay.className = 'dialog-overlay';
+        
+        const dialog = document.createElement('div');
+        dialog.className = 'dialog';
+        
+        dialog.innerHTML = `
+            <button id="closeOverviewDialog" class="close-button">&times;</button>
+            <h3>🏖️ ${t.overview.title}</h3>
+            <div id="overviewContent" style="max-height: 60vh; overflow-y: auto; margin-top: 10px;"></div>
+        `;
+        
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+        
+        const closeBtn = dialog.querySelector('#closeOverviewDialog');
+        closeBtn.addEventListener('click', () => overlay.classList.remove('active'));
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('active');
+        });
+    } else {
+        overlay.querySelector('h3').textContent = '🏖️ ' + t.overview.title;
+    }
 }
 
 function showOverview() {
 	createOverviewDialog();
+    const t = uiTranslations[currentLanguage];
 	const contentDiv = document.getElementById('overviewContent');
 	contentDiv.innerHTML = '';
 	
-	const VACATION_TYPES = {
-		'1': 'Tarifurlaub',
-		'2': 'Abbau Zeitkonto',
-		'3': 'Dienstreise',
-		'4': 'Schulung',
-		'5': 'Freistellung',
-		'6': 'unbez. Urlaub',
-		'7': 'Krank'
-	};
+	const VACATION_TYPES = t.vacation.types;
 
 	const allDates = new Set([...Object.keys(notesData), ...Object.keys(vacationData)]);
 	const sortedDates = Array.from(allDates).sort();
@@ -3205,15 +3543,15 @@ function showOverview() {
 	const sortedYears = Object.keys(yearsData).sort();
 	
 	if (sortedYears.length === 0) {
-		contentDiv.innerHTML = '<p style="text-align: center; color: #666;">Keine Einträge vorhanden.</p>';
+		contentDiv.innerHTML = `<p style="text-align: center; color: #666;">${t.overview.empty}</p>`;
 	} else {
 		sortedYears.forEach(year => {
 			const yearData = yearsData[year];
 			const currentRealYear = new Date().getFullYear();
 			let yearLabel = year;
-			if (parseInt(year) === currentRealYear) yearLabel += ' (Aktuelles Jahr)';
-			else if (parseInt(year) === currentRealYear - 1) yearLabel += ' (Vorheriges Jahr)';
-			else if (parseInt(year) === currentRealYear + 1) yearLabel += ' (Nächstes Jahr)';
+			if (parseInt(year) === currentRealYear) yearLabel += ` (${t.overview.currentYear})`;
+			else if (parseInt(year) === currentRealYear - 1) yearLabel += ` (${t.overview.prevYear})`;
+			else if (parseInt(year) === currentRealYear + 1) yearLabel += ` (${t.overview.nextYear})`;
 
 			let breakdownHtml = '';
 			const sortedTypes = Object.keys(yearData.typeCounts).sort();
@@ -3222,7 +3560,7 @@ function showOverview() {
 				sortedTypes.forEach(tid => {
 					const count = yearData.typeCounts[tid];
 					const tname = VACATION_TYPES[tid] || 'Sonstiges';
-					breakdownHtml += `<div style="display:flex; justify-content:space-between;"><span>${tname}:</span> <strong>${count} Tage</strong></div>`;
+					breakdownHtml += `<div style="display:flex; justify-content:space-between;"><span>${tname}:</span> <strong>${count} ${t.overview.days}</strong></div>`;
 				});
 				breakdownHtml += '</div>';
 			}
@@ -3232,7 +3570,7 @@ function showOverview() {
 				<div style="background-color: #eee; padding: 10px; font-weight: bold; border-radius: 5px; margin-bottom: 5px;">
 					<div style="display: flex; justify-content: space-between; align-items: center;">
 						<span>${yearLabel}</span>
-						<span style="font-size: 0.9em; background: #fff; padding: 2px 6px; border-radius: 4px;">Gesamt: ${yearData.vacationCount} Tage</span>
+						<span style="font-size: 0.9em; background: #fff; padding: 2px 6px; border-radius: 4px;">${t.overview.total}: ${yearData.vacationCount} ${t.overview.days}</span>
 					</div>
 					${breakdownHtml}
 				</div>
@@ -3284,7 +3622,7 @@ function showOverview() {
 				let html = `<div style="font-weight: bold; margin-bottom: 5px; font-size: 1.1em;">${dateDisplay}</div>`;
 				
 				if (entry.isVacation) {
-					const vacText = `Abwesenheit (${entry.daysCount} ${entry.daysCount === 1 ? 'Tag' : 'Tage'})`;
+					const vacText = `${t.overview.title} (${entry.daysCount} ${t.overview.days})`;
 					html += `<div style="color: #6f42c1; margin-bottom: 3px; display: flex; align-items: center;"><i class="fas fa-calendar-minus" style="width: 25px; text-align: center; margin-right: 5px;"></i> ${vacText}</div>`;
 				}
 				
@@ -3307,7 +3645,7 @@ function showOverview() {
                 deleteBtn.style.padding = '0 10px';
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if(confirm('Möchtest du diesen Eintrag wirklich löschen?')) {
+                    if(confirm(uiTranslations[currentLanguage].prompts.deleteEntryConfirm)) {
                         deleteVacationRange(entry.startDate, entry.endDate);
                     }
                 });
@@ -3335,7 +3673,7 @@ function createBottomAppDock() {
 
 	const dockTrigger = document.createElement('div');
 	dockTrigger.id = 'bottomAppDockTrigger';
-	dockTrigger.innerHTML = '<i class="fas fa-bars"></i> <span>Menü</span>';
+	dockTrigger.innerHTML = `<i class="fas fa-bars"></i> <span>${uiTranslations[currentLanguage].dock.menu}</span>`;
 
     // Auto-Close Logik
     let dockTimeout;
@@ -3378,11 +3716,11 @@ function createBottomAppDock() {
 
 	// Elemente definieren, die im Dock angezeigt werden sollen
 	const dockItems = [
-		{ id: 'openPhoneDialog', label: 'Telefon', icon: '📞' },
-		{ id: 'todayButton', label: 'Heute', icon: '🗓️' },
-        { id: 'openImportantDatesDialog', label: 'Wichtige Tage', icon: '⭐' },
-		{ id: 'openShiftInfoDialog', label: 'Info', icon: 'ℹ️' },
-		{ id: 'openSettingsDialog', label: 'Einst.', icon: '⚙️' }
+		{ id: 'openPhoneDialog', label: uiTranslations[currentLanguage].dock.phone, icon: '📞' },
+		{ id: 'todayButton', label: uiTranslations[currentLanguage].dock.today, icon: '🗓️' },
+        { id: 'openImportantDatesDialog', label: uiTranslations[currentLanguage].dock.important, icon: '⭐' },
+		{ id: 'openShiftInfoDialog', label: uiTranslations[currentLanguage].dock.info, icon: 'ℹ️' },
+		{ id: 'openSettingsDialog', label: uiTranslations[currentLanguage].dock.settings, icon: '⚙️' }
 	];
 
 	dockItems.forEach(item => {
@@ -3431,7 +3769,7 @@ function createBottomAppDock() {
 		
 		const label = document.createElement('span');
 		label.className = 'app-label';
-		label.textContent = 'Profil';
+		label.textContent = uiTranslations[currentLanguage].dock.profile;
 		wrapper.appendChild(label);
 		
 		// Klick auf das Icon löst den ursprünglichen Profil-Klick aus
@@ -3456,7 +3794,7 @@ function createBottomAppDock() {
 	
 	const vacationLabel = document.createElement('span');
 	vacationLabel.className = 'app-label';
-	vacationLabel.textContent = 'Antrag';
+	vacationLabel.textContent = uiTranslations[currentLanguage].dock.vacation;
 	vacationWrapper.appendChild(vacationLabel);
 	
 	vacationWrapper.addEventListener('click', () => {
@@ -3479,7 +3817,7 @@ function createBottomAppDock() {
 	
 	const overviewLabel = document.createElement('span');
 	overviewLabel.className = 'app-label';
-	overviewLabel.textContent = 'Abwesenheit';
+	overviewLabel.textContent = uiTranslations[currentLanguage].dock.absence;
 	overviewWrapper.appendChild(overviewLabel);
 	
 	overviewWrapper.addEventListener('click', () => {
@@ -3503,7 +3841,7 @@ function createBottomAppDock() {
 	
 	const workwearLabel = document.createElement('span');
 	workwearLabel.className = 'app-label';
-	workwearLabel.textContent = 'Arbeitskleidung';
+	workwearLabel.textContent = uiTranslations[currentLanguage].dock.workwear;
 	workwearWrapper.appendChild(workwearLabel);
 	
 	workwearWrapper.addEventListener('click', () => {
