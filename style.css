@@ -1704,3 +1704,19 @@ body.dark-mode .day-note-list li {
 body.dark-mode .day-note-list li:hover {
     background-color: #444 !important;
 }
+
+/* Emoji Grid Styles */
+.emoji-grid-item {
+    font-size: 24px;
+    cursor: pointer;
+    text-align: center;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+.emoji-grid-item:hover {
+    background-color: #f0f0f0;
+}
+body.dark-mode .emoji-grid-item:hover {
+    background-color: #555;
+}
