@@ -1720,3 +1720,44 @@ body.dark-mode .day-note-list li:hover {
 body.dark-mode .emoji-grid-item:hover {
     background-color: #555;
 }
+
+/* Phone Management Styles */
+.phone-manage-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    background-color: #f9f9f9;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+body.dark-mode .phone-manage-row {
+    background-color: #3a3a3a;
+    border-bottom: 1px solid #555;
+}
+
+.delete-phone-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+.edit-phone-btn, .save-phone-btn {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.edit-phone-btn {
+    color: #007bff;
+}
+
+.save-phone-btn {
+    color: #28a745;
+}

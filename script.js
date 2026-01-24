@@ -113,6 +113,8 @@ let currentCalendarYear = parseInt(localStorage.getItem('currentCalendarYear')) 
 let notesData = JSON.parse(localStorage.getItem('calendarNotes')) || {};
 let vacationData = JSON.parse(localStorage.getItem('calendarVacations')) || {};
 let importantDates = JSON.parse(localStorage.getItem('importantDates')) || [];
+// NEU: Telefonnummern aus localStorage laden
+let phoneNumbers = JSON.parse(localStorage.getItem('phoneNumbers')) || [];
 
 // --- SPRACHEINSTELLUNGEN ---
 let currentLanguage = localStorage.getItem('calendarLanguage') || 'de';
@@ -428,16 +430,8 @@ function applyLanguageToUI() {
     if (phoneDialog) {
         const title = phoneDialog.querySelector('h3');
         if (title) title.textContent = '📞 ' + t.phone.title;
-        
-        const listItems = phoneDialog.querySelectorAll('li span');
-        // Wir nutzen feste Indizes, da die Struktur in index.html statisch ist
-        if (listItems.length >= 5) {
-            listItems[0].textContent = t.phone.master + ':';
-            listItems[1].textContent = t.phone.foreman + ' BMW-U1x:';
-            listItems[2].textContent = t.phone.foreman + ' BMW-U1x:';
-            listItems[3].textContent = t.phone.foreman + ' BMW-U10:';
-            listItems[4].textContent = t.phone.foreman + ' Audi:';
-        }
+        // NEU: Dynamisches Rendern der Telefonliste aufrufen
+        renderPhoneDialog();
     }
 
     // Year Input Dialog
@@ -1195,6 +1189,243 @@ function renderImportantDatesList() {
 }
 // --- ENDE FUNKTIONEN FÜR WICHTIGE TERMINE ---
 
+// --- NEU: FUNKTIONEN FÜR TELEFONNUMMERN-VERWALTUNG ---
+let isPhoneManagementMode = false;
+
+function renderPhoneDialog() {
+    const dialogOverlay = document.getElementById('phoneDialogOverlay');
+    if (!dialogOverlay) return;
+    const dialog = dialogOverlay.querySelector('.dialog');
+    if (!dialog) return;
+
+    const t = uiTranslations[currentLanguage];
+    
+    // Titel sicherstellen
+    let h3 = dialog.querySelector('h3');
+    if (!h3) {
+        h3 = document.createElement('h3');
+        dialog.prepend(h3);
+    }
+    h3.textContent = '📞 ' + t.phone.title;
+
+    // Schließen-Button finden
+    const closeBtn = dialog.querySelector('.close-button');
+    
+    // Alles außer Titel und Schließen-Button entfernen
+    Array.from(dialog.children).forEach(child => {
+        if (child !== h3 && child !== closeBtn) {
+            child.remove();
+        }
+    });
+
+    if (!isPhoneManagementMode) {
+        // ANSICHTS-MODUS
+        const ul = document.createElement('ul');
+        ul.className = 'phone-list';
+        
+        if (phoneNumbers.length === 0) {
+            ul.innerHTML = `<li style="justify-content:center; color:#666;">${t.overview.empty || 'Keine Nummern'}</li>`;
+        } else {
+            phoneNumbers.forEach(entry => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${entry.name}:</span>
+                    <a href="tel:${entry.number}">${entry.number}</a>
+                `;
+                ul.appendChild(li);
+            });
+        }
+        dialog.appendChild(ul);
+
+        const manageBtn = document.createElement('button');
+        manageBtn.className = 'action-button';
+        manageBtn.style.marginTop = '20px';
+        manageBtn.textContent = t.phone.manage;
+        manageBtn.onclick = () => {
+            isPhoneManagementMode = true;
+            renderPhoneDialog();
+        };
+        dialog.appendChild(manageBtn);
+
+    } else {
+        // VERWALTUNGS-MODUS
+        const listContainer = document.createElement('div');
+        listContainer.style.maxHeight = '40vh';
+        listContainer.style.overflowY = 'auto';
+        listContainer.style.marginBottom = '15px';
+
+        phoneNumbers.forEach((entry, index) => {
+            const row = document.createElement('div');
+            row.className = 'phone-manage-row';
+            
+            // Container für Info (Anzeige & Bearbeitung)
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'phone-info';
+            infoDiv.style.flexGrow = '1';
+
+            // Anzeige-Modus
+            const displayDiv = document.createElement('div');
+            displayDiv.className = 'phone-display';
+            displayDiv.innerHTML = `<strong>${entry.name}</strong><br><small>${entry.number}</small>`;
+
+            // Bearbeitungs-Modus (initial ausgeblendet)
+            const editDiv = document.createElement('div');
+            editDiv.className = 'phone-edit';
+            editDiv.style.display = 'none';
+            
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.value = entry.name;
+            nameInput.style.width = '95%';
+            nameInput.style.marginBottom = '5px';
+            nameInput.style.padding = '5px';
+            
+            const numberInput = document.createElement('input');
+            numberInput.type = 'tel';
+            numberInput.value = entry.number;
+            numberInput.style.width = '95%';
+            numberInput.style.padding = '5px';
+
+            editDiv.appendChild(nameInput);
+            editDiv.appendChild(numberInput);
+
+            infoDiv.appendChild(displayDiv);
+            infoDiv.appendChild(editDiv);
+
+            // Buttons
+            const actionsDiv = document.createElement('div');
+            actionsDiv.style.display = 'flex';
+            actionsDiv.style.alignItems = 'center';
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'edit-phone-btn';
+            editBtn.innerHTML = '<i class="fas fa-pen"></i>';
+            editBtn.title = t.phone.edit;
+
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'save-phone-btn';
+            saveBtn.innerHTML = '<i class="fas fa-save"></i>';
+            saveBtn.title = t.phone.save;
+            saveBtn.style.display = 'none';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-phone-btn';
+            deleteBtn.innerHTML = '&times;';
+            deleteBtn.title = t.phone.delete;
+
+            // Event Listener
+            editBtn.onclick = () => {
+                displayDiv.style.display = 'none';
+                editDiv.style.display = 'block';
+                editBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+            };
+
+            saveBtn.onclick = () => {
+                const newName = nameInput.value.trim();
+                const newNumber = numberInput.value.trim();
+                if (newName && newNumber) {
+                    phoneNumbers[index] = { name: newName, number: newNumber };
+                    localStorage.setItem('phoneNumbers', JSON.stringify(phoneNumbers));
+                    renderPhoneDialog();
+                } else {
+                    showToast(t.prompts.fillAllFields, 'error');
+                }
+            };
+
+            deleteBtn.onclick = () => {
+                if(confirm(t.prompts.deleteEntryConfirm)) {
+                    phoneNumbers.splice(index, 1);
+                    localStorage.setItem('phoneNumbers', JSON.stringify(phoneNumbers));
+                    renderPhoneDialog();
+                }
+            };
+
+            actionsDiv.appendChild(editBtn);
+            actionsDiv.appendChild(saveBtn);
+            actionsDiv.appendChild(deleteBtn);
+
+            row.appendChild(infoDiv);
+            row.appendChild(actionsDiv);
+            listContainer.appendChild(row);
+        });
+        dialog.appendChild(listContainer);
+
+        // Hinzufügen-Bereich
+        const addContainer = document.createElement('div');
+        addContainer.className = 'phone-add-container';
+        addContainer.innerHTML = `
+            <input type="text" id="newPhoneName" placeholder="${t.phone.name}" style="margin-bottom:5px; font-size: 16px; width:100%;">
+            <input type="tel" id="newPhoneNumber" placeholder="${t.phone.number}" style="margin-bottom:5px; font-size: 16px; width:100%;">
+            <button id="addNewPhoneBtn" class="confirm-button" style="width:100%;">${t.phone.add}</button>
+        `;
+        dialog.appendChild(addContainer);
+        
+        dialog.querySelector('#addNewPhoneBtn').onclick = () => {
+            const name = dialog.querySelector('#newPhoneName').value.trim();
+            const number = dialog.querySelector('#newPhoneNumber').value.trim();
+            if (name && number) {
+                phoneNumbers.push({ name, number });
+                localStorage.setItem('phoneNumbers', JSON.stringify(phoneNumbers));
+                renderPhoneDialog();
+            } else {
+                showToast(t.prompts.fillAllFields, 'error');
+            }
+        };
+
+        // Import / Zurück Buttons
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'button-group';
+        btnGroup.style.marginTop = '15px';
+
+        const importBtn = document.createElement('button');
+        importBtn.className = 'btn-grey';
+        importBtn.textContent = t.phone.import;
+        importBtn.onclick = () => document.getElementById('phoneImportInput').click();
+        
+        const importInput = document.createElement('input');
+        importInput.type = 'file';
+        importInput.id = 'phoneImportInput';
+        importInput.accept = '.json';
+        importInput.style.display = 'none';
+        importInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (Array.isArray(data)) {
+                        phoneNumbers = data;
+                        localStorage.setItem('phoneNumbers', JSON.stringify(phoneNumbers));
+                        renderPhoneDialog();
+                        showToast('Import erfolgreich', 'success');
+                    } else {
+                        throw new Error('Invalid format');
+                    }
+                } catch (err) {
+                    showToast(t.prompts.backupError, 'error');
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn-grey';
+        backBtn.textContent = t.phone.back;
+        backBtn.onclick = () => {
+            isPhoneManagementMode = false;
+            renderPhoneDialog();
+        };
+
+        btnGroup.appendChild(importBtn);
+        btnGroup.appendChild(backBtn);
+        dialog.appendChild(btnGroup);
+        dialog.appendChild(importInput);
+    }
+}
+// --- ENDE FUNKTIONEN FÜR TELEFONNUMMERN-VERWALTUNG ---
+
 // NEU: Funktion zum Zuklappen aller erweiterbaren Sektionen im Einstellungsdialog
 function collapseAllSettingsSections() {
     const sections = document.querySelectorAll('#settingsDialogOverlay .settings-section.collapsible-init');
@@ -1256,6 +1487,10 @@ function setupDialog(openBtnId, dialogOverlayId, closeBtnId) {
 			if (dialogOverlayId === 'shiftInfoDialogOverlay') {
 				loadInfoFiles();
 				updateShiftInfoDisplay();
+			}
+            // NEU: Telefon-Dialog rendern
+			if (dialogOverlayId === 'phoneDialogOverlay') {
+				renderPhoneDialog();
 			}
 		});
 	}
@@ -1725,7 +1960,9 @@ function backupSettings() {
 			key.startsWith('autoDarkModeEnabled') ||
 			key.startsWith('calendarVacations') ||
 			key.startsWith('userProfile') ||
-            key.startsWith('importantDates')) {
+            key.startsWith('importantDates') ||
+            key.startsWith('phoneNumbers') ||
+            key.startsWith('calendarLanguage')) {
 			settingsToBackup[key] = localStorage.getItem(key);
 		}
 	}
@@ -1769,7 +2006,8 @@ function restoreSettings() {
 
 				// Lösche nur die relevanten alten Daten, nicht das gesamte localStorage
 				['currentCalendarYear', 'calendarNotes', 'customShiftSystem',
-					'animationsDisabled', 'calendarBorderColor', 'darkModeEnabled', 'autoDarkModeEnabled', 'calendarVacations', 'userProfile', 'importantDates'
+					'animationsDisabled', 'calendarBorderColor', 'darkModeEnabled', 'autoDarkModeEnabled', 'calendarVacations', 'userProfile', 'importantDates',
+                    'phoneNumbers', 'calendarLanguage'
 				]
 				.forEach(key => localStorage.removeItem(key));
 
@@ -1787,6 +2025,22 @@ function restoreSettings() {
 				customShiftSystem = JSON.parse(localStorage.getItem('customShiftSystem')) || { sequence: [], referenceStartDate: null, referenceShiftType: null };
 				userProfile = JSON.parse(localStorage.getItem('userProfile')) || { name: '', personalNummer: '', abteilung: '', signature: null };
                 importantDates = JSON.parse(localStorage.getItem('importantDates')) || [];
+                phoneNumbers = JSON.parse(localStorage.getItem('phoneNumbers')) || [];
+                
+                // Sprache aktualisieren
+                const newLang = localStorage.getItem('calendarLanguage');
+                if (newLang && validLanguages.includes(newLang)) {
+                    currentLanguage = newLang;
+                    const langSelect = document.getElementById('languageSelect');
+                    if (langSelect) langSelect.value = currentLanguage;
+                    applyLanguageToUI();
+                    
+                    const langContainer = document.getElementById('languageSelectorContainer');
+                    if (langContainer) {
+                        langContainer.querySelector('h4').textContent = '🌐 ' + uiTranslations[currentLanguage].settings.language;
+                    }
+                }
+
 				loadProfile(); // Profil-UI aktualisieren
                 renderImportantDatesList(); // Terminliste aktualisieren
                 

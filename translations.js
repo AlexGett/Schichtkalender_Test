@@ -152,7 +152,16 @@ const uiTranslations = {
         phone: {
             title: 'Wichtige Telefonnummern',
             master: 'Schichtmeister',
-            foreman: 'Vorarbeiter'
+            foreman: 'Vorarbeiter',
+            manage: 'Nummern verwalten',
+            add: 'Hinzufügen',
+            import: 'JSON Import',
+            name: 'Name',
+            number: 'Nummer',
+            delete: 'Löschen',
+            back: 'Zurück',
+            edit: 'Bearbeiten',
+            save: 'Speichern'
         },
         holiday: {
             title: 'Feiertag'
@@ -333,7 +342,16 @@ const uiTranslations = {
         phone: {
             title: 'Important Phone Numbers',
             master: 'Shift Master',
-            foreman: 'Foreman'
+            foreman: 'Foreman',
+            manage: 'Manage Numbers',
+            add: 'Add',
+            import: 'Import JSON',
+            name: 'Name',
+            number: 'Number',
+            delete: 'Delete',
+            back: 'Back',
+            edit: 'Edit',
+            save: 'Save'
         },
         holiday: {
             title: 'Public Holiday'
@@ -514,7 +532,16 @@ const uiTranslations = {
         phone: {
             title: 'Важные номера телефонов',
             master: 'Мастер смены',
-            foreman: 'Бригадир'
+            foreman: 'Бригадир',
+            manage: 'Управление номерами',
+            add: 'Добавить',
+            import: 'Импорт JSON',
+            name: 'Имя',
+            number: 'Номер',
+            delete: 'Удалить',
+            back: 'Назад',
+            edit: 'Изменить',
+            save: 'Сохранить'
         },
         holiday: {
             title: 'Праздник'
@@ -695,7 +722,16 @@ const uiTranslations = {
         phone: {
             title: 'Önemli Telefon Numaraları',
             master: 'Vardiya Amiri',
-            foreman: 'Usta başı'
+            foreman: 'Usta başı',
+            manage: 'Numaraları Yönet',
+            add: 'Ekle',
+            import: 'JSON İçe Aktar',
+            name: 'İsim',
+            number: 'Numara',
+            delete: 'Sil',
+            back: 'Geri',
+            edit: 'Düzenle',
+            save: 'Kaydet'
         },
         holiday: {
             title: 'Tatil'
@@ -876,7 +912,16 @@ const uiTranslations = {
         phone: {
             title: 'Numra të rëndësishëm telefoni',
             master: 'Mjeshtër ndërrimi',
-            foreman: 'Përgjegjës'
+            foreman: 'Përgjegjës',
+            manage: 'Menaxho numrat',
+            add: 'Shto',
+            import: 'Importo JSON',
+            name: 'Emri',
+            number: 'Numri',
+            delete: 'Fshi',
+            back: 'Prapa',
+            edit: 'Ndrysho',
+            save: 'Ruaj'
         },
         holiday: {
             title: 'Festë'
@@ -1057,7 +1102,16 @@ const uiTranslations = {
         phone: {
             title: 'أرقام هواتف مهمة',
             master: 'رئيس الوردية',
-            foreman: 'رئيس العمال'
+            foreman: 'رئيس العمال',
+            manage: 'إدارة الأرقام',
+            add: 'إضافة',
+            import: 'استيراد JSON',
+            name: 'الاسم',
+            number: 'رقم',
+            delete: 'حذف',
+            back: 'عودة',
+            edit: 'تعديل',
+            save: 'حفظ'
         },
         holiday: {
             title: 'عطلة'
@@ -1238,7 +1292,16 @@ const uiTranslations = {
         phone: {
             title: 'Važni telefonski brojevi',
             master: 'Voditelj smjene',
-            foreman: 'Predradnik'
+            foreman: 'Predradnik',
+            manage: 'Upravljanje brojevima',
+            add: 'Dodaj',
+            import: 'Uvezi JSON',
+            name: 'Ime',
+            number: 'Broj',
+            delete: 'Obriši',
+            back: 'Natrag',
+            edit: 'Uredi',
+            save: 'Spremi'
         },
         holiday: {
             title: 'Praznik'
@@ -1419,7 +1482,16 @@ const uiTranslations = {
         phone: {
             title: 'Dôležité telefónne čísla',
             master: 'Majster zmeny',
-            foreman: 'Predák'
+            foreman: 'Predák',
+            manage: 'Spravovať čísla',
+            add: 'Pridať',
+            import: 'Importovať JSON',
+            name: 'Meno',
+            number: 'Číslo',
+            delete: 'Vymazať',
+            back: 'Späť',
+            edit: 'Upraviť',
+            save: 'Uložiť'
         },
         holiday: {
             title: 'Sviatok'
