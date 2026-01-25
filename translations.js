@@ -55,10 +55,11 @@ const uiTranslations = {
             backupCreate: 'Backup erstellen',
             restore: 'Backup laden',
             customShiftDetails: 'Schichtsystem-Details',
-            customShiftIntro: 'Hier kannst du dein eigenes Schichtsystem definieren. Trenne die Schichttypen mit Kommas (z.B. F,F,F,N,N,Frei).',
-            customShiftSequenceLabel: 'Schicht- & Freie-Tage-Sequenz (z.B. F,F,N,N,S,S,Frei,Frei):',
+            customShiftIntro: 'Hier kannst du dein eigenes Schichtsystem definieren. Trenne die Schichttypen mit Kommas.<br><br><b>Legende:</b><br>F = Frühschicht<br>S = Spätschicht<br>N = Nachtschicht<br>Frei = Freischicht',
+            customShiftSequenceLabel: 'Schicht- & Freie-Tage-Sequenz (z.B. F,F,N,N,S,S,Frei):',
+            customShiftSequencePlaceholder: 'z.B. F,F,N,N,S,S,Frei',
             customShiftStartLabel: 'Startdatum des Zyklus (TT/MM/JJJJ):',
-            customShiftTypeLabel: 'Schichtart am Startdatum (z.B. Früh, Nacht, Spät, Frei):',
+            customShiftTypeLabel: 'Schichtart am Startdatum (z.B. F, N, S, Frei):',
             profile: 'Profil',
             firstName: 'Vorname',
             firstNamePlaceholder: 'Ihr Vorname',
@@ -209,6 +210,16 @@ const uiTranslations = {
             deleteEntryConfirm: 'Möchtest du diesen Eintrag wirklich löschen?',
             colorsSaved: 'Farben erfolgreich übernommen!',
             enterText: 'Bitte Text eingeben'
+        },
+        shiftButtons: {
+            early: 'F',
+            late: 'S',
+            night: 'N',
+            free: 'Frei',
+            clear: 'Alles löschen',
+            backspace: 'Letzten löschen',
+            saturday: 'Sa',
+            sunday: 'So'
         }
     },
     en: {
@@ -245,10 +256,11 @@ const uiTranslations = {
             backupCreate: 'Create backup',
             restore: 'Load backup',
             customShiftDetails: 'Shift System Details',
-            customShiftIntro: 'Here you can define your own shift system. Separate shift types with commas (e.g. F,F,F,N,N,Free).',
-            customShiftSequenceLabel: 'Shift & Free Days Sequence (e.g. F,F,N,N,S,S,Free,Free):',
+            customShiftIntro: 'Here you can define your own shift system. Separate shift types with commas.<br><br><b>Legend:</b><br>E = Early shift<br>L = Late shift<br>N = Night shift<br>Free = Free shift',
+            customShiftSequenceLabel: 'Shift & Free Days Sequence (e.g. E,E,N,N,L,L,Free):',
+            customShiftSequencePlaceholder: 'e.g. E,E,N,N,L,L,Free',
             customShiftStartLabel: 'Cycle Start Date (DD/MM/YYYY):',
-            customShiftTypeLabel: 'Shift Type at Start Date (e.g. Early, Night, Late, Free):',
+            customShiftTypeLabel: 'Shift Type at Start Date (e.g. E, N, L, Free):',
             profile: 'Profile',
             firstName: 'First Name',
             firstNamePlaceholder: 'Your First Name',
@@ -399,6 +411,16 @@ const uiTranslations = {
             deleteEntryConfirm: 'Do you really want to delete this entry?',
             colorsSaved: 'Colors applied successfully!',
             enterText: 'Please enter text'
+        },
+        shiftButtons: {
+            early: 'E',
+            late: 'L',
+            night: 'N',
+            free: 'Free',
+            clear: 'Clear all',
+            backspace: 'Delete last',
+            saturday: 'Sat',
+            sunday: 'Sun'
         }
     },
     ru: {
@@ -435,10 +457,11 @@ const uiTranslations = {
             backupCreate: 'Создать копию',
             restore: 'Загрузить резервную копию',
             customShiftDetails: 'Детали системы смен',
-            customShiftIntro: 'Здесь вы можете определить свою систему смен. Разделяйте типы смен запятыми (например, F,F,F,N,N,Frei).',
-            customShiftSequenceLabel: 'Последовательность смен и выходных (напр. F,F,N,N,S,S,Frei,Frei):',
+            customShiftIntro: 'Здесь вы можете определить свою систему смен. Разделяйте типы смен запятыми.<br><br><b>Легенда:</b><br>У = Утро<br>В = Вечер<br>Н = Ночь<br>Вых = Выходной',
+            customShiftSequenceLabel: 'Последовательность смен (напр. У,У,Н,Н,В,В,Вых):',
+            customShiftSequencePlaceholder: 'напр. У,У,Н,Н,В,В,Вых',
             customShiftStartLabel: 'Дата начала цикла (ДД/ММ/ГГГГ):',
-            customShiftTypeLabel: 'Тип смены на дату начала (напр. Утро, Ночь, Вечер, Выходной):',
+            customShiftTypeLabel: 'Тип смены на дату начала (напр. У, Н, В, Вых):',
             profile: 'Профиль',
             firstName: 'Имя',
             firstNamePlaceholder: 'Ваше имя',
@@ -589,6 +612,16 @@ const uiTranslations = {
             deleteEntryConfirm: 'Вы действительно хотите удалить эту запись?',
             colorsSaved: 'Цвета успешно применены!',
             enterText: 'Пожалуйста, введите текст'
+        },
+        shiftButtons: {
+            early: 'У',
+            late: 'В',
+            night: 'Н',
+            free: 'Вых',
+            clear: 'Очистить',
+            backspace: 'Удалить',
+            saturday: 'Сб',
+            sunday: 'Вс'
         }
     },
     tr: {
@@ -625,10 +658,11 @@ const uiTranslations = {
             backupCreate: 'Yedek oluştur',
             restore: 'Yedeği yükle',
             customShiftDetails: 'Vardiya Sistemi Detayları',
-            customShiftIntro: 'Burada kendi vardiya sisteminizi tanımlayabilirsiniz. Vardiya türlerini virgülle ayırın (örn. F,F,F,N,N,Frei).',
-            customShiftSequenceLabel: 'Vardiya ve Boş Gün Sırası (örn. F,F,N,N,S,S,Frei,Frei):',
+            customShiftIntro: 'Burada kendi vardiya sisteminizi tanımlayabilirsiniz. Vardiya türlerini virgülle ayırın.<br><br><b>Lejant:</b><br>S = Sabah<br>A = Akşam<br>G = Gece<br>Boş = Boş',
+            customShiftSequenceLabel: 'Vardiya Sırası (örn. S,S,G,G,A,A,Boş):',
+            customShiftSequencePlaceholder: 'örn. S,S,G,G,A,A,Boş',
             customShiftStartLabel: 'Döngü Başlangıç Tarihi (GG/AA/YYYY):',
-            customShiftTypeLabel: 'Başlangıç Tarihindeki Vardiya Türü (örn. Sabah, Gece, Akşam, Boş):',
+            customShiftTypeLabel: 'Başlangıç Tarihindeki Vardiya (örn. S, G, A, Boş):',
             profile: 'Profil',
             firstName: 'Ad',
             firstNamePlaceholder: 'Adınız',
@@ -779,6 +813,16 @@ const uiTranslations = {
             deleteEntryConfirm: 'Bu kaydı silmek istediğinize emin misiniz?',
             colorsSaved: 'Renkler başarıyla uygulandı!',
             enterText: 'Lütfen metin girin'
+        },
+        shiftButtons: {
+            early: 'S',
+            late: 'A',
+            night: 'G',
+            free: 'Boş',
+            clear: 'Temizle',
+            backspace: 'Sil',
+            saturday: 'Cmt',
+            sunday: 'Paz'
         }
     },
     sq: {
@@ -815,10 +859,11 @@ const uiTranslations = {
             backupCreate: 'Krijo kopje rezervë',
             restore: 'Ngarko kopje rezervë',
             customShiftDetails: 'Detajet e sistemit të ndërrimit',
-            customShiftIntro: 'Këtu mund të përcaktoni sistemin tuaj të ndërrimit. Ndani llojet e ndërrimeve me presje (p.sh. F,F,F,N,N,Pushim).',
-            customShiftSequenceLabel: 'Sekuenca e ndërrimeve & ditëve të lira (p.sh. F,F,N,N,S,S,Pushim,Pushim):',
+            customShiftIntro: 'Këtu mund të përcaktoni sistemin tuaj të ndërrimit. Ndani llojet e ndërrimeve me presje.<br><br><b>Legjenda:</b><br>M = Mëngjes<br>V = Vonë<br>N = Natë<br>Pushim = Pushim',
+            customShiftSequenceLabel: 'Sekuenca e ndërrimeve (p.sh. M,M,N,N,V,V,Pushim):',
+            customShiftSequencePlaceholder: 'p.sh. M,M,N,N,V,V,Pushim',
             customShiftStartLabel: 'Data e fillimit të ciklit (DD/MM/VVVV):',
-            customShiftTypeLabel: 'Lloji i ndërrimit në datën e fillimit (p.sh. Mëngjes, Natë, Vonë, Pushim):',
+            customShiftTypeLabel: 'Lloji i ndërrimit në fillim (p.sh. M, N, V, Pushim):',
             profile: 'Profili',
             firstName: 'Emri',
             firstNamePlaceholder: 'Emri juaj',
@@ -969,6 +1014,16 @@ const uiTranslations = {
             deleteEntryConfirm: 'A dëshironi vërtet ta fshini këtë hyrje?',
             colorsSaved: 'Ngjyrat u aplikuan me sukses!',
             enterText: 'Ju lutemi futni tekst'
+        },
+        shiftButtons: {
+            early: 'M',
+            late: 'V',
+            night: 'N',
+            free: 'Pushim',
+            clear: 'Pastro',
+            backspace: 'Fshi',
+            saturday: 'Sht',
+            sunday: 'Die'
         }
     },
     ar: {
@@ -1005,10 +1060,11 @@ const uiTranslations = {
             backupCreate: 'إنشاء نسخة احتياطية',
             restore: 'تحميل نسخة احتياطية',
             customShiftDetails: 'تفاصيل نظام الورديات',
-            customShiftIntro: 'هنا يمكنك تحديد نظام الورديات الخاص بك. افصل أنواع الورديات بفواصل (مثلًا F,F,F,N,N,Free).',
-            customShiftSequenceLabel: 'تسلسل الورديات وأيام العطلة (مثلًا F,F,N,N,S,S,Free,Free):',
+            customShiftIntro: 'هنا يمكنك تحديد نظام الورديات الخاص بك. افصل أنواع الورديات بفواصل.<br><br><b>المفتاح:</b><br>ص = صباحي<br>م = مسائي<br>ل = ليلي<br>عطلة = عطلة',
+            customShiftSequenceLabel: 'تسلسل الورديات (مثلًا ص,ص,ل,ل,م,م,عطلة):',
+            customShiftSequencePlaceholder: 'مثلًا ص,ص,ل,ل,م,م,عطلة',
             customShiftStartLabel: 'تاريخ بدء الدورة (يوم/شهر/سنة):',
-            customShiftTypeLabel: 'نوع الوردية في تاريخ البدء (مثلًا صباحي، ليلي، مسائي، عطلة):',
+            customShiftTypeLabel: 'نوع الوردية في البدء (مثلًا ص, ل, م, عطلة):',
             profile: 'الملف الشخصي',
             firstName: 'الاسم الأول',
             firstNamePlaceholder: 'اسمك الأول',
@@ -1159,6 +1215,16 @@ const uiTranslations = {
             deleteEntryConfirm: 'هل تريد حقًا حذف هذا الإدخال؟',
             colorsSaved: 'تم تطبيق الألوان بنجاح!',
             enterText: 'يرجى إدخال نص'
+        },
+        shiftButtons: {
+            early: 'ص',
+            late: 'م',
+            night: 'ل',
+            free: 'عطلة',
+            clear: 'مسح',
+            backspace: 'حذف',
+            saturday: 'سبت',
+            sunday: 'أحد'
         }
     },
     hr: {
@@ -1195,10 +1261,11 @@ const uiTranslations = {
             backupCreate: 'Napravi kopiju',
             restore: 'Učitaj kopiju',
             customShiftDetails: 'Detalji sustava smjena',
-            customShiftIntro: 'Ovdje možete definirati vlastiti sustav smjena. Odvojite tipove smjena zarezima (npr. F,F,F,N,N,Slobodno).',
-            customShiftSequenceLabel: 'Slijed smjena & slobodnih dana (npr. F,F,N,N,S,S,Slobodno,Slobodno):',
+            customShiftIntro: 'Ovdje možete definirati vlastiti sustav smjena. Odvojite tipove smjena zarezima.<br><br><b>Legenda:</b><br>J = Jutro<br>K = Kasno<br>N = Noć<br>Slob = Slobodno',
+            customShiftSequenceLabel: 'Slijed smjena (npr. J,J,N,N,K,K,Slob):',
+            customShiftSequencePlaceholder: 'npr. J,J,N,N,K,K,Slob',
             customShiftStartLabel: 'Datum početka ciklusa (DD/MM/GGGG):',
-            customShiftTypeLabel: 'Tip smjene na datum početka (npr. Jutro, Noć, Kasno, Slobodno):',
+            customShiftTypeLabel: 'Tip smjene na početku (npr. J, N, K, Slob):',
             profile: 'Profil',
             firstName: 'Ime',
             firstNamePlaceholder: 'Vaše ime',
@@ -1349,6 +1416,16 @@ const uiTranslations = {
             deleteEntryConfirm: 'Želite li stvarno obrisati ovaj unos?',
             colorsSaved: 'Boje uspješno primijenjene!',
             enterText: 'Molimo unesite tekst'
+        },
+        shiftButtons: {
+            early: 'J',
+            late: 'K',
+            night: 'N',
+            free: 'Slob',
+            clear: 'Očisti',
+            backspace: 'Obriši',
+            saturday: 'Sub',
+            sunday: 'Ned'
         }
     },
     sk: {
@@ -1385,10 +1462,11 @@ const uiTranslations = {
             backupCreate: 'Vytvoriť zálohu',
             restore: 'Nahrať zálohu',
             customShiftDetails: 'Detaily systému zmien',
-            customShiftIntro: 'Tu môžete definovať svoj vlastný systém zmien. Oddeľte typy zmien čiarkami (napr. R,R,R,N,N,Voľno).',
-            customShiftSequenceLabel: 'Sekvencia zmien a voľných dní (napr. R,R,N,N,P,P,Voľno,Voľno):',
+            customShiftIntro: 'Tu môžete definovať svoj vlastný systém zmien. Oddeľte typy zmien čiarkami.<br><br><b>Legenda:</b><br>R = Ranná<br>P = Poobedná<br>N = Nočná<br>Voľno = Voľno',
+            customShiftSequenceLabel: 'Sekvencia zmien (napr. R,R,N,N,P,P,Voľno):',
+            customShiftSequencePlaceholder: 'napr. R,R,N,N,P,P,Voľno',
             customShiftStartLabel: 'Dátum začiatku cyklu (DD/MM/RRRR):',
-            customShiftTypeLabel: 'Typ zmeny v dátume začiatku (napr. Ranná, Nočná, Poobedná, Voľno):',
+            customShiftTypeLabel: 'Typ zmeny na začiatku (napr. R, N, P, Voľno):',
             profile: 'Profil',
             firstName: 'Meno',
             firstNamePlaceholder: 'Vaše meno',
@@ -1539,6 +1617,16 @@ const uiTranslations = {
             deleteEntryConfirm: 'Naozaj chcete vymazať tento záznam?',
             colorsSaved: 'Farby úspešne použité!',
             enterText: 'Prosím zadajte text'
+        },
+        shiftButtons: {
+            early: 'R',
+            late: 'P',
+            night: 'N',
+            free: 'Voľno',
+            clear: 'Vymazať',
+            backspace: 'Zmazať',
+            saturday: 'So',
+            sunday: 'Ne'
         }
     }
 };

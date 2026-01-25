@@ -4,7 +4,7 @@ Sollte es nicht funktionieren bitte folgendes ausführen.
 
 1. Bitte diese Schicht-Sequenz kopieren und im System einfügen.
 
-N,N,N,N,N,Frei,Frei,S,S,S,S,S,S,Frei,F,F,F,F,F,Frei,Frei,N,N,N,N,N,Frei,Frei,S,S,S,S,S,Frei,Frei,F,F,F,F,F,F,N
+N,N,N,N,N,Sa,So,S,S,S,S,S,S,So,F,F,F,F,F,Sa,So,N,N,N,N,N,Sa,So,S,S,S,S,S,Sa,So,F,F,F,F,F,F,N
 
 ---
 

@@ -310,11 +310,44 @@ function applyLanguageToUI() {
         const customShiftSection = document.getElementById('customShiftSystemSection');
         if (customShiftSection) {
             const p = customShiftSection.querySelector('.small-text');
-            if (p) p.textContent = t.settings.customShiftIntro;
+            if (p) p.innerHTML = t.settings.customShiftIntro;
             
             setLabel('customShiftSequence', t.settings.customShiftSequenceLabel);
+            setPlaceholder('customShiftSequence', t.settings.customShiftSequencePlaceholder);
             setLabel('customShiftStartDate', t.settings.customShiftStartLabel);
             setLabel('customShiftStartType', t.settings.customShiftTypeLabel);
+
+            // NEU: Sequenz und Starttyp im Eingabefeld übersetzen, wenn Sprache geändert wird
+            if (typeof customShiftSystem !== 'undefined' && customShiftSystem.sequence && customShiftSystem.sequence.length > 0) {
+                const tButtons = t.shiftButtons;
+                if (tButtons) {
+                    const translatedSequence = customShiftSystem.sequence.map(type => {
+                        if (type === 'fruehschicht') return tButtons.early;
+                        if (type === 'spaetschicht') return tButtons.late;
+                        if (type === 'nachtschicht') return tButtons.night;
+                        if (type === 'freischicht') return tButtons.free;
+                        if (type === 'samstag') return tButtons.saturday;
+                        if (type === 'sonntag') return tButtons.sunday;
+                        return type;
+                    }).join(',');
+                    
+                    const seqInput = document.getElementById('customShiftSequence');
+                    if (seqInput) seqInput.value = translatedSequence;
+
+                    const startTypeInput = document.getElementById('customShiftStartType');
+                    if (startTypeInput && customShiftSystem.referenceShiftType) {
+                        let translatedStartType = '';
+                        if (customShiftSystem.referenceShiftType === 'fruehschicht') translatedStartType = tButtons.early;
+                        else if (customShiftSystem.referenceShiftType === 'spaetschicht') translatedStartType = tButtons.late;
+                        else if (customShiftSystem.referenceShiftType === 'nachtschicht') translatedStartType = tButtons.night;
+                        else if (customShiftSystem.referenceShiftType === 'freischicht') translatedStartType = tButtons.free;
+                        else if (customShiftSystem.referenceShiftType === 'samstag') translatedStartType = tButtons.saturday;
+                        else if (customShiftSystem.referenceShiftType === 'sonntag') translatedStartType = tButtons.sunday;
+                        
+                        if (translatedStartType) startTypeInput.value = translatedStartType;
+                    }
+                }
+            }
         }
     }
 
@@ -460,6 +493,8 @@ function applyLanguageToUI() {
         const btn = document.getElementById('reload-button');
         if (btn) btn.textContent = t.update.button;
     }
+
+    injectCustomShiftButtons(); // NEU: Buttons aktualisieren, wenn Sprache geändert wird
 }
 
 // NEU: Globale Variablen für die Urlaubsauswahl im Kalender
@@ -491,7 +526,9 @@ const SHIFT_TYPES = {
 	'Frei': 'freischicht',
 	'Früh': 'fruehschicht', // Alternative Bezeichnungen für bessere UX
 	'Nacht': 'nachtschicht',
-	'Spät': 'spaetschicht'
+	'Spät': 'spaetschicht',
+    'Sa': 'samstag',
+    'So': 'sonntag'
 };
 
 // Laden des benutzerdefinierten Schichtsystems aus dem localStorage
@@ -504,7 +541,7 @@ let customShiftSystem = JSON.parse(localStorage.getItem('customShiftSystem')) ||
 // Standard-Schichtsystem, falls kein benutzerdefiniertes gesetzt ist
 // (Dies ist ein Beispiel für ein 3-Schicht-System, falls der Benutzer noch nichts eingegeben hat)
 const defaultShiftSystem = {
-	sequence: ['fruehschicht', 'fruehschicht', 'fruehschicht', 'fruehschicht', 'fruehschicht', 'freischicht', 'freischicht', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'freischicht', 'freischicht', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'freischicht', 'freischicht'],
+	sequence: ['fruehschicht', 'fruehschicht', 'fruehschicht', 'fruehschicht', 'fruehschicht', 'samstag', 'sonntag', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'nachtschicht', 'samstag', 'sonntag', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'spaetschicht', 'samstag', 'sonntag'],
 	// WICHTIG: Passe dieses Datum an einen bekannten Startpunkt an, z.B. einen Montag, an dem die erste Schicht des Zyklus war
 	referenceStartDate: '2030-01-07', // Beispiel: Ein Montag
 	referenceShiftType: 'nachtschicht' // Beispiel: Die Schicht, die am 2025-01-06 beginnt
@@ -645,18 +682,14 @@ function generateCalendar(year) {
 				}
 				const assignedShiftClass = shiftSequence[shiftIndex];
 
-				if (assignedShiftClass === 'freischicht') {
-					// Wenn es ein Freischicht-Tag ist, prüfe, ob es ein Wochenende ist
-					if (dayOfWeek === 6) { // Samstag
-						classes.push('samstag');
-					} else if (dayOfWeek === 0) { // Sonntag
-						classes.push('sonntag');
-					} else {
-						// Wenn Freischicht und kein Wochenende, dann die Freischicht-Farbe
-						classes.push(assignedShiftClass);
-					}
-				} else {
-					// Wenn es ein Arbeitstag ist (keine Freischicht), verwende immer die Schichtfarbe
+                // NEU: Logik angepasst. Frei ist jetzt immer farbig (Cyan).
+                // Samstag/Sonntag Buttons erzwingen die Wochenend-Optik.
+				if (assignedShiftClass === 'samstag') {
+                    classes.push('samstag');
+                } else if (assignedShiftClass === 'sonntag') {
+                    classes.push('sonntag');
+                } else {
+                    // Für frueh, spaet, nacht UND frei (jetzt immer farbig)
 					classes.push(assignedShiftClass);
 				}
 				// --- ENDE ANPASSUNG FÜR INDIVIDUELLES SCHICHTSYSTEM FÜR ALLE TAGE ---
@@ -963,6 +996,107 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- FUNKTIONEN FÜR BENUTZERDEFINIERTES SCHICHTSYSTEM ---
+function injectCustomShiftButtons() {
+    const input = document.getElementById('customShiftSequence');
+    if (!input) return;
+
+    // Bestehende Buttons entfernen, um sie neu zu rendern (z.B. bei Sprachwechsel)
+    const existing = document.getElementById('shiftSequenceButtons');
+    if (existing) existing.remove();
+
+    const container = document.createElement('div');
+    container.id = 'shiftSequenceButtons';
+    container.style.marginTop = '10px';
+    container.style.display = 'flex';
+    container.style.gap = '5px';
+    container.style.flexWrap = 'wrap';
+
+    const t = uiTranslations[currentLanguage].shiftButtons || uiTranslations['de'].shiftButtons;
+
+    const buttons = [
+        { label: t.early, value: t.early, class: 'fruehschicht' },
+        { label: t.late, value: t.late, class: 'spaetschicht' },
+        { label: t.night, value: t.night, class: 'nachtschicht' },
+        { label: t.free, value: t.free, class: 'freischicht' },
+        { label: t.saturday, value: t.saturday, class: 'samstag' }, // NEU
+        { label: t.sunday, value: t.sunday, class: 'sonntag' }      // NEU
+    ];
+
+    buttons.forEach(btn => {
+        const button = document.createElement('button');
+        button.textContent = btn.label;
+        button.type = 'button';
+        button.className = btn.class;
+        button.style.flex = '1';
+        button.style.padding = '10px';
+        button.style.border = '1px solid #ccc';
+        button.style.borderRadius = '5px';
+        button.style.cursor = 'pointer';
+        button.style.fontWeight = 'bold';
+        button.style.minWidth = '40px';
+        button.style.color = '#333';
+
+        button.addEventListener('click', () => {
+            let currentVal = input.value.trim();
+            if (currentVal.endsWith(',')) currentVal = currentVal.slice(0, -1);
+            
+            if (currentVal.length > 0) {
+                input.value = currentVal + ',' + btn.value;
+            } else {
+                input.value = btn.value;
+            }
+            input.scrollLeft = input.scrollWidth; // NEU: Zum Ende scrollen
+        });
+        container.appendChild(button);
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.innerHTML = '<i class="fas fa-backspace"></i>';
+    deleteBtn.type = 'button';
+    deleteBtn.style.flex = '0 0 auto';
+    deleteBtn.style.padding = '10px 15px';
+    deleteBtn.style.border = '1px solid #ccc';
+    deleteBtn.style.borderRadius = '5px';
+    deleteBtn.style.cursor = 'pointer';
+    deleteBtn.style.backgroundColor = '#eee';
+    deleteBtn.style.color = '#333';
+    deleteBtn.title = t.backspace;
+    
+    deleteBtn.addEventListener('click', () => {
+        let val = input.value.trim();
+        if (val.endsWith(',')) val = val.slice(0, -1);
+        
+        const lastComma = val.lastIndexOf(',');
+        if (lastComma !== -1) {
+            input.value = val.substring(0, lastComma);
+        } else {
+            input.value = '';
+        }
+    });
+    container.appendChild(deleteBtn);
+
+    // NEU: Button zum Löschen der gesamten Sequenz
+    const clearBtn = document.createElement('button');
+    clearBtn.innerHTML = '<i class="fas fa-trash"></i>';
+    clearBtn.type = 'button';
+    clearBtn.style.flex = '0 0 auto';
+    clearBtn.style.padding = '10px 15px';
+    clearBtn.style.border = '1px solid #ccc';
+    clearBtn.style.borderRadius = '5px';
+    clearBtn.style.cursor = 'pointer';
+    clearBtn.style.backgroundColor = '#eee';
+    clearBtn.style.color = '#333';
+    clearBtn.title = t.clear;
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+    });
+    container.appendChild(clearBtn);
+
+    if (input.parentNode) {
+        input.parentNode.insertBefore(container, input.nextSibling);
+    }
+}
+
 function saveCustomShiftSystem() {
 	const sequenceInput = document.getElementById('customShiftSequence').value.trim();
 	const startDateInput = document.getElementById('customShiftStartDate').value; //YYYY-MM-DD
@@ -974,12 +1108,27 @@ function saveCustomShiftSystem() {
 		return;
 	}
 
+    const t = uiTranslations[currentLanguage].shiftButtons || uiTranslations['de'].shiftButtons;
+
 	const sequenceArrayRaw = sequenceInput.split(',').map(s => s.trim().toLowerCase());
 	const sequenceArray = sequenceArrayRaw.map(s => {
-		if (s === 'f' || s === 'früh') return 'fruehschicht';
-		if (s === 'n' || s === 'nacht') return 'nachtschicht';
-		if (s === 's' || s === 'spät') return 'spaetschicht';
-		if (s === 'frei') return 'freischicht';
+        // Prüfen gegen die aktuellen Button-Werte (Übersetzung)
+        if (s === t.early.toLowerCase()) return 'fruehschicht';
+        if (s === t.late.toLowerCase()) return 'spaetschicht';
+        if (s === t.night.toLowerCase()) return 'nachtschicht';
+        if (s === t.free.toLowerCase()) return 'freischicht';
+        if (s === t.saturday.toLowerCase()) return 'samstag';
+        if (s === t.sunday.toLowerCase()) return 'sonntag';
+
+        // Fallbacks für Standard-Eingaben (Deutsch/Englisch)
+		if (['f', 'früh', 'e', 'early'].includes(s)) return 'fruehschicht';
+		if (['n', 'nacht', 'night'].includes(s)) return 'nachtschicht';
+		if (['s', 'spät', 'l', 'late'].includes(s)) return 'spaetschicht';
+		if (['frei', 'free'].includes(s)) return 'freischicht';
+        
+        if (['sa', 'samstag', 'sat', 'saturday'].includes(s)) return 'samstag';
+        if (['so', 'sonntag', 'sun', 'sunday'].includes(s)) return 'sonntag';
+
 		return null; // Ungültiger Typ
 	}).filter(s => s !== null); // Entferne ungültige Einträge
 
@@ -990,10 +1139,12 @@ function saveCustomShiftSystem() {
 
 	let parsedStartType = null;
 	const lowerStartType = startTypeInput.toLowerCase();
-	if (lowerStartType === 'f' || lowerStartType === 'früh') parsedStartType = 'fruehschicht';
-	else if (lowerStartType === 'n' || lowerStartType === 'nacht') parsedStartType = 'nachtschicht';
-	else if (lowerStartType === 's' || lowerStartType === 'spät') parsedStartType = 'spaetschicht';
-	else if (lowerStartType === 'frei') parsedStartType = 'freischicht';
+	if (lowerStartType === 'f' || lowerStartType === 'früh' || lowerStartType === t.early.toLowerCase()) parsedStartType = 'fruehschicht';
+	else if (lowerStartType === 'n' || lowerStartType === 'nacht' || lowerStartType === t.night.toLowerCase()) parsedStartType = 'nachtschicht';
+	else if (lowerStartType === 's' || lowerStartType === 'spät' || lowerStartType === t.late.toLowerCase()) parsedStartType = 'spaetschicht';
+	else if (lowerStartType === 'frei' || lowerStartType === t.free.toLowerCase()) parsedStartType = 'freischicht';
+    else if (lowerStartType === 'sa' || lowerStartType === 'samstag' || lowerStartType === t.saturday.toLowerCase()) parsedStartType = 'samstag';
+    else if (lowerStartType === 'so' || lowerStartType === 'sonntag' || lowerStartType === t.sunday.toLowerCase()) parsedStartType = 'sonntag';
 
 	if (!parsedStartType) {
 		showToast(uiTranslations[currentLanguage].prompts.invalidStartType, 'error');
@@ -1029,17 +1180,17 @@ function setShiftGroup(group) {
 	let startTypeInput = "";
 
 	if (group === 'A') {
-		sequenceInput = "N,N,N,N,N,Frei,Frei,S,S,S,S,S,S,Frei,F,F,F,F,F,Frei,Frei,N,N,N,N,N,Frei,Frei,S,S,S,S,S,Frei,Frei,F,F,F,F,F,F,N";
+		sequenceInput = "N,N,N,N,N,Sa,So,S,S,S,S,S,S,So,F,F,F,F,F,Sa,So,N,N,N,N,N,Sa,So,S,S,S,S,S,Sa,So,F,F,F,F,F,F,N";
 		startDate = "2030-01-07";
 		startType = "nachtschicht";
 		startTypeInput = "Nacht";
 	} else if (group === 'B') {
-		sequenceInput = "N,N,N,N,N,Frei,Frei,S,S,S,S,S,S,Frei,F,F,F,F,F,Frei,Frei,N,N,N,N,N,Frei,Frei,S,S,S,S,S,Frei,Frei,F,F,F,F,F,F,N";
+		sequenceInput = "N,N,N,N,N,Sa,So,S,S,S,S,S,S,So,F,F,F,F,F,Sa,So,N,N,N,N,N,Sa,So,S,S,S,S,S,Sa,So,F,F,F,F,F,F,N";
 		startDate = "2030-01-28";
 		startType = "nachtschicht";
 		startTypeInput = "Nacht";
 	} else if (group === 'Standard') {
-		sequenceInput = "N,N,N,N,N,Frei,Frei,S,S,S,S,S,Frei,Frei,F,F,F,F,F,Frei,Frei";
+		sequenceInput = "N,N,N,N,N,Sa,So,S,S,S,S,S,Sa,So,F,F,F,F,F,Sa,So";
 		startDate = "2030-01-07";
 		startType = "nachtschicht";
 		startTypeInput = "Nacht";
@@ -1055,6 +1206,8 @@ function setShiftGroup(group) {
 		if (lower === 'n' || lower === 'nacht') return 'nachtschicht';
 		if (lower === 's' || lower === 'spät') return 'spaetschicht';
 		if (lower === 'frei') return 'freischicht';
+		if (lower === 'sa' || lower === 'samstag') return 'samstag';
+		if (lower === 'so' || lower === 'sonntag') return 'sonntag';
 		return 'freischicht'; // Fallback
 	});
 
