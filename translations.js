@@ -69,7 +69,7 @@ const uiTranslations = {
             personIdPlaceholder: 'z.B. 12345',
             department: 'Abteilung',
             departmentPlaceholder: 'Deine Abteilung',
-            countWeekends: 'Wochenende als Urlaub zählen',
+            countWeekends: 'Urlaub am Wochenende zählen',
             shiftTimes: 'Schichtzeiten',
             shiftTimesLabel: 'Schichtzeiten (Start - Ende):',
             early: 'Frühschicht',
@@ -220,6 +220,13 @@ const uiTranslations = {
             backspace: 'Letzten löschen',
             saturday: 'Sa',
             sunday: 'So'
+        },
+        stats: {
+            title: 'Jahresstatistik',
+            shortTitle: 'Stats',
+            workDays: 'Arbeitstage',
+            shiftDistribution: 'Schichtverteilung',
+            vacationUsed: 'Urlaubstage'
         }
     },
     en: {
@@ -421,6 +428,13 @@ const uiTranslations = {
             backspace: 'Delete last',
             saturday: 'Sat',
             sunday: 'Sun'
+        },
+        stats: {
+            title: 'Annual Statistics',
+            shortTitle: 'Stats',
+            workDays: 'Working Days',
+            shiftDistribution: 'Shift Distribution',
+            vacationUsed: 'Vacation Days'
         }
     },
     ru: {
@@ -622,6 +636,13 @@ const uiTranslations = {
             backspace: 'Удалить',
             saturday: 'Сб',
             sunday: 'Вс'
+        },
+        stats: {
+            title: 'Годовая статистика',
+            shortTitle: 'Стат.',
+            workDays: 'Рабочие дни',
+            shiftDistribution: 'Распределение смен',
+            vacationUsed: 'Дни отпуска'
         }
     },
     tr: {
@@ -823,6 +844,13 @@ const uiTranslations = {
             backspace: 'Sil',
             saturday: 'Cmt',
             sunday: 'Paz'
+        },
+        stats: {
+            title: 'Yıllık İstatistikler',
+            shortTitle: 'İstat.',
+            workDays: 'Çalışma Günleri',
+            shiftDistribution: 'Vardiya Dağılımı',
+            vacationUsed: 'Kullanılan İzin'
         }
     },
     sq: {
@@ -1024,6 +1052,13 @@ const uiTranslations = {
             backspace: 'Fshi',
             saturday: 'Sht',
             sunday: 'Die'
+        },
+        stats: {
+            title: 'Statistikat Vjetore',
+            shortTitle: 'Stat.',
+            workDays: 'Ditë pune',
+            shiftDistribution: 'Shpërndarja e ndërrimeve',
+            vacationUsed: 'Ditë pushimi'
         }
     },
     ar: {
@@ -1225,6 +1260,13 @@ const uiTranslations = {
             backspace: 'حذف',
             saturday: 'سبت',
             sunday: 'أحد'
+        },
+        stats: {
+            title: 'الإحصائيات السنوية',
+            shortTitle: 'إحصاء',
+            workDays: 'أيام العمل',
+            shiftDistribution: 'توزيع الورديات',
+            vacationUsed: 'أيام الإجازة'
         }
     },
     hr: {
@@ -1426,6 +1468,13 @@ const uiTranslations = {
             backspace: 'Obriši',
             saturday: 'Sub',
             sunday: 'Ned'
+        },
+        stats: {
+            title: 'Godišnja statistika',
+            shortTitle: 'Stat.',
+            workDays: 'Radni dani',
+            shiftDistribution: 'Raspodjela smjena',
+            vacationUsed: 'Dani godišnjeg'
         }
     },
     sk: {
@@ -1627,6 +1676,13 @@ const uiTranslations = {
             backspace: 'Zmazať',
             saturday: 'So',
             sunday: 'Ne'
+        },
+        stats: {
+            title: 'Ročná štatistika',
+            shortTitle: 'Štat.',
+            workDays: 'Pracovné dni',
+            shiftDistribution: 'Rozdelenie zmien',
+            vacationUsed: 'Dni dovolenky'
         }
     }
 };

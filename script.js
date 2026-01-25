@@ -2297,6 +2297,10 @@ const COLOR_PALETTES = [
 function applyCustomShiftColors() {
     const colors = userProfile.shiftColors || DEFAULT_SHIFT_COLORS;
     let styleContent = '';
+    
+    // NEU: CSS Variablen für Statistik und andere Elemente definieren
+    let rootVars = ':root {';
+    let darkVars = 'body.dark-mode {';
 
     for (const shift in colors) {
         if (colors.hasOwnProperty(shift)) {
@@ -2304,9 +2308,16 @@ function applyCustomShiftColors() {
                 .${shift} { background-color: ${colors[shift].light} !important; }
                 body.dark-mode .${shift} { background-color: ${colors[shift].dark} !important; }
             `;
+            // Variablen setzen (z.B. --fruehschicht-bg)
+            rootVars += `--${shift}-bg: ${colors[shift].light};`;
+            darkVars += `--${shift}-bg: ${colors[shift].dark};`;
         }
     }
-
+    
+    rootVars += '}';
+    darkVars += '}';
+    styleContent += rootVars + darkVars;
+    
     let styleElement = document.getElementById('custom-shift-colors-style');
     if (!styleElement) {
         styleElement = document.createElement('style');
@@ -4069,6 +4080,126 @@ function showOverview() {
 	document.getElementById('overviewDialogOverlay').classList.add('active');
 }
 
+// --- NEU: STATISTIK FUNKTIONEN ---
+function createStatisticsDialog() {
+    const t = uiTranslations[currentLanguage];
+    let overlay = document.getElementById('statsDialogOverlay');
+    
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'statsDialogOverlay';
+        overlay.className = 'dialog-overlay';
+        
+        const dialog = document.createElement('div');
+        dialog.className = 'dialog';
+        dialog.innerHTML = `
+            <button class="close-button">&times;</button>
+            <h3>📊 ${t.stats.title} (${currentCalendarYear})</h3>
+            <div id="statsContent" class="stats-container"></div>
+        `;
+        
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+        
+        overlay.querySelector('.close-button').addEventListener('click', () => overlay.classList.remove('active'));
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('active');
+        });
+    } else {
+        overlay.querySelector('h3').textContent = `📊 ${t.stats.title} (${currentCalendarYear})`;
+    }
+    
+    calculateAndShowStatistics();
+    overlay.classList.add('active');
+}
+
+function calculateAndShowStatistics() {
+    const t = uiTranslations[currentLanguage];
+    const content = document.getElementById('statsContent');
+    content.innerHTML = '<p class="loading-message">Berechne...</p>';
+
+    // Zähler initialisieren
+    let counts = {
+        fruehschicht: 0,
+        spaetschicht: 0,
+        nachtschicht: 0,
+        urlaub: 0,
+        krank: 0
+    };
+
+    const startDate = new Date(currentCalendarYear, 0, 1);
+    const endDate = new Date(currentCalendarYear, 11, 31);
+
+    // Durch das Jahr iterieren
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = formatDate(d);
+        
+        // 1. Prüfen auf Urlaub/Krank (hat Vorrang vor Schicht)
+        if (vacationData[dateStr]) {
+            // Versuchen, den Typ zu bestimmen (Krank vs Urlaub)
+            const impEntry = importantDates.find(entry => entry.date === dateStr && entry.type === 'vacation');
+            if (impEntry && impEntry.vacationTypeId === '7') {
+                counts.krank++;
+            } else {
+                counts.urlaub++;
+            }
+            continue; // Wenn Urlaub, dann keine Schicht zählen
+        }
+
+        // 2. Schicht bestimmen
+        const shift = getShiftForDate(dateStr);
+        if (counts.hasOwnProperty(shift)) {
+            counts[shift]++;
+        }
+    }
+
+    const totalWorkDays = counts.fruehschicht + counts.spaetschicht + counts.nachtschicht;
+    const maxVal = Math.max(counts.fruehschicht, counts.spaetschicht, counts.nachtschicht, counts.urlaub, 1);
+
+    // HTML generieren
+    const createBar = (label, value, colorClass) => {
+        const percent = (value / maxVal) * 100;
+        // Farbe aus CSS Variable oder Hardcoded holen, hier vereinfacht Mapping
+        let color = '#ccc';
+        if (colorClass === 'fruehschicht') color = '#FFF3E0'; // Fallback, besser wäre computedStyle
+        if (colorClass === 'spaetschicht') color = '#C8E6C9';
+        if (colorClass === 'nachtschicht') color = '#BBDEFB';
+        if (colorClass === 'urlaub') color = '#D1C4E9';
+        if (colorClass === 'krank') color = '#ffcdd2';
+
+        return `
+            <div class="stat-row">
+                <div class="stat-label">${label}</div>
+                <div class="stat-bar-container">
+                    <div class="stat-bar ${colorClass}" style="width: ${percent}%; background-color: var(--${colorClass}-bg, ${color}); border: 1px solid #999;"></div>
+                </div>
+                <div class="stat-value">${value}</div>
+            </div>
+        `;
+    };
+
+    content.innerHTML = `
+        <div class="stat-card">
+            <h4 style="margin-top:0;">${t.stats.shiftDistribution}</h4>
+            ${createBar(t.settings.early, counts.fruehschicht, 'fruehschicht')}
+            ${createBar(t.settings.late, counts.spaetschicht, 'spaetschicht')}
+            ${createBar(t.settings.night, counts.nachtschicht, 'nachtschicht')}
+            <div style="text-align:right; font-size:0.9em; margin-top:5px; color:#666;">
+                <strong>${t.stats.workDays}: ${totalWorkDays}</strong>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <h4 style="margin-top:0;">${t.stats.vacationUsed}</h4>
+            ${createBar(t.info.vacation, counts.urlaub, 'urlaub')}
+            ${counts.krank > 0 ? createBar(t.vacation.types[7], counts.krank, 'krank') : ''}
+        </div>
+    `;
+    
+    // Kleiner Hack, um die CSS-Klassen-Farben korrekt anzuwenden (da sie im CSS definiert sind)
+    // Wir nutzen die existierenden Klassen .fruehschicht etc. für die Balken
+}
+
 // --- NEUE FUNKTION FÜR DIE APP-LEISTE (DOCK) ---
 function createBottomAppDock() {
 	// Container erstellen
@@ -4127,12 +4258,13 @@ function createBottomAppDock() {
 		{ id: 'todayButton', label: uiTranslations[currentLanguage].dock.today, icon: '🗓️' },
         { id: 'openImportantDatesDialog', label: uiTranslations[currentLanguage].dock.important, icon: '⭐' },
 		{ id: 'openShiftInfoDialog', label: uiTranslations[currentLanguage].dock.info, icon: 'ℹ️' },
+        { id: 'openStatsDialog', label: uiTranslations[currentLanguage].stats.shortTitle || 'Stats', icon: '📊' }, // NEU: Übersetzter Titel
 		{ id: 'openSettingsDialog', label: uiTranslations[currentLanguage].dock.settings, icon: '⚙️' }
 	];
 
 	dockItems.forEach(item => {
 		const el = document.getElementById(item.id);
-		if (el) {
+		if (el || item.id === 'openStatsDialog') {
 			const wrapper = document.createElement('div');
 			wrapper.className = 'app-icon-wrapper';
 			
@@ -4147,14 +4279,25 @@ function createBottomAppDock() {
 			label.textContent = item.label;
 			wrapper.appendChild(label);
 			
-			wrapper.addEventListener('click', () => {
-				closeAllOverlays();
-				el.click();
-				closeDock();
-			});
+			if (el) {
+				wrapper.addEventListener('click', () => {
+					closeAllOverlays();
+					el.click();
+					closeDock();
+				});
+			}
+
+            // Spezialfall für Stats (hat keinen existierenden Button im HTML)
+			if (item.id === 'openStatsDialog') {
+				wrapper.addEventListener('click', () => {
+					closeAllOverlays();
+					createStatisticsDialog();
+					closeDock();
+				});
+			}
 
 			// Original-Elemente ausblenden (außer Logo/Einstellungen)
-			if (item.id !== 'openSettingsDialog') {
+			if (el && item.id !== 'openSettingsDialog') {
 				el.style.display = 'none';
 			}
 			
