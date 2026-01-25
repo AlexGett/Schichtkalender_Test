@@ -29,7 +29,7 @@ const uiTranslations = {
             important: 'Wichtige',
             info: 'Info',
             settings: 'Einst.',
-            vacation: 'Antrag',
+            vacation: 'Urlaubsantrag',
             absence: 'Abwesenheit',
             workwear: 'Kleidung',
             menu: 'Menü',

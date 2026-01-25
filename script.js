@@ -4220,7 +4220,7 @@ function createBottomAppDock() {
         if (dockContainer.classList.contains('open')) {
             dockTimeout = setTimeout(() => {
                 closeDock();
-            }, 5000);
+            }, 10000);
         }
     };
 
@@ -4252,155 +4252,64 @@ function createBottomAppDock() {
     dockContainer.addEventListener('click', resetDockTimeout);
     dockContainer.addEventListener('touchstart', resetDockTimeout);
 
-	// Elemente definieren, die im Dock angezeigt werden sollen
-	const dockItems = [
-		{ id: 'openPhoneDialog', label: uiTranslations[currentLanguage].dock.phone, icon: '📞' },
-		{ id: 'todayButton', label: uiTranslations[currentLanguage].dock.today, icon: '🗓️' },
-        { id: 'openImportantDatesDialog', label: uiTranslations[currentLanguage].dock.important, icon: '⭐' },
-		{ id: 'openShiftInfoDialog', label: uiTranslations[currentLanguage].dock.info, icon: 'ℹ️' },
-        { id: 'openStatsDialog', label: uiTranslations[currentLanguage].stats.shortTitle || 'Stats', icon: '📊' }, // NEU: Übersetzter Titel
-		{ id: 'openSettingsDialog', label: uiTranslations[currentLanguage].dock.settings, icon: '⚙️' }
-	];
+    const t = uiTranslations[currentLanguage];
 
-	dockItems.forEach(item => {
-		const el = document.getElementById(item.id);
-		if (el || item.id === 'openStatsDialog') {
-			const wrapper = document.createElement('div');
-			wrapper.className = 'app-icon-wrapper';
-			
-			const icon = document.createElement('span');
-			icon.textContent = item.icon;
-			icon.style.fontSize = '28px';
-			icon.style.marginBottom = '5px';
-			wrapper.appendChild(icon);
-			
-			const label = document.createElement('span');
-			label.className = 'app-label';
-			label.textContent = item.label;
-			wrapper.appendChild(label);
-			
-			if (el) {
-				wrapper.addEventListener('click', () => {
-					closeAllOverlays();
-					el.click();
-					closeDock();
-				});
-			}
+    // HIER KANNST DU DIE REIHENFOLGE DER APPS ÄNDERN
+    // Einfach die Zeilen in diesem Array verschieben
+    const dockApps = [
+        { id: 'phone', label: t.dock.phone, icon: '📞', type: 'trigger', target: 'openPhoneDialog' },
+        { id: 'today', label: t.dock.today, icon: '🗓️', type: 'trigger', target: 'todayButton' },
+        { id: 'vacation', label: t.dock.vacation, icon: '📝', type: 'fn', fn: showVacationModeDialog },
+        { id: 'absence', label: t.dock.absence, icon: '🏖️', type: 'fn', fn: showOverview },
+        { id: 'important', label: t.dock.important, icon: '⭐', type: 'trigger', target: 'openImportantDatesDialog' },
+        { id: 'info', label: t.dock.info, icon: 'ℹ️', type: 'trigger', target: 'openShiftInfoDialog' },
+        { id: 'stats', label: t.stats.shortTitle || 'Stats', icon: '📊', type: 'fn', fn: createStatisticsDialog },
+        { id: 'workwear', label: t.dock.workwear, icon: '👕', type: 'link', url: 'https://forms.office.com/e/YzwV8pCFgZ', iconStyle: 'filter: hue-rotate(258deg);' },
+        { id: 'profile', label: t.dock.profile, icon: '👤', type: 'trigger', target: 'profileNameDisplay' },
+        { id: 'settings', label: t.dock.settings, icon: '⚙️', type: 'trigger', target: 'openSettingsDialog' }
+    ];
 
-            // Spezialfall für Stats (hat keinen existierenden Button im HTML)
-			if (item.id === 'openStatsDialog') {
-				wrapper.addEventListener('click', () => {
-					closeAllOverlays();
-					createStatisticsDialog();
-					closeDock();
-				});
-			}
+    dockApps.forEach(app => {
+        // Prüfen, ob das Ziel-Element existiert (für Trigger-Typen)
+        if (app.type === 'trigger') {
+            const el = document.getElementById(app.target);
+            if (!el) return; // Überspringen, wenn Element nicht da ist
+            
+            // Original-Elemente ausblenden (außer Settings und Profile, die oft sichtbar bleiben sollen oder woanders liegen)
+            if (app.target !== 'openSettingsDialog' && app.target !== 'profileNameDisplay') {
+                el.style.display = 'none';
+            }
+        }
 
-			// Original-Elemente ausblenden (außer Logo/Einstellungen)
-			if (el && item.id !== 'openSettingsDialog') {
-				el.style.display = 'none';
-			}
-			
-			dockContent.appendChild(wrapper);
-		}
-	});
-
-	// Profilname speziell behandeln
-	const profileEl = document.getElementById('profileNameDisplay');
-	if (profileEl) {
-		const wrapper = document.createElement('div');
-		wrapper.className = 'app-icon-wrapper';
-		
-		const icon = document.createElement('span');
-		icon.textContent = '👤';
-		icon.style.fontSize = '28px';
-		icon.style.marginBottom = '5px';
-		wrapper.appendChild(icon);
-		
-		const label = document.createElement('span');
-		label.className = 'app-label';
-		label.textContent = uiTranslations[currentLanguage].dock.profile;
-		wrapper.appendChild(label);
-		
-		// Klick auf das Icon löst den ursprünglichen Profil-Klick aus
-		wrapper.addEventListener('click', () => {
-			closeAllOverlays();
-			profileEl.click();
-			closeDock();
-		});
-		
-		dockContent.appendChild(wrapper);
-	}
-
-	// NEU: Urlaubsantrag Button im Dock hinzufügen
-	const vacationWrapper = document.createElement('div');
-	vacationWrapper.className = 'app-icon-wrapper';
-	
-	const vacationIcon = document.createElement('span');
-	vacationIcon.textContent = '📝';
-	vacationIcon.style.fontSize = '28px';
-	vacationIcon.style.marginBottom = '5px';
-	vacationWrapper.appendChild(vacationIcon);
-	
-	const vacationLabel = document.createElement('span');
-	vacationLabel.className = 'app-label';
-	vacationLabel.textContent = uiTranslations[currentLanguage].dock.vacation;
-	vacationWrapper.appendChild(vacationLabel);
-	
-	vacationWrapper.addEventListener('click', () => {
-		closeAllOverlays();
-		showVacationModeDialog(); // Öffnet den neuen Auswahldialog
-		closeDock();
-	});
-	
-	dockContent.appendChild(vacationWrapper);
-
-	// NEU: Übersicht Button
-	const overviewWrapper = document.createElement('div');
-	overviewWrapper.className = 'app-icon-wrapper';
-	
-	const overviewIcon = document.createElement('span');
-	overviewIcon.textContent = '🏖️';
-	overviewIcon.style.fontSize = '28px';
-	overviewIcon.style.marginBottom = '5px';
-	overviewWrapper.appendChild(overviewIcon);
-	
-	const overviewLabel = document.createElement('span');
-	overviewLabel.className = 'app-label';
-	overviewLabel.textContent = uiTranslations[currentLanguage].dock.absence;
-	overviewWrapper.appendChild(overviewLabel);
-	
-	overviewWrapper.addEventListener('click', () => {
-		closeAllOverlays();
-		showOverview();
-		closeDock();
-	});
-	
-	dockContent.appendChild(overviewWrapper);
-
-	// NEU: Arbeitskleidung Button
-	const workwearWrapper = document.createElement('div');
-	workwearWrapper.className = 'app-icon-wrapper';
-	
-	const workwearIcon = document.createElement('span');
-	workwearIcon.textContent = '👕';
-	workwearIcon.style.fontSize = '28px';
-	workwearIcon.style.marginBottom = '5px';
-	workwearIcon.style.filter = 'hue-rotate(258deg)';
-	workwearWrapper.appendChild(workwearIcon);
-	
-	const workwearLabel = document.createElement('span');
-	workwearLabel.className = 'app-label';
-	workwearLabel.textContent = uiTranslations[currentLanguage].dock.workwear;
-	workwearWrapper.appendChild(workwearLabel);
-	
-	workwearWrapper.addEventListener('click', () => {
-		closeAllOverlays();
-		window.open('https://forms.office.com/e/YzwV8pCFgZ', '_blank');
-		closeDock();
-	});
-	
-	dockContent.appendChild(workwearWrapper);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'app-icon-wrapper';
+        
+        const icon = document.createElement('span');
+        icon.textContent = app.icon;
+        icon.style.fontSize = '28px';
+        icon.style.marginBottom = '5px';
+        if (app.iconStyle) icon.style.cssText += app.iconStyle;
+        wrapper.appendChild(icon);
+        
+        const label = document.createElement('span');
+        label.className = 'app-label';
+        label.textContent = app.label;
+        wrapper.appendChild(label);
+        
+        wrapper.addEventListener('click', () => {
+            closeAllOverlays();
+            if (app.type === 'trigger') {
+                document.getElementById(app.target).click();
+            } else if (app.type === 'fn') {
+                app.fn();
+            } else if (app.type === 'link') {
+                window.open(app.url, '_blank');
+            }
+            closeDock();
+        });
+        
+        dockContent.appendChild(wrapper);
+    });
 
 	// Toggle-Logik für das Menü
 	dockTrigger.addEventListener('click', () => {
