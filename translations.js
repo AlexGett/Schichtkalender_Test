@@ -26,7 +26,7 @@ const uiTranslations = {
         dock: {
             phone: 'Telefon',
             today: 'Heute',
-            important: 'Wichtige',
+            important: 'Wichtig',
             info: 'Info',
             settings: 'Einst.',
             vacation: 'Urlaubsantrag',
