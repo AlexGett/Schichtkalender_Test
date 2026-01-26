@@ -168,6 +168,7 @@ function injectLanguageSelector() {
         container.querySelector('h4').textContent = '🌐 ' + uiTranslations[currentLanguage].settings.language;
         
         applyLanguageToUI(); // NEU: UI-Texte aktualisieren
+        loadProfile(); // NEU: Profil-UI aktualisieren (Summary Card)
         showToast('Sprache geändert / Language changed', 'success');
     });
 }
@@ -1600,7 +1601,17 @@ function collapseAllSettingsSections() {
     const openCustomShiftSystemButton = document.getElementById('openCustomShiftSystemSettings');
     if (customShiftSystemSection && openCustomShiftSystemButton) {
         customShiftSystemSection.style.display = 'none';
-        openCustomShiftSystemButton.textContent = 'Eigenes Schichtsystem festlegen';
+        openCustomShiftSystemButton.textContent = uiTranslations[currentLanguage].settings.customShift;
+    }
+
+    // NEU: Profil-Details zuklappen
+    const profileDetailsWrapper = document.getElementById('profileDetailsWrapper');
+    if (profileDetailsWrapper) {
+        profileDetailsWrapper.style.display = 'none';
+    }
+    const profileSummaryIcon = document.querySelector('#profileSummary .toggle-icon');
+    if (profileSummaryIcon) {
+        profileSummaryIcon.className = 'fas fa-chevron-down toggle-icon';
     }
 }
 
@@ -2516,11 +2527,13 @@ function makeSectionCollapsible(section) {
 
 // Laden des gespeicherten Profils
 function loadProfile() {
+    const t = uiTranslations[currentLanguage];
+
 	// Inject Abteilung input if missing (da HTML nicht direkt bearbeitet werden kann)
 	if (profilePersonalNrInput && !document.getElementById('profileAbteilung')) {
 		const container = document.createElement('div');
 		container.className = 'settings-option';
-		container.innerHTML = '<label for="profileAbteilung">Abteilung:</label><input type="text" id="profileAbteilung" placeholder="Deine Abteilung">';
+		container.innerHTML = `<label for="profileAbteilung">${t.settings.department}:</label><input type="text" id="profileAbteilung" placeholder="${t.settings.departmentPlaceholder}">`;
 		const parent = profilePersonalNrInput.closest('.settings-option');
 		if (parent && parent.parentNode) {
 			parent.parentNode.insertBefore(container, parent.nextSibling);
@@ -2532,7 +2545,7 @@ function loadProfile() {
     if (abteilungInput && !document.getElementById('profileCountWeekends')) {
         const container = document.createElement('div');
         container.className = 'settings-option inline';
-        container.innerHTML = '<label for="profileCountWeekends">Wochenende als Urlaub zählen:</label><input type="checkbox" id="profileCountWeekends">';
+        container.innerHTML = `<label for="profileCountWeekends">${t.settings.countWeekends}:</label><input type="checkbox" id="profileCountWeekends">`;
         const parent = abteilungInput.closest('.settings-option');
         if (parent && parent.parentNode) {
             parent.parentNode.insertBefore(container, parent.nextSibling);
@@ -2541,7 +2554,7 @@ function loadProfile() {
         // Fallback, falls Abteilung nicht existiert
         const container = document.createElement('div');
         container.className = 'settings-option inline';
-        container.innerHTML = '<label for="profileCountWeekends">Wochenende als Urlaub zählen:</label><input type="checkbox" id="profileCountWeekends">';
+        container.innerHTML = `<label for="profileCountWeekends">${t.settings.countWeekends}:</label><input type="checkbox" id="profileCountWeekends">`;
         const parent = profilePersonalNrInput.closest('.settings-option');
         if (parent && parent.parentNode) {
             parent.parentNode.insertBefore(container, parent.nextSibling);
@@ -2555,7 +2568,6 @@ function loadProfile() {
 		colorSection.id = 'shiftColorSettingsSection';
 		
         // Aufbau der HTML-Struktur mit Paletten und Dropdowns
-        const t = uiTranslations[currentLanguage];
         let html = `<h4>${t.settings.shiftColors}</h4>`;
         
         COLOR_PALETTES.forEach((palette, index) => {
@@ -2681,7 +2693,6 @@ function loadProfile() {
             const dept = userProfile.abteilung || '-';
             
             // Übersetzung für Labels
-            const t = uiTranslations[currentLanguage] || uiTranslations['de'];
             const deptLabel = t.settings.department ? t.settings.department.substring(0, 3) : 'Abt';
 
             summary.innerHTML = `
@@ -2689,8 +2700,8 @@ function loadProfile() {
                     <div style="display:flex; align-items:center; gap:15px;">
                         <div style="font-size:2.5em; color:#555;"><i class="fas fa-user-circle"></i></div>
                         <div>
-                            <div style="font-weight:bold; font-size:1.2em;">${fullName.trim() || 'Gast'}</div>
-                            <div style="font-size:0.9em; color:#666;">ID: ${persNr} | ${deptLabel}: ${dept}</div>
+                            <div style="font-weight:bold; font-size:1.2em;">${fullName.trim() || t.settings.guest}</div>
+                            <div style="font-size:0.9em; color:#666;">${t.settings.idLabel}: ${persNr} | ${deptLabel}: ${dept}</div>
                         </div>
                     </div>
                     <i class="fas fa-chevron-down toggle-icon"></i>

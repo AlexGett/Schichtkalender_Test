@@ -83,7 +83,9 @@ const uiTranslations = {
             upload: 'Bild laden',
             saveProfile: 'Profil speichern',
             shiftColors: 'Schichtzuordnung (Farben)',
-            apply: 'Übernehmen'
+            apply: 'Übernehmen',
+            guest: 'Gast',
+            idLabel: 'ID'
         },
         vacation: {
             title: 'Urlaubsantrag',
@@ -291,7 +293,9 @@ const uiTranslations = {
             upload: 'Upload Image',
             saveProfile: 'Save Profile',
             shiftColors: 'Shift Assignment (Colors)',
-            apply: 'Apply'
+            apply: 'Apply',
+            guest: 'Guest',
+            idLabel: 'ID'
         },
         vacation: {
             title: 'Vacation Request',
@@ -499,7 +503,9 @@ const uiTranslations = {
             upload: 'Загрузить фото',
             saveProfile: 'Сохранить профиль',
             shiftColors: 'Назначение смен (Цвета)',
-            apply: 'Применить'
+            apply: 'Применить',
+            guest: 'Гость',
+            idLabel: 'ID'
         },
         vacation: {
             title: 'Заявление на отпуск',
@@ -707,7 +713,9 @@ const uiTranslations = {
             upload: 'Resim Yükle',
             saveProfile: 'Profili Kaydet',
             shiftColors: 'Vardiya Ataması (Renkler)',
-            apply: 'Uygula'
+            apply: 'Uygula',
+            guest: 'Misafir',
+            idLabel: 'ID'
         },
         vacation: {
             title: 'İzin İsteği',
@@ -915,7 +923,9 @@ const uiTranslations = {
             upload: 'Ngarko imazh',
             saveProfile: 'Ruaj profilin',
             shiftColors: 'Caktimi i ndërrimeve (Ngjyrat)',
-            apply: 'Apliko'
+            apply: 'Apliko',
+            guest: 'Mysafir',
+            idLabel: 'ID'
         },
         vacation: {
             title: 'Kërkesë për pushim',
@@ -1123,7 +1133,9 @@ const uiTranslations = {
             upload: 'تحميل صورة',
             saveProfile: 'حفظ الملف الشخصي',
             shiftColors: 'تخصيص الورديات (الألوان)',
-            apply: 'تطبيق'
+            apply: 'تطبيق',
+            guest: 'ضيف',
+            idLabel: 'هوية'
         },
         vacation: {
             title: 'طلب إجازة',
@@ -1331,7 +1343,9 @@ const uiTranslations = {
             upload: 'Učitaj sliku',
             saveProfile: 'Spremi profil',
             shiftColors: 'Dodjela smjena (Boje)',
-            apply: 'Primijeni'
+            apply: 'Primijeni',
+            guest: 'Gost',
+            idLabel: 'ID'
         },
         vacation: {
             title: 'Zahtjev za godišnji',
@@ -1539,7 +1553,9 @@ const uiTranslations = {
             upload: 'Nahrať obrázok',
             saveProfile: 'Uložiť profil',
             shiftColors: 'Priradenie zmien (Farby)',
-            apply: 'Použiť'
+            apply: 'Použiť',
+            guest: 'Hosť',
+            idLabel: 'ID'
         },
         vacation: {
             title: 'Žiadosť o dovolenku',
