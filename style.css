@@ -1782,6 +1782,54 @@ body.dark-mode .stat-card {
     border-color: #555;
 }
 
+/* Profile Summary Card Styles */
+.profile-summary-card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 10px;
+}
+
+.profile-summary-card:hover {
+    background-color: #f9f9f9;
+}
+
+body.dark-mode .profile-summary-card {
+    background: #3a3a3a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .profile-summary-card:hover {
+    background-color: #444;
+}
+
+/* Profile Summary Card Styles */
+.profile-summary-card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 10px;
+}
+
+.profile-summary-card:hover {
+    background-color: #f9f9f9;
+}
+
+body.dark-mode .profile-summary-card {
+    background: #3a3a3a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .profile-summary-card:hover {
+    background-color: #444;
+}
+
 .stat-row {
     display: flex;
     align-items: center;

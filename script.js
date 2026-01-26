@@ -2527,8 +2527,18 @@ function loadProfile() {
 		}
 	}
     
-    // NEU: Checkbox für Wochenende als Urlaub zählen
-    if (profilePersonalNrInput && !document.getElementById('profileCountWeekends')) {
+    // NEU: Checkbox für Wochenende als Urlaub zählen (Positioniert nach Abteilung)
+    const abteilungInput = document.getElementById('profileAbteilung');
+    if (abteilungInput && !document.getElementById('profileCountWeekends')) {
+        const container = document.createElement('div');
+        container.className = 'settings-option inline';
+        container.innerHTML = '<label for="profileCountWeekends">Wochenende als Urlaub zählen:</label><input type="checkbox" id="profileCountWeekends">';
+        const parent = abteilungInput.closest('.settings-option');
+        if (parent && parent.parentNode) {
+            parent.parentNode.insertBefore(container, parent.nextSibling);
+        }
+    } else if (profilePersonalNrInput && !document.getElementById('profileCountWeekends')) {
+        // Fallback, falls Abteilung nicht existiert
         const container = document.createElement('div');
         container.className = 'settings-option inline';
         container.innerHTML = '<label for="profileCountWeekends">Wochenende als Urlaub zählen:</label><input type="checkbox" id="profileCountWeekends">';
@@ -2637,10 +2647,75 @@ function loadProfile() {
 		}
 	}
 
-	if (profileVornameInput) {
-		const section = profileVornameInput.closest('.settings-section');
-		makeSectionCollapsible(section);
-	}
+    // CUSTOM PROFILE APP UI: Zusammenfassung und zugeklappte Details
+    if (profileVornameInput) {
+        const profileSection = profileVornameInput.closest('.settings-section');
+        if (profileSection) {
+            // 1. Standard-Header ausblenden
+            const header = profileSection.querySelector('h4');
+            if (header) header.style.display = 'none';
+
+            // 2. Zusammenfassung erstellen (falls noch nicht vorhanden)
+            let summary = document.getElementById('profileSummary');
+            if (!summary) {
+                summary = document.createElement('div');
+                summary.id = 'profileSummary';
+                summary.className = 'profile-summary-card';
+                profileSection.insertBefore(summary, profileSection.firstChild);
+                
+                // Klick-Event zum Auf-/Zuklappen
+                summary.addEventListener('click', () => {
+                    const details = document.getElementById('profileDetailsWrapper');
+                    if (details) {
+                        const isHidden = details.style.display === 'none';
+                        details.style.display = isHidden ? 'block' : 'none';
+                        const icon = summary.querySelector('.toggle-icon');
+                        if(icon) icon.className = isHidden ? 'fas fa-chevron-up toggle-icon' : 'fas fa-chevron-down toggle-icon';
+                    }
+                });
+            }
+
+            // Inhalt der Zusammenfassung aktualisieren
+            const fullName = (userProfile.vorname || '') + ' ' + (userProfile.nachname || '');
+            const persNr = userProfile.personalNummer || '-';
+            const dept = userProfile.abteilung || '-';
+            
+            // Übersetzung für Labels
+            const t = uiTranslations[currentLanguage] || uiTranslations['de'];
+            const deptLabel = t.settings.department ? t.settings.department.substring(0, 3) : 'Abt';
+
+            summary.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <div style="font-size:2.5em; color:#555;"><i class="fas fa-user-circle"></i></div>
+                        <div>
+                            <div style="font-weight:bold; font-size:1.2em;">${fullName.trim() || 'Gast'}</div>
+                            <div style="font-size:0.9em; color:#666;">ID: ${persNr} | ${deptLabel}: ${dept}</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+            `;
+
+            // 3. Eingabefelder in Wrapper verschieben (falls noch nicht geschehen)
+            let details = document.getElementById('profileDetailsWrapper');
+            if (!details) {
+                details = document.createElement('div');
+                details.id = 'profileDetailsWrapper';
+                details.style.display = 'none'; // Standardmäßig zugeklappt
+                details.style.marginTop = '15px';
+                
+                // Alle Kinder außer Summary und Header in den Wrapper verschieben
+                const children = Array.from(profileSection.children);
+                children.forEach(child => {
+                    if (child !== summary && child !== details && child !== header) {
+                        details.appendChild(child);
+                    }
+                });
+                profileSection.appendChild(details);
+            }
+        }
+    }
 
     // NEU: Werte der Dropdowns aktualisieren (falls Sektion bereits existiert oder neu erstellt wurde)
     const colorSection = document.getElementById('shiftColorSettingsSection');
@@ -3700,7 +3775,8 @@ function toggleSettingsVisibility(mode) {
 		}
 	});
 
-	// Profil-Sektion aufklappen im Profil-Modus
+	// Profil-Sektion aufklappen im Profil-Modus - DEAKTIVIERT, da jetzt manuell gesteuert
+	/*
 	if (mode === 'profile' && profileSection) {
 		const contentWrapper = profileSection.lastElementChild;
 		if (contentWrapper && contentWrapper.tagName === 'DIV') {
@@ -3709,6 +3785,7 @@ function toggleSettingsVisibility(mode) {
 			if (icon) icon.className = 'fas fa-chevron-up';
 		}
 	}
+	*/
 }
 
 // Profil beim Laden der Seite laden
