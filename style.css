@@ -1835,7 +1835,7 @@ body.dark-mode .profile-summary-card:hover {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 4px;
-    width: 300px;
+    width: 290px;
     margin-top: 10px;
     margin-bottom: 15px;
     padding: 10px;

@@ -532,6 +532,59 @@ const SHIFT_TYPES = {
     'So': 'sonntag'
 };
 
+// NEU: Definition der Schichtmodelle und Vorlagen
+const SHIFT_MODELS = {
+    'standard': {
+        name: '3-Schicht (Wöchentlich: F, S, N)',
+        sequence: 'N,N,N,N,N,Sa,So,S,S,S,S,S,Sa,So,F,F,F,F,F,Sa,So',
+        cycleLength: 21,
+        refDate: '2030-01-07',
+        refType: 'nachtschicht'
+    },
+    '2schicht': {
+        name: '2-Schicht (Wöchentlich: F, S)',
+        sequence: 'F,F,F,F,F,Sa,So,S,S,S,S,S,Sa,So',
+        cycleLength: 14,
+        refDate: '2030-01-07',
+        refType: 'fruehschicht'
+    },
+    'vollkonti_10': {
+        name: 'Vollkonti (2F - 2S - 2N - 4Frei)',
+        sequence: 'F,F,S,S,N,N,Frei,Frei,Frei,Frei',
+        cycleLength: 10,
+        refDate: '2030-01-01',
+        refType: 'fruehschicht'
+    },
+    'vollkonti_8': {
+        name: 'Vollkonti (2F - 2S - 2N - 2Frei)',
+        sequence: 'F,F,S,S,N,N,Frei,Frei',
+        cycleLength: 8,
+        refDate: '2030-01-01',
+        refType: 'fruehschicht'
+    },
+    'groupA': {
+        name: 'Motherson Gruppe A',
+        sequence: 'N,N,N,N,N,Sa,So,S,S,S,S,S,S,So,F,F,F,F,F,Sa,So,N,N,N,N,N,Sa,So,S,S,S,S,S,Sa,So,F,F,F,F,F,F,N',
+        cycleLength: 42,
+        refDate: '2030-01-07',
+        refType: 'nachtschicht'
+    },
+    'groupB': {
+        name: 'Motherson Gruppe B',
+        sequence: 'N,N,N,N,N,Sa,So,S,S,S,S,S,S,So,F,F,F,F,F,Sa,So,N,N,N,N,N,Sa,So,S,S,S,S,S,Sa,So,F,F,F,F,F,F,N',
+        cycleLength: 42,
+        refDate: '2030-01-28',
+        refType: 'nachtschicht'
+    },
+    '7tage': {
+        name: '7-Tage-Woche (7 Arbeit - 1 Frei)',
+        sequence: '', // Wird dynamisch generiert (168 Tage Zyklus)
+        cycleLength: 8,
+        refDate: '2024-01-01',
+        refType: 'fruehschicht'
+    }
+};
+
 // Laden des benutzerdefinierten Schichtsystems aus dem localStorage
 let customShiftSystem = JSON.parse(localStorage.getItem('customShiftSystem')) || {
 	sequence: [],
@@ -992,6 +1045,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	generateCalendar(currentCalendarYear); // Initialer Kalenderaufbau
 
+    injectModelSelector(); // NEU: Modell-Auswahl in Einstellungen einfügen
+
 	registerServiceWorker(); // Service Worker mit Update-Funktion registrieren
 	createBottomAppDock(); // NEU: Untere App-Leiste erstellen und Elemente verschieben
 });
@@ -1243,6 +1298,143 @@ function saveCustomShiftSystem() {
 	showToast(uiTranslations[currentLanguage].prompts.shiftSystemSaved, 'success');
 	generateCalendar(currentCalendarYear); // Kalender neu generieren
 	document.getElementById('settingsDialogOverlay').classList.remove('active'); // Dialog schließen
+}
+
+// NEU: Funktion zum Einfügen des Modell-Selectors in die Einstellungen
+function injectModelSelector() {
+    const container = document.getElementById('customShiftSystemSection');
+    if (!container || document.getElementById('shiftModelSelectorContainer')) return;
+
+    const t = uiTranslations[currentLanguage];
+    const wrapper = document.createElement('div');
+    wrapper.id = 'shiftModelSelectorContainer';
+    wrapper.className = 'settings-section';
+    wrapper.style.marginBottom = '20px';
+    wrapper.style.backgroundColor = '#f0f0f0';
+    
+    let optionsHtml = `<option value="">-- ${t.settings.selectModel || 'Vorlage wählen'} --</option>`;
+    for (const [key, model] of Object.entries(SHIFT_MODELS)) {
+        optionsHtml += `<option value="${key}">${model.name}</option>`;
+    }
+
+    wrapper.innerHTML = `
+        <h4 style="margin-top:0; margin-bottom:10px;">📂 Vorlagen & Gruppen</h4>
+        <div class="settings-option">
+            <label>${t.settings.selectModel || 'Modell:'}</label>
+            <select id="shiftModelSelect" style="width:100%; padding:8px; border-radius:5px;">
+                ${optionsHtml}
+            </select>
+        </div>
+        <div class="settings-option" id="groupOffsetContainer" style="display:none;">
+            <label>${t.settings.selectGroup || 'Deine Gruppe:'}</label>
+            <select id="shiftGroupSelect" style="width:100%; padding:8px; border-radius:5px;">
+                <!-- Wird dynamisch gefüllt -->
+            </select>
+        </div>
+        <button id="applyModelBtn" class="confirm-button" style="width:100%; margin-top:10px;">${t.settings.applyModel || 'Anwenden'}</button>
+        <hr style="margin: 15px 0;">
+    `;
+
+    // Einfügen VOR den manuellen Eingabefeldern
+    container.insertBefore(wrapper, container.firstChild);
+
+    const modelSelect = document.getElementById('shiftModelSelect');
+    const groupSelect = document.getElementById('shiftGroupSelect');
+    const groupContainer = document.getElementById('groupOffsetContainer');
+    const applyBtn = document.getElementById('applyModelBtn');
+
+    modelSelect.addEventListener('change', () => {
+        const key = modelSelect.value;
+        if (key && SHIFT_MODELS[key]) {
+            const model = SHIFT_MODELS[key];
+            groupSelect.innerHTML = '';
+            
+            // Gruppen basierend auf Zykluslänge generieren
+            // Bei 8 Tagen Zyklus gibt es 8 mögliche Starttage (Gruppen)
+            const maxGroups = model.cycleLength > 60 ? 1 : model.cycleLength; // Begrenzung für sehr lange Zyklen
+            
+            for (let i = 0; i < maxGroups; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Gruppe ${i + 1}`;
+                groupSelect.appendChild(option);
+            }
+            groupContainer.style.display = 'block';
+        } else {
+            groupContainer.style.display = 'none';
+        }
+    });
+
+    applyBtn.addEventListener('click', () => {
+        const key = modelSelect.value;
+        const offset = parseInt(groupSelect.value) || 0;
+        
+        if (key && SHIFT_MODELS[key]) {
+            const model = SHIFT_MODELS[key];
+            let sequence = model.sequence;
+            let refDate = new Date(model.refDate);
+            
+            // Speziallogik für 7-Tage-Modell (56 Tage Sequenz generieren)
+            if (key === '7tage') {
+                // Wir generieren eine 56-Tage Sequenz (LCM von 7 und 8)
+                // Startdatum muss ein Montag sein (2024-01-01 ist Montag)
+                // Offset verschiebt den "Frei"-Tag im 8-Tage-Zyklus
+                
+                let seqArr = [];
+                // Wochen-Rotation: F, S, N, F, S, N, F, S (8 Wochen)
+                const weekRotation = ['F', 'S', 'F', 'S', 'F', 'S', 'F', 'S'];
+
+                for(let i=0; i<56; i++) {
+                    // 8-Tage Zyklus Berechnung mit Offset
+                    // Offset 0: Tag 7 ist Frei (Index 7, 15...) -> W W W W W W W F
+                    // Offset 1: Tag 0 ist Frei (Index 0, 8...) -> F W W W W W W W (Frei ist einen Tag später im Kalender relativ zum Start, wenn wir den Starttag verschieben würden, aber hier verschieben wir den Zyklus)
+                    // User will: "Gruppe die einen Tag später schichtfrei haben".
+                    // Das bedeutet, wir verschieben den Index des freien Tages.
+                    
+                    // Berechnung des Zyklus-Index (0-7)
+                    // Wir nutzen (i - offset) um den Zyklus zu verschieben
+                    let cycleIndex = (i - offset) % 8;
+                    if (cycleIndex < 0) cycleIndex += 8;
+
+                    if (cycleIndex === 7) {
+                        seqArr.push('Frei');
+                    } else {
+                        // Wochentag bestimmen (0=Mo, ..., 6=So) da refDate ein Montag ist
+                        const weekday = i % 7;
+                        const weekIndex = Math.floor(i / 7);
+                        const baseShift = weekRotation[weekIndex];
+
+                        if (weekday === 6) { // Sonntag
+                            seqArr.push('N'); // Sonntag immer Nacht
+                        } else if (weekday === 5) { // Samstag
+                            // Samstag entspricht der Schichtwoche (Früh oder Spät)
+                            seqArr.push(baseShift);
+                        } else { // Mo-Fr
+                            seqArr.push(baseShift);
+                        }
+                    }
+                }
+                sequence = seqArr.join(',');
+                // Bei diesem Modell bleibt das Startdatum fix auf dem Referenz-Montag,
+                // damit die Wochentags-Logik (Mo-Fr, Sa, So) stimmt.
+            } else {
+                // Für andere Modelle: Startdatum verschieben
+                refDate.setDate(refDate.getDate() + offset);
+            }
+
+            const newStartDate = formatDate(refDate);
+
+            // Werte in die Inputs setzen und speichern
+            document.getElementById('customShiftSequence').value = sequence;
+            document.getElementById('customShiftStartDate').value = newStartDate;
+            
+            // Visuals aktualisieren falls vorhanden
+            const seqInput = document.getElementById('customShiftSequence');
+            if (seqInput.renderVisuals) seqInput.renderVisuals();
+
+            saveCustomShiftSystem(); // Speichern auslösen
+        }
+    });
 }
 
 // Funktion zum Einstellen der Gruppen A und B
