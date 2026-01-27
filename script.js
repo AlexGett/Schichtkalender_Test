@@ -1001,110 +1001,196 @@ function injectCustomShiftButtons() {
     const input = document.getElementById('customShiftSequence');
     if (!input) return;
 
-    // Bestehende Buttons entfernen, um sie neu zu rendern (z.B. bei Sprachwechsel)
-    const existing = document.getElementById('shiftSequenceButtons');
-    if (existing) existing.remove();
+    // Input verstecken
+    input.style.display = 'none';
 
-    const container = document.createElement('div');
-    container.id = 'shiftSequenceButtons';
-    container.style.marginTop = '10px';
-    container.style.display = 'flex';
-    container.style.gap = '5px';
-    container.style.flexWrap = 'wrap';
-
-    const t = uiTranslations[currentLanguage].shiftButtons || uiTranslations['de'].shiftButtons;
-
-    const buttons = [
-        { label: t.early, value: t.early, class: 'fruehschicht' },
-        { label: t.late, value: t.late, class: 'spaetschicht' },
-        { label: t.night, value: t.night, class: 'nachtschicht' },
-        { label: t.free, value: t.free, class: 'freischicht' },
-        { label: t.saturday, value: t.saturday, class: 'samstag' }, // NEU
-        { label: t.sunday, value: t.sunday, class: 'sonntag' }      // NEU
-    ];
-
-    buttons.forEach(btn => {
-        const button = document.createElement('button');
-        button.textContent = btn.label;
-        button.type = 'button';
-        button.className = btn.class;
-        button.style.flex = '1';
-        button.style.padding = '10px';
-        button.style.border = '1px solid #ccc';
-        button.style.borderRadius = '5px';
-        button.style.cursor = 'pointer';
-        button.style.fontWeight = 'bold';
-        button.style.minWidth = '40px';
-        button.style.color = '#333';
-
-        button.addEventListener('click', () => {
-            let currentVal = input.value.trim();
-            if (currentVal.endsWith(',')) currentVal = currentVal.slice(0, -1);
-            
-            if (currentVal.length > 0) {
-                input.value = currentVal + ',' + btn.value;
-            } else {
-                input.value = btn.value;
-            }
-            input.scrollLeft = input.scrollWidth; // NEU: Zum Ende scrollen
-        });
-        container.appendChild(button);
-    });
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.innerHTML = '<i class="fas fa-backspace"></i>';
-    deleteBtn.type = 'button';
-    deleteBtn.style.flex = '0 0 auto';
-    deleteBtn.style.padding = '10px 15px';
-    deleteBtn.style.border = '1px solid #ccc';
-    deleteBtn.style.borderRadius = '5px';
-    deleteBtn.style.cursor = 'pointer';
-    deleteBtn.style.backgroundColor = '#eee';
-    deleteBtn.style.color = '#333';
-    deleteBtn.title = t.backspace;
-    
-    deleteBtn.addEventListener('click', () => {
-        let val = input.value.trim();
-        if (val.endsWith(',')) val = val.slice(0, -1);
-        
-        const lastComma = val.lastIndexOf(',');
-        if (lastComma !== -1) {
-            input.value = val.substring(0, lastComma);
-        } else {
-            input.value = '';
-        }
-    });
-    container.appendChild(deleteBtn);
-
-    // NEU: Button zum Löschen der gesamten Sequenz
-    const clearBtn = document.createElement('button');
-    clearBtn.innerHTML = '<i class="fas fa-trash"></i>';
-    clearBtn.type = 'button';
-    clearBtn.style.flex = '0 0 auto';
-    clearBtn.style.padding = '10px 15px';
-    clearBtn.style.border = '1px solid #ccc';
-    clearBtn.style.borderRadius = '5px';
-    clearBtn.style.cursor = 'pointer';
-    clearBtn.style.backgroundColor = '#eee';
-    clearBtn.style.color = '#333';
-    clearBtn.title = t.clear;
-    clearBtn.addEventListener('click', () => {
-        input.value = '';
-    });
-    container.appendChild(clearBtn);
-
-    if (input.parentNode) {
-        input.parentNode.insertBefore(container, input.nextSibling);
+    // Starttyp-Input verstecken, da wir diesen automatisch aus dem ersten Tag der Sequenz ermitteln
+    const startTypeInput = document.getElementById('customShiftStartType');
+    if (startTypeInput && startTypeInput.parentElement) {
+        startTypeInput.parentElement.style.display = 'none';
     }
+
+    // Container für den visuellen Builder erstellen
+    let builderContainer = document.getElementById('visualShiftBuilder');
+    if (!builderContainer) {
+        builderContainer = document.createElement('div');
+        builderContainer.id = 'visualShiftBuilder';
+        // Container-Klasse wird im render gesetzt oder ist generisch
+        input.parentNode.insertBefore(builderContainer, input);
+    }
+
+    // Event Listener für Startdatum, um die Tage im Builder zu aktualisieren
+    const startDateInput = document.getElementById('customShiftStartDate');
+    if (startDateInput) {
+        startDateInput.addEventListener('change', renderSequenceCalendar);
+    }
+
+    // Funktion am Input speichern für externen Zugriff
+    input.renderVisuals = renderSequenceCalendar;
+
+    // Initial rendern
+    renderSequenceCalendar();
+}
+
+// NEU: Funktion zum Rendern des Sequenz-Kalenders
+function renderSequenceCalendar() {
+    const container = document.getElementById('visualShiftBuilder');
+    if (!container) return;
+    
+    const input = document.getElementById('customShiftSequence');
+    const startDateInput = document.getElementById('customShiftStartDate');
+    
+    container.innerHTML = '';
+    
+    let sequence = input.value.split(',').filter(x => x.trim() !== '');
+    let startDate = new Date();
+    if (startDateInput && startDateInput.value) {
+        startDate = new Date(startDateInput.value);
+    }
+    
+    // Wochentag des Startdatums ermitteln (0=So, 1=Mo, ..., 6=Sa)
+    // Wir wollen Mo=0, ..., So=6 für das Raster
+    let startDayOfWeek = startDate.getDay(); 
+    let gridStartOffset = (startDayOfWeek + 6) % 7;
+
+    // Grid erstellen
+    const grid = document.createElement('div');
+    grid.className = 'sequence-calendar-grid';
+
+    // Header (Mo, Di, ...)
+    const days = uiTranslations[currentLanguage].days;
+    days.forEach(d => {
+        const header = document.createElement('div');
+        header.className = 'seq-cal-header';
+        header.textContent = d;
+        grid.appendChild(header);
+    });
+
+    // Leere Zellen für Offset am Anfang
+    for(let i=0; i<gridStartOffset; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'seq-cal-cell empty';
+        empty.style.cursor = 'default';
+        empty.style.background = 'transparent';
+        empty.style.border = 'none';
+        grid.appendChild(empty);
+    }
+
+    // Sequenz-Tage rendern
+    sequence.forEach((shift, index) => {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + index);
+        
+        const dateLabel = currentDate.getDate();
+        
+        const cell = document.createElement('div');
+        cell.className = 'seq-cal-cell filled';
+        
+        // Style basierend auf Schicht bestimmen
+        let shiftClass = '';
+        let shiftLabel = shift.substring(0, 1).toUpperCase();
+        const sLower = shift.toLowerCase();
+        const t = uiTranslations[currentLanguage].shiftButtons;
+        
+        if (sLower === 'fruehschicht' || sLower === 'f' || sLower === t.early.toLowerCase()) { shiftClass = 'fruehschicht'; shiftLabel = t.early; }
+        else if (sLower === 'spaetschicht' || sLower === 's' || sLower === t.late.toLowerCase()) { shiftClass = 'spaetschicht'; shiftLabel = t.late; }
+        else if (sLower === 'nachtschicht' || sLower === 'n' || sLower === t.night.toLowerCase()) { shiftClass = 'nachtschicht'; shiftLabel = t.night; }
+        else if (sLower === 'freischicht' || sLower === 'frei' || sLower === t.free.toLowerCase()) { shiftClass = 'freischicht'; shiftLabel = t.free; }
+        else if (sLower === 'samstag' || sLower === 'sa' || sLower === t.saturday.toLowerCase()) { shiftClass = 'samstag'; shiftLabel = t.saturday; }
+        else if (sLower === 'sonntag' || sLower === 'so' || sLower === t.sunday.toLowerCase()) { shiftClass = 'sonntag'; shiftLabel = t.sunday; }
+        
+        cell.classList.add(shiftClass);
+        cell.innerHTML = `<span class="seq-date">${dateLabel}</span><span class="seq-shift">${shiftLabel}</span>`;
+        
+        // Klick zum Ändern der Schicht
+        cell.addEventListener('click', () => {
+            openShiftPicker((newShift) => {
+                sequence[index] = newShift;
+                input.value = sequence.join(',');
+                renderSequenceCalendar();
+            });
+        });
+        
+        grid.appendChild(cell);
+    });
+    
+    // Plus-Button am Ende
+    const addBtn = document.createElement('div');
+    addBtn.className = 'seq-cal-cell add-btn';
+    addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+    addBtn.title = "Tag zum Zyklus hinzufügen";
+    addBtn.addEventListener('click', () => {
+        // Standardmäßig Frühschicht oder die letzte Schicht kopieren
+        const defaultShift = uiTranslations[currentLanguage].shiftButtons.early;
+        sequence.push(defaultShift);
+        input.value = sequence.join(',');
+        renderSequenceCalendar();
+    });
+    grid.appendChild(addBtn);
+    
+    container.appendChild(grid);
+
+    // Löschen-Button unter dem Kalender (nur wenn Sequenz existiert)
+    if (sequence.length > 0) {
+        const controls = document.createElement('div');
+        controls.style.marginTop = '5px';
+        controls.style.textAlign = 'right';
+        controls.innerHTML = `<button type="button" class="delete-button" style="width:auto; padding:5px 10px; font-size:0.9em;"><i class="fas fa-backspace"></i> ${uiTranslations[currentLanguage].shiftButtons.backspace || 'Löschen'}</button>`;
+        controls.querySelector('button').onclick = () => {
+            sequence.pop();
+            input.value = sequence.join(',');
+            renderSequenceCalendar();
+        };
+        container.appendChild(controls);
+    }
+}
+
+// NEU: Schicht-Auswahl-Modal
+function openShiftPicker(callback) {
+    const overlay = document.createElement('div');
+    overlay.className = 'shift-picker-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'shift-picker-modal';
+    
+    const t = uiTranslations[currentLanguage].shiftButtons;
+    const options = [
+        { label: t.early, val: t.early, cls: 'fruehschicht' },
+        { label: t.late, val: t.late, cls: 'spaetschicht' },
+        { label: t.night, val: t.night, cls: 'nachtschicht' },
+        { label: t.free, val: t.free, cls: 'freischicht' },
+        { label: t.saturday, val: t.saturday, cls: 'samstag' },
+        { label: t.sunday, val: t.sunday, cls: 'sonntag' }
+    ];
+    
+    options.forEach(opt => {
+        const btn = document.createElement('div');
+        btn.className = `shift-picker-option ${opt.cls}`;
+        btn.textContent = opt.label;
+        btn.onclick = () => {
+            callback(opt.val);
+            document.body.removeChild(overlay);
+        };
+        modal.appendChild(btn);
+    });
+    
+    overlay.appendChild(modal);
+    
+    // Schließen bei Klick außerhalb
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) document.body.removeChild(overlay);
+    });
+    
+    document.body.appendChild(overlay);
 }
 
 function saveCustomShiftSystem() {
 	const sequenceInput = document.getElementById('customShiftSequence').value.trim();
 	const startDateInput = document.getElementById('customShiftStartDate').value; //YYYY-MM-DD
-	const startTypeInput = document.getElementById('customShiftStartType').value.trim();
+	// const startTypeInput = document.getElementById('customShiftStartType').value.trim(); // Nicht mehr benötigt
 
 	// Eingaben validieren
-	if (!sequenceInput || !startDateInput || !startTypeInput) {
+	if (!sequenceInput || !startDateInput) {
 		showToast(uiTranslations[currentLanguage].prompts.fillAllFields, 'error');
 		return;
 	}
@@ -1138,24 +1224,10 @@ function saveCustomShiftSystem() {
 		return;
 	}
 
-	let parsedStartType = null;
-	const lowerStartType = startTypeInput.toLowerCase();
-	if (lowerStartType === 'f' || lowerStartType === 'früh' || lowerStartType === t.early.toLowerCase()) parsedStartType = 'fruehschicht';
-	else if (lowerStartType === 'n' || lowerStartType === 'nacht' || lowerStartType === t.night.toLowerCase()) parsedStartType = 'nachtschicht';
-	else if (lowerStartType === 's' || lowerStartType === 'spät' || lowerStartType === t.late.toLowerCase()) parsedStartType = 'spaetschicht';
-	else if (lowerStartType === 'frei' || lowerStartType === t.free.toLowerCase()) parsedStartType = 'freischicht';
-    else if (lowerStartType === 'sa' || lowerStartType === 'samstag' || lowerStartType === t.saturday.toLowerCase()) parsedStartType = 'samstag';
-    else if (lowerStartType === 'so' || lowerStartType === 'sonntag' || lowerStartType === t.sunday.toLowerCase()) parsedStartType = 'sonntag';
-
-	if (!parsedStartType) {
-		showToast(uiTranslations[currentLanguage].prompts.invalidStartType, 'error');
-		return;
-	}
-
-	if (!sequenceArray.includes(parsedStartType)) {
-		showToast(uiTranslations[currentLanguage].prompts.startTypeNotInSequence, 'error');
-		return;
-	}
+	// NEU: Der Starttyp ist IMMER der erste Eintrag der Sequenz, da der Benutzer
+    // den Zyklus ab dem Startdatum definiert.
+    const parsedStartType = sequenceArray[0];
+    const startTypeInput = parsedStartType; // Für Kompatibilität
 
 	// Speichere die Eingabewerte, um sie beim Laden wieder anzuzeigen
 	customShiftSystem = {
@@ -1225,7 +1297,10 @@ function setShiftGroup(group) {
 	customShiftSystem = newCustomShiftSystem;
 
 	// Update UI inputs
-	document.getElementById('customShiftSequence').value = sequenceInput;
+	const seqInput = document.getElementById('customShiftSequence');
+    seqInput.value = sequenceInput;
+    if (seqInput.renderVisuals) seqInput.renderVisuals(); // Visuals aktualisieren
+
 	document.getElementById('customShiftStartDate').value = startDate;
 	document.getElementById('customShiftStartType').value = startTypeInput;
 
