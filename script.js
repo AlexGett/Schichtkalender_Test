@@ -310,6 +310,25 @@ function applyLanguageToUI() {
         // Update Custom Shift Section
         const customShiftSection = document.getElementById('customShiftSystemSection');
         if (customShiftSection) {
+            // NEU: Update Model Selector (Vorlagen & Gruppen)
+            const modelContainer = document.getElementById('shiftModelSelectorContainer');
+            if (modelContainer) {
+                const h4 = modelContainer.querySelector('h4');
+                if (h4) h4.textContent = '📂 ' + (t.settings.shiftModelHeader || 'Vorlagen & Gruppen');
+                
+                const labels = modelContainer.querySelectorAll('label');
+                if (labels[0]) labels[0].textContent = t.settings.selectModel || 'Modell:';
+                if (labels[1]) labels[1].textContent = t.settings.selectGroup || 'Deine Gruppe:';
+                
+                const applyBtn = document.getElementById('applyModelBtn');
+                if (applyBtn) applyBtn.textContent = t.settings.applyModel || 'Anwenden';
+                
+                const modelSelect = document.getElementById('shiftModelSelect');
+                if (modelSelect && modelSelect.options[0] && modelSelect.options[0].value === "") {
+                    modelSelect.options[0].text = `-- ${t.settings.selectModel || 'Vorlage wählen'} --`;
+                }
+            }
+
             const p = customShiftSection.querySelector('.small-text');
             if (p) p.innerHTML = t.settings.customShiftIntro;
             
@@ -1318,7 +1337,7 @@ function injectModelSelector() {
     }
 
     wrapper.innerHTML = `
-        <h4 style="margin-top:0; margin-bottom:10px;">📂 Vorlagen & Gruppen</h4>
+        <h4 style="margin-top:0; margin-bottom:10px;">📂 ${t.settings.shiftModelHeader || 'Vorlagen & Gruppen'}</h4>
         <div class="settings-option">
             <label>${t.settings.selectModel || 'Modell:'}</label>
             <select id="shiftModelSelect" style="width:100%; padding:8px; border-radius:5px;">
